@@ -287,7 +287,7 @@ class AuditorController {
             required: false
           }]
         }],
-        order: [['auditoria', 'fecha_limite_carga', 'ASC']],
+        order: [['created_at', 'DESC']],
         limit,
         offset
       });

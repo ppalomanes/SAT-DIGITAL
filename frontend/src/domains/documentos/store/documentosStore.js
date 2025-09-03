@@ -74,6 +74,8 @@ const useDocumentosStore = create(
 
           // Recargar documentos para tener datos actualizados
           await get().cargarDocumentosAuditoria(auditoriaId);
+          // Actualizar progreso después de recargar documentos
+          await get().obtenerProgreso(auditoriaId);
           
           return response;
         } catch (error) {
@@ -106,6 +108,8 @@ const useDocumentosStore = create(
 
           // Recargar para actualizar progreso
           await get().cargarDocumentosAuditoria(auditoriaId);
+          // Actualizar progreso después de recargar documentos
+          await get().obtenerProgreso(auditoriaId);
         } catch (error) {
           set({ 
             error: error.message || 'Error eliminando documento',

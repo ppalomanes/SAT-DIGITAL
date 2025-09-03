@@ -237,14 +237,15 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
 
       <Grid container spacing={3}>
         {/* Panel de selección de sección */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={5}>
           <Card className="carga-documental__secciones">
             <CardHeader 
               title="Secciones Técnicas"
               subheader="Selecciona una sección para cargar documentos"
             />
             <CardContent>
-              <List dense>
+              <Box sx={{ maxHeight: '70vh', overflowY: 'auto' }}>
+                <List dense>
                 {seccionesDisponibles.map((seccion) => {
                   const tieneDocumentos = documentosPorSeccion[seccion.id];
                   const isSelected = seccionSeleccionada?.id === seccion.id;
@@ -347,12 +348,13 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
                   );
                 })}
               </List>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
         {/* Panel de carga de archivos */}
-        <Grid item xs={12} md={8}>
+        <Grid item xs={12} md={7}>
           {seccionSeleccionada ? (
             <Card className="carga-documental__carga">
               <CardHeader
