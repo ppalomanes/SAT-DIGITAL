@@ -1,0 +1,52 @@
+# Archivos ignorados por Prettier - Backend SAT-Digital
+
+# Dependencias
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos compilados
+dist/
+build/
+coverage/
+
+# Archivos temporales
+temp/
+tmp/
+uploads/
+*.tmp
+*.temp
+
+# Archivos de log
+logs/
+*.log
+
+# Base de datos
+*.sqlite
+*.db
+
+# Archivos de configuración del IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos autogenenerados
+package-lock.json
+yarn.lock
+
+# Archivos de backup
+*.backup
+*.bak
+
+# Archivos minificados
+*.min.js
+*.min.css
+
+# Documentación autogenerada
+docs/api/

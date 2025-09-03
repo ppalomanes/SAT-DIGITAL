@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen Diario - SAT Digital</title>
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .date-badge {
+            background-color: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .email-body {
+            padding: 30px 20px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+        }
+        .summary-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #6f42c1;
+        }
+        .summary-card.urgent {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        .summary-card.warning {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
+        .summary-card.success {
+            border-left-color: #28a745;
+            background-color: #f0fff4;
+        }
+        .card-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #6f42c1;
+        }
+        .card-number.urgent { color: #dc3545; }
+        .card-number.warning { color: #ffc107; }
+        .card-number.success { color: #28a745; }
+        .card-title {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+        .section-title {
+            color: #6f42c1;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+        }
+        .audit-list {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .audit-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .audit-item:last-child {
+            border-bottom: none;
+        }
+        .audit-name {
+            font-weight: 500;
+            color: #495057;
+        }
+        .audit-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-en-carga { background-color: #fff3cd; color: #856404; }
+        .status-pendiente { background-color: #d1ecf1; color: #0c5460; }
+        .status-critico { background-color: #f8d7da; color: #721c24; }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 10px 5px;
+        }
+        .btn-secondary {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 5px;
+        }
+        .quick-actions {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .message-preview {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .message-sender {
+            font-weight: bold;
+            color: #1565c0;
+        }
+        .message-content {
+            color: #1976d2;
+            margin-top: 5px;
+        }
+        .visit-item {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        .visit-date {
+            font-weight: bold;
+            color: #856404;
+        }
+        .visit-site {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+        .no-activity {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        @media (max-width: 480px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>📊 Resumen Diario</h1>
+            <div class="date-badge">{{fecha}}</div>
+        </div>
+        
+        <div class="email-body">
+            <h2>Buenos días, {{auditor}} 👋</h2>
+            
+            <p>Aquí tienes un resumen de las actividades y pendientes de hoy en el sistema de auditorías:</p>
+            
+            <div class="summary-grid">
+                <div class="summary-card {{#if (gt auditoriasPendientes 5)}}urgent{{else if (gt auditoriasPendientes 2)}}warning{{else}}success{{/if}}">
+                    <div class="card-number {{#if (gt auditoriasPendientes 5)}}urgent{{else if (gt auditoriasPendientes 2)}}warning{{else}}success{{/if}}">
+                        {{auditoriasPendientes}}
+                    </div>
+                    <div class="card-title">Auditorías Pendientes</div>
+                </div>
+                
+                <div class="summary-card {{#if (gt mensajesNoLeidos 10)}}urgent{{else if (gt mensajesNoLeidos 3)}}warning{{else}}success{{/if}}">
+                    <div class="card-number {{#if (gt mensajesNoLeidos 10)}}urgent{{else if (gt mensajesNoLeidos 3)}}warning{{else}}success{{/if}}">
+                        {{mensajesNoLeidos}}
+                    </div>
+                    <div class="card-title">Mensajes No Leídos</div>
+                </div>
+                
+                <div class="summary-card {{#if (gt proximasVisitas 3)}}warning{{else}}success{{/if}}">
+                    <div class="card-number {{#if (gt proximasVisitas 3)}}warning{{else}}success{{/if}}">
+                        {{proximasVisitas}}
+                    </div>
+                    <div class="card-title">Visitas Esta Semana</div>
+                </div>
+                
+                <div class="summary-card {{#if (gt alertasCriticas 0)}}urgent{{else}}success{{/if}}">
+                    <div class="card-number {{#if (gt alertasCriticas 0)}}urgent{{else}}success{{/if}}">
+                        {{alertasCriticas}}
+                    </div>
+                    <div class="card-title">Alertas Críticas</div>
+                </div>
+            </div>
+            
+            {{#if (gt auditoriasPendientes 0)}}
+            <div class="section-title">📋 Auditorías Pendientes de Revisión</div>
+            <div class="audit-list">
+                {{#each auditoriasDetalle}}
+                <div class="audit-item">
+                    <div>
+                        <div class="audit-name">{{nombre}}</div>
+                        <div class="visit-site">{{proveedor}} - {{fechaLimite}}</div>
+                    </div>
+                    <div class="audit-status status-{{estado}}">{{estado}}</div>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+            
+            {{#if (gt mensajesNoLeidos 0)}}
+            <div class="section-title">💬 Mensajes Recientes</div>
+            {{#each mensajesRecientes}}
+            <div class="message-preview">
+                <div class="message-sender">{{remitente}}</div>
+                <div class="message-content">{{contenido}}</div>
+            </div>
+            {{/each}}
+            {{/if}}
+            
+            {{#if (gt proximasVisitas 0)}}
+            <div class="section-title">📅 Próximas Visitas Programadas</div>
+            {{#each visitasProximas}}
+            <div class="visit-item">
+                <div class="visit-date">{{fecha}}</div>
+                <div class="visit-site">{{sitio}} - {{proveedor}}</div>
+            </div>
+            {{/each}}
+            {{/if}}
+            
+            {{#if (gt alertasCriticas 0)}}
+            <div class="section-title">⚠️ Alertas Críticas</div>
+            <div style="background-color: #fff5f5; border: 1px solid #f5c6cb; border-radius: 6px; padding: 15px; margin: 15px 0;">
+                {{#each alertas}}
+                <div style="margin: 10px 0; color: #721c24;">
+                    <strong>{{tipo}}:</strong> {{descripcion}}
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+            
+            <div class="quick-actions">
+                <h4>🚀 Acciones Rápidas</h4>
+                <a href="{{enlaceDashboard}}" class="btn-primary">
+                    📊 Ver Dashboard
+                </a>
+                <a href="{{enlaceAuditorias}}" class="btn-primary">
+                    📋 Mis Auditorías
+                </a>
+                <a href="{{enlaceChat}}" class="btn-secondary">
+                    💬 Ver Mensajes
+                </a>
+                <a href="{{enlaceCalendario}}" class="btn-secondary">
+                    📅 Cronograma
+                </a>
+            </div>
+            
+            {{#unless tieneActividad}}
+            <div class="no-activity">
+                <h3>🎉 ¡Todo al día!</h3>
+                <p>No tienes pendientes críticos por el momento. Buen trabajo manteniendo todo organizado.</p>
+            </div>
+            {{/unless}}
+            
+            <div style="background-color: #e8f5e8; border: 1px solid #c3e6c3; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h4 style="color: #2d5a2d; margin: 0 0 10px 0;">💡 Tip del día:</h4>
+                <p style="color: #2d5a2d; margin: 0;">Recuerda revisar los análisis automáticos de IA antes de las visitas presenciales. Esto te ayudará a enfocar mejor tu tiempo en sitio y identificar discrepancias más rápido.</p>
+            </div>
+        </div>
+        
+        <div class="email-footer">
+            <p>SAT-Digital - Sistema de Auditorías Técnicas</p>
+            <p>📱 <a href="{{enlaceMobile}}">Versión móvil</a> | ⚙️ <a href="{{enlaceConfiguracion}}">Configurar notificaciones</a></p>
+            <p style="font-size: 12px; color: #999;">
+                Resumen generado automáticamente a las {{horaGeneracion}}.
+                <br>
+                Puedes personalizar la frecuencia de estos resúmenes en tu configuración.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

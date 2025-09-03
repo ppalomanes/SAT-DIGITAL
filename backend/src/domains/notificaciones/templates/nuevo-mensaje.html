@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Mensaje - SAT Digital</title>
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #0084ff 0%, #00c6ff 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .email-body {
+            padding: 30px 20px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .message-box {
+            background-color: #f0f8ff;
+            border-left: 4px solid #0084ff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 6px 6px 0;
+        }
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+        .sender-info {
+            font-weight: bold;
+            color: #0084ff;
+        }
+        .message-content {
+            background-color: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e1ecf4;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .conversation-info {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .conversation-info h4 {
+            margin: 0 0 10px 0;
+            color: #495057;
+            font-size: 16px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #0084ff 0%, #00c6ff 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .btn-secondary {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .chat-bubble {
+            position: relative;
+            max-width: 80%;
+        }
+        .chat-bubble::after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            border: 10px solid transparent;
+            border-right-color: #f0f8ff;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+        .quick-actions {
+            text-align: center;
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .notification-badge {
+            background-color: #ff3b30;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>💬 Nuevo Mensaje</h1>
+            <p>Sistema de Comunicación SAT-Digital</p>
+        </div>
+        
+        <div class="email-body">
+            <h2>Tienes un nuevo mensaje</h2>
+            
+            <p>Hola <strong>{{destinatario}}</strong>,</p>
+            
+            <p>Has recibido un nuevo mensaje en el sistema de auditorías. Aquí tienes los detalles:</p>
+            
+            <div class="conversation-info">
+                <h4>📍 Información de la Conversación</h4>
+                <p><strong>Sitio:</strong> {{sitio}}</p>
+                <p><strong>Tema:</strong> {{conversacion}}</p>
+                <p><strong>De:</strong> {{remitente}} <span class="notification-badge">NUEVO</span></p>
+            </div>
+            
+            <div class="message-box">
+                <div class="message-meta">
+                    <span class="sender-info">{{remitente}}</span>
+                    <span>Hace un momento</span>
+                </div>
+                
+                <div class="chat-bubble">
+                    <div class="message-content">
+                        {{mensaje}}{{#if (gt mensaje.length 200)}}...{{/if}}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quick-actions">
+                <h4>🚀 Acciones Rápidas</h4>
+                <a href="{{enlaceConversacion}}" class="btn-primary">
+                    💬 Ver Conversación Completa
+                </a>
+                <a href="{{enlaceConversacion}}#responder" class="btn-secondary">
+                    ✍️ Responder Ahora
+                </a>
+            </div>
+            
+            <div style="background-color: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h4 style="color: #1565c0; margin: 0 0 10px 0;">💡 Recordatorio:</h4>
+                <p style="color: #1565c0; margin: 0;">Para mantener una comunicación fluida, te recomendamos responder a las consultas técnicas lo antes posible. Esto ayuda a mantener el cronograma de la auditoría.</p>
+            </div>
+        </div>
+        
+        <div class="email-footer">
+            <p>SAT-Digital - Sistema de Auditorías Técnicas</p>
+            <p>📧 <a href="{{enlaceConversacion}}">Ver todas las conversaciones</a></p>
+            <p style="font-size: 12px; color: #999;">
+                Puedes desactivar estas notificaciones desde la configuración de tu perfil.
+                <br>
+                Este mensaje fue enviado automáticamente, por favor no responder directamente.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

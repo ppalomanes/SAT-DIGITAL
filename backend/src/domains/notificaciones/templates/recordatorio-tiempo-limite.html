@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio - Auditoría Técnica</title>
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .email-header.urgente {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+        .email-header.importante {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .urgency-banner {
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .urgency-banner.urgente {
+            background-color: #ff4757;
+            color: white;
+        }
+        .urgency-banner.importante {
+            background-color: #ffa726;
+            color: white;
+        }
+        .urgency-banner.recordatorio {
+            background-color: #3742fa;
+            color: white;
+        }
+        .email-body {
+            padding: 30px 20px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .countdown-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .countdown-number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .countdown-text {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #ffa726;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #ffa726;
+            font-size: 18px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            margin: 20px 0;
+            font-size: 16px;
+        }
+        .btn-urgent {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .sections-list {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .sections-list h4 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        .sections-list ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .sections-list li {
+            color: #856404;
+            margin: 5px 0;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="urgency-banner {{urgencia}}">
+            {{#if (eq urgencia 'urgente')}}
+                🚨 URGENTE - ÚLTIMO DÍA PARA CARGAR DOCUMENTACIÓN
+            {{else if (eq urgencia 'importante')}}
+                ⚠️ IMPORTANTE - POCOS DÍAS RESTANTES
+            {{else}}
+                📅 RECORDATORIO - AUDITORÍA EN PROCESO
+            {{/if}}
+        </div>
+        
+        <div class="email-header {{urgencia}}">
+            <h1>⏰ Recordatorio de Auditoría</h1>
+            <p>Sistema de Auditorías Técnicas</p>
+        </div>
+        
+        <div class="email-body">
+            <h2>{{#if (eq diasRestantes 1)}}¡Último día!{{else}}Tiempo restante limitado{{/if}}</h2>
+            
+            <p>Estimado equipo de <strong>{{proveedor}}</strong>,</p>
+            
+            <p>Les recordamos que la fecha límite para completar la carga de documentación de la auditoría técnica se aproxima.</p>
+            
+            <div class="countdown-box">
+                <div class="countdown-number">{{diasRestantes}}</div>
+                <div class="countdown-text">
+                    {{#if (eq diasRestantes 1)}}día restante{{else}}días restantes{{/if}}
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3>📍 Detalles de la Auditoría</h3>
+                <p><strong>Sitio:</strong> {{sitio}}</p>
+                <p><strong>Fecha límite:</strong> {{fechaLimite}}</p>
+                <p><strong>Estado:</strong> {{#if (eq diasRestantes 1)}}⚠️ Crítico{{else if (eq diasRestantes 3)}}🟡 Importante{{else}}🟢 En seguimiento{{/if}}</p>
+            </div>
+            
+            {{#if seccionesPendientes.length}}
+            <div class="sections-list">
+                <h4>📋 Secciones Pendientes de Completar:</h4>
+                <ul>
+                    {{#each seccionesPendientes}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+            
+            <div style="text-align: center;">
+                <a href="{{enlaceAcceso}}" class="btn-primary {{#if (eq urgencia 'urgente')}}btn-urgent{{/if}}">
+                    {{#if (eq urgencia 'urgente')}}🚨 COMPLETAR AHORA{{else}}📤 Continuar Carga{{/if}}
+                </a>
+            </div>
+            
+            {{#if (eq diasRestantes 1)}}
+            <div style="background-color: #ffe6e6; border: 1px solid #ff9999; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h4 style="color: #cc0000; margin: 0 0 10px 0;">⚠️ Importante:</h4>
+                <p style="color: #cc0000; margin: 0;">La documentación incompleta después de esta fecha puede retrasar significativamente el proceso de auditoría y la programación de la visita presencial.</p>
+            </div>
+            {{/if}}
+        </div>
+        
+        <div class="email-footer">
+            <p>SAT-Digital - Sistema de Auditorías Técnicas</p>
+            <p>Para dudas técnicas: <a href="{{enlaceAcceso}}/chat">💬 Usar chat del sistema</a></p>
+            <p style="font-size: 12px; color: #999;">
+                Este es un mensaje automático enviado en base al cronograma de auditorías.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

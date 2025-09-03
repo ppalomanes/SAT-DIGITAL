@@ -1,0 +1,272 @@
+# CI/CD Pipeline - SAT-Digital
+# Integración continua para backend y frontend
+
+name: SAT-Digital CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Job para linting y formateo
+  lint-and-format:
+    name: 🔍 Lint & Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: 📥 Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: 🔍 ESLint Backend
+      working-directory: ./backend
+      run: npm run lint
+
+    - name: 🔍 ESLint Frontend
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: 💅 Prettier Check Backend
+      working-directory: ./backend
+      run: npx prettier --check src/
+
+    - name: 💅 Prettier Check Frontend
+      working-directory: ./frontend
+      run: npx prettier --check src/
+
+  # Job para tests del backend
+  test-backend:
+    name: 🧪 Backend Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: sat_digital_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Install Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: ⚙️ Setup Test Environment
+      working-directory: ./backend
+      run: |
+        cp .env.test.example .env.test
+        echo "DB_HOST=127.0.0.1" >> .env.test
+        echo "DB_PORT=3306" >> .env.test
+        echo "DB_NAME=sat_digital_test" >> .env.test
+        echo "DB_USER=root" >> .env.test
+        echo "DB_PASSWORD=" >> .env.test
+
+    - name: 🏗️ Wait for MySQL
+      run: |
+        while ! mysqladmin ping -h127.0.0.1 -P3306 -uroot --silent; do
+          echo "Waiting for MySQL..."
+          sleep 2
+        done
+
+    - name: 🧪 Run Unit Tests
+      working-directory: ./backend
+      run: npm run test:coverage
+
+    - name: 📊 Upload Coverage Reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./backend/coverage
+        flags: backend
+        name: backend-coverage
+
+  # Job para tests del frontend
+  test-frontend:
+    name: 🧪 Frontend Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-format
+
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Install Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: 🧪 Run Frontend Tests
+      working-directory: ./frontend
+      run: npm run test:coverage
+
+    - name: 📊 Upload Coverage Reports
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./frontend/coverage
+        flags: frontend
+        name: frontend-coverage
+
+  # Job para build del frontend
+  build-frontend:
+    name: 🏗️ Build Frontend
+    runs-on: ubuntu-latest
+    needs: [test-frontend]
+
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Install Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: 🏗️ Build Frontend
+      working-directory: ./frontend
+      run: npm run build
+
+    - name: 📁 Upload Build Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: ./frontend/dist
+        retention-days: 30
+
+  # Job para verificar dependencias de seguridad
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: 🔒 Audit Backend Dependencies
+      working-directory: ./backend
+      run: |
+        npm ci
+        npm audit --audit-level=high
+
+    - name: 🔒 Audit Frontend Dependencies
+      working-directory: ./frontend
+      run: |
+        npm ci
+        npm audit --audit-level=high
+
+  # Job para health check completo
+  health-check:
+    name: 🏥 System Health Check
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: sat_digital_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: 📦 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 📥 Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: ⚙️ Setup Environment
+      working-directory: ./backend
+      run: |
+        cp .env.test.example .env.test
+        echo "DB_HOST=127.0.0.1" >> .env.test
+        echo "DB_PORT=3306" >> .env.test
+
+    - name: 🏥 Run Health Check
+      working-directory: ./backend
+      run: npm run health-check
+
+  # Job de notificación de estado
+  notify-status:
+    name: 📢 Notify Status
+    runs-on: ubuntu-latest
+    needs: [security-audit, health-check, build-frontend]
+    if: always()
+
+    steps:
+    - name: 📢 Success Notification
+      if: ${{ needs.security-audit.result == 'success' && needs.health-check.result == 'success' && needs.build-frontend.result == 'success' }}
+      run: |
+        echo "✅ Pipeline completado exitosamente!"
+        echo "✅ Todos los checks pasaron correctamente"
+        echo "✅ Sistema listo para deployment"
+
+    - name: ⚠️ Failure Notification
+      if: ${{ needs.security-audit.result == 'failure' || needs.health-check.result == 'failure' || needs.build-frontend.result == 'failure' }}
+      run: |
+        echo "❌ Pipeline falló!"
+        echo "❌ Revisar logs para identificar problemas"
+        exit 1

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado Actualizado - SAT Digital</title>
+    <style>
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 300;
+        }
+        .email-body {
+            padding: 30px 20px;
+            line-height: 1.6;
+            color: #333333;
+        }
+        .status-transition {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        .status-box {
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 150px;
+        }
+        .status-programada { background-color: #e9ecef; color: #495057; }
+        .status-en-carga { background-color: #fff3cd; color: #856404; }
+        .status-pendiente-evaluacion { background-color: #d1ecf1; color: #0c5460; }
+        .status-evaluada { background-color: #d4edda; color: #155724; }
+        .status-cerrada { background-color: #f8d7da; color: #721c24; }
+        
+        .transition-arrow {
+            margin: 0 20px;
+            font-size: 24px;
+            color: #28a745;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-box h3 {
+            margin: 0 0 10px 0;
+            color: #28a745;
+            font-size: 18px;
+        }
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            position: relative;
+        }
+        .timeline-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .timeline-icon.completed {
+            background-color: #28a745;
+            color: white;
+        }
+        .timeline-icon.current {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .timeline-icon.pending {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .timeline-description {
+            color: #666;
+            font-size: 14px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+        .date-time {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🔄 Estado Actualizado</h1>
+            <p>Sistema de Auditorías Técnicas</p>
+        </div>
+        
+        <div class="email-body">
+            <h2>Actualización de Estado de Auditoría</h2>
+            
+            <p>Hola <strong>{{usuario}}</strong>,</p>
+            
+            <p>Te informamos que el estado de la auditoría del sitio <strong>{{sitio}}</strong> ha sido actualizado.</p>
+            
+            <div class="status-transition">
+                <div class="status-box status-{{estadoAnterior}}">
+                    {{#if (eq estadoAnterior 'programada')}}📅 Programada{{/if}}
+                    {{#if (eq estadoAnterior 'en_carga')}}📤 En Carga{{/if}}
+                    {{#if (eq estadoAnterior 'pendiente_evaluacion')}}⏳ Pendiente Evaluación{{/if}}
+                    {{#if (eq estadoAnterior 'evaluada')}}✅ Evaluada{{/if}}
+                </div>
+                
+                <div class="transition-arrow">➡️</div>
+                
+                <div class="status-box status-{{estadoNuevo}}">
+                    {{#if (eq estadoNuevo 'en_carga')}}📤 En Carga{{/if}}
+                    {{#if (eq estadoNuevo 'pendiente_evaluacion')}}⏳ Pendiente Evaluación{{/if}}
+                    {{#if (eq estadoNuevo 'evaluada')}}✅ Evaluada{{/if}}
+                    {{#if (eq estadoNuevo 'cerrada')}}🏁 Cerrada{{/if}}
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <h3>📍 Información de la Auditoría</h3>
+                <p><strong>Sitio:</strong> {{sitio}}</p>
+                <p><strong>Estado anterior:</strong> {{estadoAnterior}}</p>
+                <p><strong>Estado actual:</strong> {{estadoNuevo}}</p>
+                <div class="date-time">Actualizado el: {{fecha}}</div>
+            </div>
+            
+            <div class="timeline">
+                <h3>📈 Progreso de la Auditoría</h3>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon completed">✓</div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Auditoría Programada</div>
+                        <div class="timeline-description">Auditoría creada y notificada</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon {{#if (or (eq estadoNuevo 'en_carga') (eq estadoNuevo 'pendiente_evaluacion') (eq estadoNuevo 'evaluada') (eq estadoNuevo 'cerrada'))}}completed{{else}}pending{{/if}}">
+                        {{#if (or (eq estadoNuevo 'en_carga') (eq estadoNuevo 'pendiente_evaluacion') (eq estadoNuevo 'evaluada') (eq estadoNuevo 'cerrada'))}}✓{{else}}2{{/if}}
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Carga de Documentación</div>
+                        <div class="timeline-description">Proveedor carga documentos por secciones</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon {{#if (or (eq estadoNuevo 'pendiente_evaluacion') (eq estadoNuevo 'evaluada') (eq estadoNuevo 'cerrada'))}}completed{{else if (eq estadoNuevo 'en_carga')}}current{{else}}pending{{/if}}">
+                        {{#if (or (eq estadoNuevo 'pendiente_evaluacion') (eq estadoNuevo 'evaluada') (eq estadoNuevo 'cerrada'))}}✓{{else if (eq estadoNuevo 'en_carga')}}⏳{{else}}3{{/if}}
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Análisis con IA</div>
+                        <div class="timeline-description">Procesamiento automático de documentos</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon {{#if (or (eq estadoNuevo 'evaluada') (eq estadoNuevo 'cerrada'))}}completed{{else if (eq estadoNuevo 'pendiente_evaluacion')}}current{{else}}pending{{/if}}">
+                        {{#if (or (eq estadoNuevo 'evaluada') (eq estadoNuevo 'cerrada'))}}✓{{else if (eq estadoNuevo 'pendiente_evaluacion')}}⏳{{else}}4{{/if}}
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Visita Presencial</div>
+                        <div class="timeline-description">Validación en sitio por auditor</div>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon {{#if (eq estadoNuevo 'cerrada')}}completed{{else}}pending{{/if}}">
+                        {{#if (eq estadoNuevo 'cerrada')}}✓{{else}}5{{/if}}
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-title">Reportes Finales</div>
+                        <div class="timeline-description">Entrega de resultados y recomendaciones</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{enlaceAuditoria}}" class="btn-primary">
+                    🔍 Ver Detalles de la Auditoría
+                </a>
+            </div>
+            
+            {{#if (eq estadoNuevo 'pendiente_evaluacion')}}
+            <div style="background-color: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 6px; margin: 20px 0;">
+                <h4 style="color: #1565c0; margin: 0 0 10px 0;">📝 Próximo paso:</h4>
+                <p style="color: #1565c0; margin: 0;">La documentación ha sido procesada y está lista para evaluación. Se programará la visita presencial próximamente.</p>
+            </div>
+            {{/if}}
+        </div>
+        
+        <div class="email-footer">
+            <p>SAT-Digital - Sistema de Auditorías Técnicas</p>
+            <p>📊 <a href="{{enlaceAuditoria}}/dashboard">Ver Dashboard</a></p>
+            <p style="font-size: 12px; color: #999;">
+                Este es un mensaje automático del sistema. Los cambios de estado se registran automáticamente.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

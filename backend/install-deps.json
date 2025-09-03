@@ -1,0 +1,7 @@
+{
+  "name": "install-backend-deps",
+  "version": "1.0.0",
+  "scripts": {
+    "install-missing": "npm install multer winston"
+  }
+}

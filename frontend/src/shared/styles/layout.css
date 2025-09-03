@@ -1,0 +1,346 @@
+/* Layout principal SAT-Digital - Estilo moderno colapsable */
+.sat-digital-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* Sidebar colapsable */
+.sat-digital-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  background: linear-gradient(145deg, #1a1a1a 0%, #2d3748 100%);
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1200;
+  border-radius: 0 20px 20px 0;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.sat-digital-sidebar--expanded {
+  width: 260px;
+}
+
+.sat-digital-sidebar--collapsed {
+  width: 70px;
+}
+
+/* Header del sidebar */
+.sat-digital-sidebar__header {
+  display: flex;
+  align-items: center;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 80px;
+}
+
+.sat-digital-sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.sat-digital-sidebar__logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sat-digital-sidebar__logo-text {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+}
+
+.sat-digital-sidebar--collapsed .sat-digital-sidebar__logo-text {
+  opacity: 0;
+  width: 0;
+}
+
+/* Navigation */
+.sat-digital-sidebar__nav {
+  padding: 24px 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sat-digital-sidebar__nav-item {
+  position: relative;
+  margin: 4px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.sat-digital-sidebar__nav-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  position: relative;
+  border-radius: 12px;
+}
+
+.sat-digital-sidebar__nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  transform: translateX(4px);
+}
+
+.sat-digital-sidebar__nav-link--active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.sat-digital-sidebar__nav-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sat-digital-sidebar__nav-text {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sat-digital-sidebar--collapsed .sat-digital-sidebar__nav-text {
+  opacity: 0;
+  width: 0;
+}
+
+/* Tooltip para sidebar colapsado */
+.sat-digital-sidebar__tooltip {
+  position: absolute;
+  left: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #2d3748;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.sat-digital-sidebar--collapsed .sat-digital-sidebar__nav-item:hover .sat-digital-sidebar__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Footer del sidebar */
+.sat-digital-sidebar__footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sat-digital-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sat-digital-sidebar__user:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sat-digital-sidebar__user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sat-digital-sidebar__user-info {
+  flex: 1;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.sat-digital-sidebar--collapsed .sat-digital-sidebar__user-info {
+  opacity: 0;
+  width: 0;
+}
+
+.sat-digital-sidebar__user-name {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sat-digital-sidebar__user-role {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Toggle button */
+.sat-digital-sidebar__toggle {
+  position: absolute;
+  right: -15px;
+  top: 30px;
+  width: 30px;
+  height: 30px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.sat-digital-sidebar__toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sat-digital-sidebar__toggle-icon {
+  transition: transform 0.3s ease;
+}
+
+.sat-digital-sidebar--collapsed .sat-digital-sidebar__toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Área de contenido principal */
+.sat-digital-main {
+  flex: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sat-digital-main--expanded {
+  margin-left: 260px;
+}
+
+.sat-digital-main--collapsed {
+  margin-left: 70px;
+}
+
+/* Header principal */
+.sat-digital-header {
+  background: white;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 80px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sat-digital-header__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+}
+
+.sat-digital-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sat-digital-header__action-btn {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sat-digital-header__action-btn:hover {
+  border-color: #667eea;
+  color: #667eea;
+  transform: translateY(-1px);
+}
+
+.sat-digital-header__action-btn--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.sat-digital-header__action-btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Contenido principal */
+.sat-digital-content {
+  padding: 24px;
+  min-height: calc(100vh - 80px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sat-digital-sidebar {
+    transform: translateX(-100%);
+    border-radius: 0;
+  }
+  
+  .sat-digital-sidebar--mobile-open {
+    transform: translateX(0);
+  }
+  
+  .sat-digital-main {
+    margin-left: 0 !important;
+  }
+  
+  .sat-digital-sidebar__toggle {
+    display: none;
+  }
+  
+  .sat-digital-header {
+    padding-left: 16px;
+  }
+}

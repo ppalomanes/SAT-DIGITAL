@@ -1,0 +1,288 @@
+/* CargaDocumental.css - Estilos para carga de documentos con metodología BEM */
+
+.carga-documental {
+  /* Contenedor principal */
+  width: 100%;
+  padding: 1rem;
+}
+
+.carga-documental__progreso {
+  /* Barra de progreso general */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.carga-documental__progreso:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.carga-documental__secciones {
+  /* Panel de secciones técnicas */
+  height: fit-content;
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.carga-documental__seccion-item {
+  /* Item de sección individual */
+  border-radius: 8px;
+  margin: 0.25rem 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.carga-documental__seccion-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(25, 118, 210, 0.1),
+    transparent
+  );
+  transition: width 0.3s ease;
+}
+
+.carga-documental__seccion-item:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+  transform: translateX(2px);
+}
+
+.carga-documental__seccion-item:hover::before {
+  width: 100%;
+}
+
+.carga-documental__seccion-item.Mui-selected {
+  background-color: rgba(25, 118, 210, 0.12);
+  border-left: 4px solid #1976d2;
+}
+
+.carga-documental__carga {
+  /* Panel de carga de archivos */
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+}
+
+.carga-documental__dropzone {
+  /* Zona de drop de archivos */
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carga-documental__dropzone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(25, 118, 210, 0.1),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.carga-documental__dropzone--active::before {
+  left: 100%;
+}
+
+.carga-documental__dropzone--active {
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.2);
+  animation: pulso 2s infinite;
+}
+
+.carga-documental__archivo-item {
+  /* Item de archivo en la lista */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(248, 250, 252, 0.9)
+  );
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.carga-documental__archivo-item:hover {
+  border-color: rgba(25, 118, 210, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.carga-documental__archivo-item--subiendo {
+  background: linear-gradient(
+    135deg,
+    rgba(25, 118, 210, 0.05),
+    rgba(25, 118, 210, 0.02)
+  );
+  border-color: rgba(25, 118, 210, 0.3);
+}
+
+.carga-documental__archivo-item--completado {
+  background: linear-gradient(
+    135deg,
+    rgba(76, 175, 80, 0.05),
+    rgba(76, 175, 80, 0.02)
+  );
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.carga-documental__archivo-item--error {
+  background: linear-gradient(
+    135deg,
+    rgba(244, 67, 54, 0.05),
+    rgba(244, 67, 54, 0.02)
+  );
+  border-color: rgba(244, 67, 54, 0.3);
+}
+
+.carga-documental__botones {
+  /* Contenedor de botones */
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.carga-documental__boton {
+  /* Estilos base para botones */
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  text-transform: none;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.carga-documental__boton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.carga-documental__boton:hover::before {
+  left: 100%;
+}
+
+.carga-documental__boton--primario {
+  background: linear-gradient(135deg, #1976d2, #1565c0);
+  color: white;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.carga-documental__boton--primario:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.4);
+}
+
+.carga-documental__boton--secundario {
+  background: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.carga-documental__boton--secundario:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: #999;
+}
+
+.carga-documental__boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.carga-documental__boton:disabled::before {
+  display: none;
+}
+
+/* Indicadores de estado */
+.carga-documental__indicador-obligatorio {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #f44336;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+}
+
+.carga-documental__indicador-completado {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #4caf50;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+}
+
+.carga-documental__indicador-opcional {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #ff9800;
+  border-radius: 50%;
+  margin-left: 0.5rem;
+}
+
+/* Animaciones */
+@keyframes pulso {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .carga-documental {
+    padding: 0.5rem;
+  }
+  
+  .carga-documental__botones {
+    justify-content: center;
+  }
+  
+  .carga-documental__boton {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carga-documental__botones {
+    flex-direction: column;
+  }
+  
+  .carga-documental__boton {
+    width: 100%;
+  }
+}

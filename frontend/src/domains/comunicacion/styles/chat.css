@@ -1,0 +1,275 @@
+/* Estilos para Chat de Auditoría - Metodología BEM */
+/* Checkpoint 2.3 - Sistema Comunicación Asíncrona */
+
+.chat-auditoria {
+  position: relative;
+  height: 100%;
+}
+
+/* Header del chat */
+.chat-auditoria__header {
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fafafa;
+}
+
+.chat-auditoria__header .MuiCardHeader-title {
+  font-weight: 600;
+  color: #1976d2;
+}
+
+/* Lista de conversaciones */
+.chat-auditoria__conversation-item {
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.chat-auditoria__conversation-item:hover {
+  background-color: #f0f7ff;
+}
+
+.chat-auditoria__conversation-item.Mui-selected {
+  background-color: #e3f2fd;
+  border-left: 4px solid #1976d2;
+}
+
+/* Área de mensajes */
+.chat-auditoria__messages {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+}
+
+.chat-auditoria__messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-auditoria__messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.chat-auditoria__messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.chat-auditoria__messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mensajes individuales */
+.chat-auditoria__message {
+  margin-bottom: 16px;
+}
+
+.chat-auditoria__message--own {
+  text-align: right;
+}
+
+.chat-auditoria__message--own .MuiPaper-root {
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+}
+
+.chat-auditoria__message:not(.chat-auditoria__message--own) .MuiPaper-root {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Input de mensaje */
+.chat-auditoria__input {
+  background-color: white;
+}
+
+.chat-auditoria__input .MuiOutlinedInput-root {
+  border-radius: 20px;
+}
+
+.chat-auditoria__input .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2;
+}
+
+.chat-auditoria__input .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2;
+  border-width: 2px;
+}
+
+/* Estados de conexión */
+.chat-auditoria__connection-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.chat-auditoria__connection-status--connected {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.chat-auditoria__connection-status--disconnected {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
+/* Indicadores de escritura */
+.chat-auditoria__typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-style: italic;
+  color: #666;
+  background-color: #f9f9f9;
+  border-top: 1px solid #e0e0e0;
+}
+
+.chat-auditoria__typing-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.chat-auditoria__typing-dot {
+  width: 4px;
+  height: 4px;
+  background-color: #1976d2;
+  border-radius: 50%;
+  animation: chat-auditoria__typing-bounce 1.4s infinite ease-in-out both;
+}
+
+.chat-auditoria__typing-dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.chat-auditoria__typing-dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes chat-auditoria__typing-bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chat-auditoria__conversation-list {
+    width: 100%;
+  }
+  
+  .chat-auditoria__messages-area {
+    width: 100%;
+  }
+  
+  .chat-auditoria__message .MuiPaper-root {
+    max-width: 85%;
+  }
+}
+
+/* Animaciones para nuevos mensajes */
+@keyframes chat-auditoria__message-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-auditoria__message--new {
+  animation: chat-auditoria__message-slide-in 0.3s ease-out;
+}
+
+/* Notificaciones de chat */
+.chat-auditoria__notification {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  min-width: 250px;
+  animation: chat-auditoria__notification-slide-in 0.3s ease-out;
+}
+
+@keyframes chat-auditoria__notification-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Estados de mensaje */
+.chat-auditoria__message-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.chat-auditoria__message-status--sent {
+  color: #757575;
+}
+
+.chat-auditoria__message-status--read {
+  color: #4caf50;
+}
+
+/* Categorías de conversación */
+.chat-auditoria__categoria-chip--tecnico {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.chat-auditoria__categoria-chip--administrativo {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.chat-auditoria__categoria-chip--solicitud {
+  background-color: #e8f5e8;
+  color: #2e7d32;
+}
+
+.chat-auditoria__categoria-chip--problema {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Loading states */
+.chat-auditoria__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+}
+
+.chat-auditoria__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #999;
+  text-align: center;
+}
+
+.chat-auditoria__empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
