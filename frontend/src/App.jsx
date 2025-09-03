@@ -12,6 +12,7 @@ import Dashboard from './domains/dashboard/pages/Dashboard';
 import UsuariosPage from './domains/usuarios/pages/UsuariosPage';
 import ProveedoresPage from './domains/proveedores/pages/ProveedoresPage';
 import PeriodosAdmin from './domains/calendario/components/PeriodosAdmin';
+import DocumentosPage from './domains/documentos/pages/DocumentosPage';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -194,6 +195,17 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <div>Módulo de Auditorías - En desarrollo</div>
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/documentos" 
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <DocumentosPage />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

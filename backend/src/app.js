@@ -30,7 +30,7 @@ const authRoutes = require('./domains/auth/routes');
 const providerRoutes = require('./domains/providers/routes');
 const auditRoutes = require('./domains/audits/routes');
 const calendarioRoutes = require('./domains/calendario/routes');
-// const documentosRoutes = require('./domains/documentos/routes'); // TEMP: Comentado para debug
+const documentosRoutes = require('./domains/documentos/routes');
 // const comunicacionRoutes = require('./domains/comunicacion/routes'); // TEMP: Comentado para debug
 // const notificacionesRoutes = require('./domains/notificaciones/routes'); // TEMP: Comentado para debug
 
@@ -126,7 +126,7 @@ app.use(`${API_PREFIX}/auth`, authRoutes);
 app.use(`${API_PREFIX}/proveedores`, providerRoutes);
 app.use(`${API_PREFIX}/auditorias`, auditRoutes);
 app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
-// app.use(`${API_PREFIX}/documentos`, documentosRoutes); // TEMP: Comentado
+app.use(`${API_PREFIX}/documentos`, documentosRoutes);
 // app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes); // TEMP: Comentado
 // app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes); // TEMP: Comentado
 

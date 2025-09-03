@@ -14,7 +14,7 @@ router.use(verificarToken);
  * @access Proveedor, Auditor, Admin
  */
 router.post('/cargar', 
-  verificarRol('proveedor', 'auditor', 'admin'),
+  verificarRol('jefe_proveedor', 'tecnico_proveedor', 'auditor_general', 'auditor_interno', 'admin'),
   upload,
   handleMulterError,
   CargaController.cargar
@@ -35,7 +35,7 @@ router.get('/auditoria/:auditoria_id',
  * @access Proveedor (solo sus documentos), Auditor, Admin
  */
 router.delete('/:documento_id',
-  verificarRol('proveedor', 'auditor', 'admin'),
+  verificarRol('jefe_proveedor', 'tecnico_proveedor', 'auditor_general', 'auditor_interno', 'admin'),
   CargaController.eliminar
 );
 

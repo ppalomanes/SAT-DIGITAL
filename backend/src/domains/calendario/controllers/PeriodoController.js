@@ -225,7 +225,9 @@ class PeriodoController {
           const nuevaAuditoria = await Auditoria.create({
             sitio_id: sitio.id,
             periodo: periodoCodigo,
-            fecha_programada: periodo.fecha_inicio,
+            fecha_inicio: periodo.fecha_inicio,
+            fecha_limite_carga: periodo.fecha_limite_carga,
+            fecha_visita_programada: periodo.fecha_inicio_visitas,
             estado: 'programada'
           });
           
