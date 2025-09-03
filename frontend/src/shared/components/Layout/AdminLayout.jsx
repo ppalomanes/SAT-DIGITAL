@@ -72,6 +72,13 @@ const menuItems = {
       badge: null
     },
     {
+      id: 'documentos',
+      title: 'Documentos',
+      icon: <ReportsIcon />,
+      path: '/documentos',
+      badge: null
+    },
+    {
       id: 'usuarios',
       title: 'Usuarios',
       icon: <PeopleIcon />,

@@ -21,7 +21,7 @@ router.use(verificarToken);
  * Dashboard personalizado del auditor
  */
 router.get('/dashboard',
-  verificarRol('admin', 'auditor'),
+  verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor'),
   AuditorController.obtenerDashboard
 );
 
@@ -30,7 +30,7 @@ router.get('/dashboard',
  * Auditorías asignadas con filtros y paginación
  */
 router.get('/mis-auditorias',
-  verificarRol('admin', 'auditor'),
+  verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor'),
   AuditorController.obtenerMisAuditorias
 );
 
@@ -39,7 +39,7 @@ router.get('/mis-auditorias',
  * Consultas pendientes de respuesta
  */
 router.get('/consultas-pendientes',
-  verificarRol('admin', 'auditor'),
+  verificarRol('admin', 'auditor_general', 'auditor_interno'),
   AuditorController.obtenerConsultasPendientes
 );
 
@@ -48,7 +48,7 @@ router.get('/consultas-pendientes',
  * Detalle completo de auditoría para revisión
  */
 router.get('/:id/revision',
-  verificarRol('admin', 'auditor'),
+  verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor', 'tecnico_proveedor'),
   AuditorController.obtenerRevisionAuditoria
 );
 
@@ -57,7 +57,7 @@ router.get('/:id/revision',
  * Actualizar estado de auditoría
  */
 router.put('/:id/estado',
-  verificarRol('admin', 'auditor'),
+  verificarRol('admin', 'auditor_general', 'auditor_interno'),
   AuditorController.actualizarEstadoAuditoria
 );
 
@@ -66,7 +66,7 @@ router.put('/:id/estado',
  * Exportar reporte de estado
  */
 router.post('/exportar-reporte',
-  verificarRol('admin', 'auditor'),
+  verificarRol('admin', 'auditor_general', 'auditor_interno'),
   AuditorController.exportarReporte
 );
 

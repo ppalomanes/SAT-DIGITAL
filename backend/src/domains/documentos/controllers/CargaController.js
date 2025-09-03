@@ -145,7 +145,7 @@ class CargaController {
       }
 
       // Calcular progreso de la auditoría
-      const progreso = await this.calcularProgreso(auditoria_id);
+      const progreso = await CargaController.calcularProgreso(auditoria_id);
 
       // Respuesta final
       const respuesta = {
