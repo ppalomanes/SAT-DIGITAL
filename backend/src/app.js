@@ -47,11 +47,17 @@ const io = socketIo(server, {
       'http://localhost:3003',
       'http://localhost:3004',
       'http://localhost:3005',
+      'http://localhost:3006',
+      'http://localhost:3007',
+      'http://localhost:3008',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3003',
       'http://127.0.0.1:3004',
-      'http://127.0.0.1:3005', 
+      'http://127.0.0.1:3005',
+      'http://127.0.0.1:3006',
+      'http://127.0.0.1:3007',
+      'http://127.0.0.1:3008',
       'http://127.0.0.1:5173'
     ],
     credentials: true,
@@ -79,13 +85,19 @@ const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:3003',  // Puerto anterior del frontend
-    'http://localhost:3004',  // Puerto actual del frontend
-    'http://localhost:3005',  // Puerto actual del frontend
+    'http://localhost:3004',  // Puerto anterior del frontend
+    'http://localhost:3005',  // Puerto anterior del frontend
+    'http://localhost:3006',  // Puerto anterior del frontend
+    'http://localhost:3007',  // Puerto anterior del frontend
+    'http://localhost:3008',  // Puerto actual del frontend
     'http://localhost:5173',  // Puerto por defecto de Vite
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3003',
     'http://127.0.0.1:3004',
     'http://127.0.0.1:3005',
+    'http://127.0.0.1:3006',
+    'http://127.0.0.1:3007',
+    'http://127.0.0.1:3008',
     'http://127.0.0.1:5173'
   ],
   credentials: process.env.CORS_CREDENTIALS === 'true' || true,
