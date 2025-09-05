@@ -33,7 +33,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuthStore } from '../../auth/store/useAuthStore';
+import { useAuthStore } from '../../auth/store/authStore';
 import useChatStore from '../store/useChatStore';
 import dayjs from 'dayjs';
 

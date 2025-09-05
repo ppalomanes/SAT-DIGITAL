@@ -13,6 +13,7 @@ import UsuariosPage from './domains/usuarios/pages/UsuariosPage';
 import ProveedoresPage from './domains/proveedores/pages/ProveedoresPage';
 import PeriodosAdmin from './domains/calendario/components/PeriodosAdmin';
 import DocumentosPage from './domains/documentos/pages/DocumentosPage';
+import ComunicacionPage from './domains/comunicacion/pages/ComunicacionPage';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -206,6 +207,17 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <DocumentosPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/comunicacion" 
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <ComunicacionPage />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

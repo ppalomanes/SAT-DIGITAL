@@ -12,6 +12,8 @@ import {
   ChevronLeft,
   NotificationsNone,
   CalendarToday,
+  DescriptionOutlined,
+  ChatOutlined,
 } from '@mui/icons-material';
 import {
   IconButton,
@@ -30,6 +32,8 @@ const SIDEBAR_ITEMS = [
   { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', roles: 'all' },
   { text: 'Calendario', icon: <CalendarToday />, path: '/calendario', roles: ['admin', 'auditor'] },
   { text: 'Auditorías', icon: <Assignment />, path: '/auditorias', roles: 'all' },
+  { text: 'Documentos', icon: <DescriptionOutlined />, path: '/documentos', roles: 'all' },
+  { text: 'Comunicación', icon: <ChatOutlined />, path: '/comunicacion', roles: 'all' },
   { text: 'Proveedores', icon: <Business />, path: '/proveedores', roles: ['admin', 'auditor'] },
   { text: 'Usuarios', icon: <People />, path: '/usuarios', roles: ['admin'] },
   { text: 'Configuración', icon: <Settings />, path: '/configuracion', roles: 'all' },

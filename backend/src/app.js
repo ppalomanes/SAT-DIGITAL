@@ -21,8 +21,8 @@ const rateLimit = require('express-rate-limit');
 const { sequelize } = require('./shared/database/connection');
 const logger = require('./shared/utils/logger');
 const { errorHandler, notFoundHandler } = require('./shared/middleware/errorHandlers');
-// TEMP: Comentado para debug
-// const ChatHandler = require('./domains/comunicacion/websockets/chatHandler');
+// ChatHandler for WebSocket communication
+const ChatHandler = require('./domains/comunicacion/websockets/chatHandler');
 
 // Importar rutas por dominio
 const authRoutes = require('./domains/auth/routes');
@@ -31,7 +31,7 @@ const providerRoutes = require('./domains/providers/routes');
 const auditRoutes = require('./domains/audits/routes');
 const calendarioRoutes = require('./domains/calendario/routes');
 const documentosRoutes = require('./domains/documentos/routes');
-// const comunicacionRoutes = require('./domains/comunicacion/routes'); // TEMP: Comentado para debug
+const comunicacionRoutes = require('./domains/comunicacion/routes');
 // const notificacionesRoutes = require('./domains/notificaciones/routes'); // TEMP: Comentado para debug
 
 // Inicializar Express y HTTP Server
@@ -135,7 +135,7 @@ app.use(`${API_PREFIX}/proveedores`, providerRoutes);
 app.use(`${API_PREFIX}/auditorias`, auditRoutes);
 app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
 app.use(`${API_PREFIX}/documentos`, documentosRoutes);
-// app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes); // TEMP: Comentado
+app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes);
 // app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes); // TEMP: Comentado
 
 // Documentación API (Swagger) - solo en desarrollo
@@ -168,10 +168,9 @@ const startServer = async () => {
     //   logger.info('✅ Database models synchronized');
     // }
 
-    // Inicializar WebSocket handler - TEMP: Comentado
-    // global.chatHandler = new ChatHandler(io);
-    // logger.info('✅ WebSocket chat handler initialized');
-    global.chatHandler = null; // Placeholder
+    // Inicializar WebSocket handler
+    global.chatHandler = new ChatHandler(io);
+    logger.info('✅ WebSocket chat handler initialized');
 
     // Iniciar servidor
     server.listen(PORT, () => {
