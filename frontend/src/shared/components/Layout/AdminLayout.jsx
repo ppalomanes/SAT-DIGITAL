@@ -35,7 +35,8 @@ import {
   Timeline as TimelineIcon,
   Security as SecurityIcon,
   MenuOpen as MenuIcon,
-  Schedule as ScheduleIcon
+  Schedule as ScheduleIcon,
+  ChatOutlined as ChatIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../domains/auth/store/authStore';
 
@@ -76,6 +77,13 @@ const menuItems = {
       title: 'Documentos',
       icon: <ReportsIcon />,
       path: '/documentos',
+      badge: null
+    },
+    {
+      id: 'comunicacion',
+      title: 'Comunicación',
+      icon: <ChatIcon />,
+      path: '/comunicacion',
       badge: null
     },
     {
