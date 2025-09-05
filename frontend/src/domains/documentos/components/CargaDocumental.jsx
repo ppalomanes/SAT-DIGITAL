@@ -561,6 +561,7 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
           <LinearProgress />
         </Box>
       )}
+      </Grid>
     </div>
   );
 };
