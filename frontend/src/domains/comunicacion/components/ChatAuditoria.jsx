@@ -118,7 +118,7 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
     try {
       const datosConversacion = {
         ...nuevaConversacion,
-        seccion_id: seccionId
+        seccion_id: seccionId ? parseInt(seccionId) : null
       };
       
       const conversacion = await crearConversacion(auditoriaId, datosConversacion);

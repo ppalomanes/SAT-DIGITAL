@@ -4,6 +4,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import io from 'socket.io-client';
+import authService from '../../../shared/utils/authService';
+
+// Helper para obtener token de autenticación
+const getAuthToken = () => {
+  try {
+    const authData = localStorage.getItem('sat-digital-auth');
+    if (!authData) return null;
+    
+    const parsedAuth = JSON.parse(authData);
+    return parsedAuth.state?.token || null;
+  } catch (error) {
+    console.warn('Error obteniendo token:', error);
+    return null;
+  }
+};
 
 const useChatStore = create(
   persist(
@@ -97,7 +112,7 @@ const useChatStore = create(
         set({ loading: true, error: null });
         
         try {
-          const token = localStorage.getItem('token');
+          const token = getAuthToken();
           const response = await fetch(
             `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
             {
@@ -132,7 +147,7 @@ const useChatStore = create(
         set({ loading: true, error: null });
         
         try {
-          const token = localStorage.getItem('token');
+          const token = getAuthToken();
           const response = await fetch(
             `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
             {
@@ -169,7 +184,7 @@ const useChatStore = create(
 
       enviarMensaje: async (conversacionId, contenido, tipoMensaje = 'texto') => {
         try {
-          const token = localStorage.getItem('token');
+          const token = getAuthToken();
           const response = await fetch(
             `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/conversaciones/${conversacionId}/mensajes`,
             {
@@ -236,7 +251,7 @@ const useChatStore = create(
       
       obtenerNotificaciones: async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = getAuthToken();
           const response = await fetch(
             `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/notificaciones`,
             {
@@ -263,7 +278,7 @@ const useChatStore = create(
 
       contarNotificacionesNoLeidas: async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = getAuthToken();
           const response = await fetch(
             `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/notificaciones/count`,
             {

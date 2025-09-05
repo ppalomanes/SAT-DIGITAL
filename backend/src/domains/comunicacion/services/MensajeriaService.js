@@ -4,9 +4,9 @@
 const Conversacion = require('../models/Conversacion');
 const Mensaje = require('../models/Mensaje');
 const NotificacionUsuario = require('../models/NotificacionUsuario');
-const { Usuario, Auditoria, Sitio, SeccionTecnica } = require('../../../shared/database/models');
+const { Usuario, Auditoria, Sitio, SeccionTecnica, Op } = require('../../../shared/database/models');
 const NotificacionService = require('./NotificacionService');
-const BitacoraService = require('../../../shared/utils/bitacora');
+const { registrarBitacora } = require('../../../shared/utils/bitacora');
 
 class MensajeriaService {
   static async crearConversacion(auditoriaId, datos, usuarioCreador) {
@@ -21,7 +21,7 @@ class MensajeriaService {
       });
 
       // Registrar en bitácora
-      await BitacoraService.registrar(
+      await registrarBitacora(
         usuarioCreador.id,
         'CONVERSACION_CREADA',
         'Conversacion',

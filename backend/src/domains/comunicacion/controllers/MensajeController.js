@@ -17,7 +17,7 @@ const conversacionSchema = z.object({
   titulo: z.string().min(1).max(255),
   categoria: z.enum(['tecnico', 'administrativo', 'solicitud', 'problema']).optional(),
   prioridad: z.enum(['baja', 'normal', 'alta']).optional(),
-  seccion_id: z.number().optional(),
+  seccion_id: z.number().nullable().optional(),
   mensaje_inicial: z.string().optional()
 });
 
@@ -39,6 +39,17 @@ class MensajeController {
         message: 'Conversación creada exitosamente'
       });
     } catch (error) {
+      console.error('❌ Error en crearConversacion:', error);
+      
+      // Si es error de validación de Zod
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: 'Datos de conversación inválidos',
+          errors: error.errors
+        });
+      }
+      
       res.status(400).json({
         success: false,
         message: error.message
