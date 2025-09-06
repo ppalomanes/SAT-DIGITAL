@@ -294,9 +294,9 @@ const useChatStore = create(
           }
 
           const data = await response.json();
-          set({ notificacionesNoLeidas: data.data.count || 0 });
+          set({ notificacionesNoLeidas: data.data.no_leidas || 0 });
           
-          return data.data.count;
+          return data.data.no_leidas;
         } catch (error) {
           return 0;
         }

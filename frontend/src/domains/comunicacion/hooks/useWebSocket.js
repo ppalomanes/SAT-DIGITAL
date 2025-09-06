@@ -2,7 +2,7 @@
 // Checkpoint 2.3 - Sistema Comunicación Asíncrona
 
 import { useEffect, useCallback } from 'react';
-import { useAuthStore } from '../../auth/store/useAuthStore';
+import { useAuthStore } from '../../auth/store/authStore';
 import useChatStore from '../store/useChatStore';
 
 export const useWebSocket = () => {
@@ -13,6 +13,7 @@ export const useWebSocket = () => {
     desconectarSocket,
     contarNotificacionesNoLeidas 
   } = useChatStore();
+
 
   // Conectar WebSocket al hacer login
   const conectar = useCallback(() => {

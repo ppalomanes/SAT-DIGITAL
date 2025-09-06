@@ -36,9 +36,12 @@ import {
   Security as SecurityIcon,
   MenuOpen as MenuIcon,
   Schedule as ScheduleIcon,
-  ChatOutlined as ChatIcon
+  ChatOutlined as ChatIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../domains/auth/store/authStore';
+import { useWebSocket } from '../../../domains/comunicacion/hooks/useWebSocket';
+import NotificacionesToast from '../Notifications/NotificacionesToast';
 
 const DRAWER_WIDTH = 280;
 
@@ -84,6 +87,13 @@ const menuItems = {
       title: 'Comunicación',
       icon: <ChatIcon />,
       path: '/comunicacion',
+      badge: null
+    },
+    {
+      id: 'notificaciones',
+      title: 'Notificaciones',
+      icon: <NotificationsIcon />,
+      path: '/notificaciones',
       badge: null
     },
     {
@@ -135,6 +145,13 @@ const menuItems = {
       title: 'Cronograma',
       icon: <TimelineIcon />,
       path: '/cronograma',
+      badge: null
+    },
+    {
+      id: 'notificaciones',
+      title: 'Notificaciones',
+      icon: <NotificationsIcon />,
+      path: '/notificaciones',
       badge: null
     },
     {
@@ -202,6 +219,9 @@ const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { usuario, logout } = useAuthStore();
+  
+  // Inicializar WebSocket para chat y notificaciones en tiempo real
+  const { connected } = useWebSocket();
 
   const currentMenuItems = menuItems[usuario?.rol] || menuItems.admin;
 
@@ -249,7 +269,14 @@ const AdminLayout = ({ children }) => {
   };
 
   const drawer = (
-    <Box className="admin-layout__drawer">
+    <Box 
+      className="admin-layout__drawer" 
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
       {/* Header del Drawer */}
       <Box 
         className="admin-layout__drawer-header"
@@ -268,45 +295,10 @@ const AdminLayout = ({ children }) => {
         </Typography>
       </Box>
 
-      {/* Información del Usuario */}
-      <Box 
-        className="admin-layout__user-info"
-        sx={{
-          p: 2,
-          backgroundColor: alpha(theme.palette.primary.main, 0.05),
-          borderBottom: `1px solid ${theme.palette.divider}`
-        }}
-      >
-        <Box display="flex" alignItems="center" gap={2}>
-          <Avatar 
-            sx={{ 
-              width: 40, 
-              height: 40,
-              bgcolor: getRolColor(usuario?.rol)
-            }}
-          >
-            {usuario?.nombre?.charAt(0)?.toUpperCase()}
-          </Avatar>
-          <Box flex={1} minWidth={0}>
-            <Typography variant="subtitle2" fontWeight="bold" noWrap>
-              {usuario?.nombre || 'Usuario'}
-            </Typography>
-            <Chip 
-              label={usuario?.rol?.charAt(0).toUpperCase() + usuario?.rol?.slice(1)}
-              size="small"
-              sx={{
-                backgroundColor: getRolColor(usuario?.rol),
-                color: 'white',
-                fontSize: '0.75rem',
-                height: 20
-              }}
-            />
-          </Box>
-        </Box>
-      </Box>
 
       {/* Navegación */}
-      <List className="admin-layout__nav" sx={{ px: 1, py: 2 }}>
+      <Box sx={{ flex: 1, overflow: 'auto' }}>
+        <List className="admin-layout__nav" sx={{ px: 1, py: 2 }}>
         {currentMenuItems.map((item) => {
           const isActive = location.pathname === item.path;
           
@@ -371,23 +363,67 @@ const AdminLayout = ({ children }) => {
             </ListItem>
           );
         })}
-      </List>
+        </List>
+      </Box>
 
       {/* Footer del Drawer */}
       <Box 
         className="admin-layout__drawer-footer"
         sx={{
           mt: 'auto',
-          p: 2,
           borderTop: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
-          SAT-Digital v1.0
-        </Typography>
-        <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
-          © 2025 Sistema de Auditorías
-        </Typography>
+        
+        {/* Información del Usuario */}
+        <Box 
+          className="admin-layout__user-info-footer"
+          sx={{
+            p: 1.5,
+            borderTop: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={1.5}>
+            <Avatar 
+              sx={{ 
+                width: 32, 
+                height: 32,
+                bgcolor: getRolColor(usuario?.rol)
+              }}
+            >
+              {usuario?.nombre?.charAt(0)?.toUpperCase()}
+            </Avatar>
+            <Box flex={1} minWidth={0}>
+              <Typography variant="body2" fontWeight="600" noWrap sx={{ fontSize: '0.875rem' }}>
+                {usuario?.nombre || 'Usuario'}
+              </Typography>
+              <Box display="flex" alignItems="center" gap={0.5} mt={0.25}>
+                <Chip 
+                  label={usuario?.rol?.charAt(0).toUpperCase() + usuario?.rol?.slice(1)}
+                  size="small"
+                  sx={{
+                    backgroundColor: getRolColor(usuario?.rol),
+                    color: 'white',
+                    fontSize: '0.65rem',
+                    height: 16,
+                    '& .MuiChip-label': { px: 0.5 }
+                  }}
+                />
+                <Chip 
+                  label={connected ? 'Online' : 'Offline'}
+                  size="small"
+                  sx={{
+                    backgroundColor: connected ? '#4caf50' : '#9e9e9e',
+                    color: 'white',
+                    fontSize: '0.65rem',
+                    height: 16,
+                    '& .MuiChip-label': { px: 0.5 }
+                  }}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Box>
       </Box>
     </Box>
   );
@@ -499,6 +535,8 @@ const AdminLayout = ({ children }) => {
         className="admin-layout__content"
         sx={{
           flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
           p: 3,
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           minHeight: '100vh',
@@ -506,8 +544,23 @@ const AdminLayout = ({ children }) => {
         }}
       >
         <Toolbar />
-        <Box className="admin-layout__page-content">
+        <Box className="admin-layout__page-content" sx={{ flexGrow: 1 }}>
           {children}
+        </Box>
+
+        {/* Footer del Layout */}
+        <Box 
+          component="footer"
+          sx={{ 
+            mt: 'auto',
+            py: 2,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            textAlign: 'center'
+          }}
+        >
+          <Typography variant="caption" color="text.secondary">
+            SAT-Digital v1.0 © 2025 Sistema de Auditorías Técnicas
+          </Typography>
         </Box>
 
         {/* Menu de Usuario */}
@@ -579,6 +632,9 @@ const AdminLayout = ({ children }) => {
             />
           </MenuItem>
         </Menu>
+
+        {/* Sistema de notificaciones toast global */}
+        <NotificacionesToast />
       </Box>
     </Box>
   );
