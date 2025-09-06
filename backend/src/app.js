@@ -23,6 +23,8 @@ const logger = require('./shared/utils/logger');
 const { errorHandler, notFoundHandler } = require('./shared/middleware/errorHandlers');
 // ChatHandler for WebSocket communication
 const ChatHandler = require('./domains/comunicacion/websockets/chatHandler');
+// Sistema de notificaciones automáticas
+// const NotificacionesScheduler = require('./domains/notificaciones/services/NotificacionesScheduler'); // TEMP: Deshabilitado
 
 // Importar rutas por dominio
 const authRoutes = require('./domains/auth/routes');
@@ -32,7 +34,7 @@ const auditRoutes = require('./domains/audits/routes');
 const calendarioRoutes = require('./domains/calendario/routes');
 const documentosRoutes = require('./domains/documentos/routes');
 const comunicacionRoutes = require('./domains/comunicacion/routes');
-// const notificacionesRoutes = require('./domains/notificaciones/routes'); // TEMP: Comentado para debug
+// const notificacionesRoutes = require('./domains/notificaciones/routes'); // TEMP: Deshabilitado por error en routes
 
 // Inicializar Express y HTTP Server
 const app = express();
@@ -148,7 +150,7 @@ app.use(`${API_PREFIX}/auditorias`, auditRoutes);
 app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
 app.use(`${API_PREFIX}/documentos`, documentosRoutes);
 app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes);
-// app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes); // TEMP: Comentado
+// app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes); // TEMP: Deshabilitado por errores
 
 // Documentación API (Swagger) - solo en desarrollo
 if (process.env.NODE_ENV === 'development') {
@@ -183,6 +185,12 @@ const startServer = async () => {
     // Inicializar WebSocket handler
     global.chatHandler = new ChatHandler(io);
     logger.info('✅ WebSocket chat handler initialized');
+
+    // Inicializar sistema de notificaciones automáticas
+    // if (process.env.NODE_ENV !== 'test') {
+    //   NotificacionesScheduler.inicializar();
+    //   logger.info('✅ Sistema de notificaciones automáticas inicializado');
+    // } // TEMP: Deshabilitado
 
     // Iniciar servidor
     server.listen(PORT, () => {

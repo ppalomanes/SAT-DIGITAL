@@ -289,6 +289,17 @@ function App() {
               } 
             />
 
+            <Route 
+              path="/notificaciones" 
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <div>Módulo de Notificaciones - En desarrollo</div>
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+
             {/* Ruta 404 */}
             <Route 
               path="*" 

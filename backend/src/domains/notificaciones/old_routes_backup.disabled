@@ -1,0 +1,58 @@
+// backend/src/domains/notificaciones/routes.js
+const express = require('express');
+const { verificarToken, verificarRol } = require('../../shared/middleware/authMiddleware');
+const NotificacionController = require('./controllers/NotificacionController');
+
+const router = express.Router();
+
+// ===== RUTAS DASHBOARD NOTIFICACIONES (Solo Administradores) =====
+router.get('/dashboard/stats', 
+  verificarToken, 
+  verificarRol('admin', 'auditor_general'), 
+  NotificacionController.obtenerEstadisticasDashboard
+);
+
+router.get('/dashboard/jobs-status', 
+  verificarToken, 
+  verificarRol('admin'), 
+  NotificacionController.obtenerEstadoJobs
+);
+
+router.post('/dashboard/jobs/restart/:jobName', 
+  verificarToken, 
+  verificarRol('admin'), 
+  NotificacionController.reiniciarJob
+);
+
+router.get('/dashboard/notifications', 
+  verificarToken, 
+  verificarRol('admin', 'auditor_general'), 
+  NotificacionController.obtenerHistorialNotificaciones
+);
+
+// ===== RUTAS USUARIO (Notificaciones personales) =====
+router.get('/mis-notificaciones', 
+  verificarToken, 
+  NotificacionController.obtenerMisNotificaciones
+);
+
+router.put('/mis-notificaciones/:id/marcar-leida', 
+  verificarToken, 
+  NotificacionController.marcarComoLeida
+);
+
+router.get('/mis-notificaciones/contador', 
+  verificarToken, 
+  NotificacionController.contarNoLeidas
+);
+
+// ===== RUTAS TESTING (Solo desarrollo) =====
+if (process.env.NODE_ENV === 'development') {
+  router.post('/test/send-email', 
+    verificarToken, 
+    verificarRol('admin'), 
+    NotificacionController.enviarEmailPrueba
+  );
+}
+
+module.exports = router;

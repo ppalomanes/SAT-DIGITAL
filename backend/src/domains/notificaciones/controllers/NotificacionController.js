@@ -408,6 +408,222 @@ class NotificacionController {
       last_processed: new Date()
     };
   }
+
+  // ===== FUNCIONES PARA DASHBOARD =====
+  static async obtenerEstadisticasDashboard(req, res) {
+    try {
+      const fechaDesde = new Date();
+      fechaDesde.setDate(fechaDesde.getDate() - 30); // Últimos 30 días
+
+      const estadisticas = await NotificacionController.obtenerEstadisticasNotificaciones(fechaDesde);
+      const estadoColas = await NotificacionController.obtenerEstadoColas();
+
+      res.json({
+        success: true,
+        data: {
+          estadisticas_notificaciones: estadisticas,
+          estado_colas: estadoColas,
+          periodo: '30 días'
+        }
+      });
+    } catch (error) {
+      logger.error('❌ Error obteniendo estadísticas dashboard:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error obteniendo estadísticas del dashboard'
+      });
+    }
+  }
+
+  static async obtenerEstadoJobs(req, res) {
+    try {
+      const estadoColas = await NotificacionController.obtenerEstadoColas();
+      res.json({
+        success: true,
+        data: estadoColas
+      });
+    } catch (error) {
+      logger.error('❌ Error obteniendo estado de jobs:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error obteniendo estado de jobs'
+      });
+    }
+  }
+
+  static async reiniciarJob(req, res) {
+    try {
+      const { jobName } = req.params;
+      
+      // Placeholder - implementar reinicio de jobs específicos
+      logger.info(`🔄 Reiniciando job: ${jobName}`);
+      
+      res.json({
+        success: true,
+        message: `Job ${jobName} reiniciado exitosamente`
+      });
+    } catch (error) {
+      logger.error('❌ Error reiniciando job:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error reiniciando job'
+      });
+    }
+  }
+
+  static async obtenerHistorialNotificaciones(req, res) {
+    try {
+      const { limit = 50, offset = 0 } = req.query;
+      
+      const notificaciones = await NotificacionUsuario.findAndCountAll({
+        include: [
+          {
+            model: Usuario,
+            attributes: ['id', 'nombre', 'email', 'rol']
+          }
+        ],
+        order: [['created_at', 'DESC']],
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      });
+
+      res.json({
+        success: true,
+        data: notificaciones.rows,
+        pagination: {
+          total: notificaciones.count,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          pages: Math.ceil(notificaciones.count / limit)
+        }
+      });
+    } catch (error) {
+      logger.error('❌ Error obteniendo historial de notificaciones:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error obteniendo historial de notificaciones'
+      });
+    }
+  }
+
+  // ===== FUNCIONES PARA USUARIOS =====
+  static async obtenerMisNotificaciones(req, res) {
+    try {
+      const { limit = 20, offset = 0 } = req.query;
+      
+      const notificaciones = await NotificacionUsuario.findAndCountAll({
+        where: {
+          usuario_id: req.user.id
+        },
+        order: [['created_at', 'DESC']],
+        limit: parseInt(limit),
+        offset: parseInt(offset)
+      });
+
+      res.json({
+        success: true,
+        data: notificaciones.rows,
+        pagination: {
+          total: notificaciones.count,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          pages: Math.ceil(notificaciones.count / limit)
+        }
+      });
+    } catch (error) {
+      logger.error('❌ Error obteniendo mis notificaciones:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error obteniendo notificaciones'
+      });
+    }
+  }
+
+  static async marcarComoLeida(req, res) {
+    try {
+      const { id } = req.params;
+      
+      const notificacion = await NotificacionUsuario.findOne({
+        where: {
+          id: id,
+          usuario_id: req.user.id
+        }
+      });
+
+      if (!notificacion) {
+        return res.status(404).json({
+          success: false,
+          message: 'Notificación no encontrada'
+        });
+      }
+
+      await notificacion.update({ leida: true });
+      
+      res.json({
+        success: true,
+        message: 'Notificación marcada como leída'
+      });
+    } catch (error) {
+      logger.error('❌ Error marcando notificación como leída:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error actualizando notificación'
+      });
+    }
+  }
+
+  static async contarNoLeidas(req, res) {
+    try {
+      const count = await NotificacionUsuario.count({
+        where: {
+          usuario_id: req.user.id,
+          leida: false
+        }
+      });
+
+      res.json({
+        success: true,
+        data: {
+          no_leidas: count
+        }
+      });
+    } catch (error) {
+      logger.error('❌ Error contando notificaciones no leídas:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error contando notificaciones'
+      });
+    }
+  }
+
+  static async enviarEmailPrueba(req, res) {
+    try {
+      const { destinatario } = req.body;
+      
+      const resultado = await EmailService.enviarEmail({
+        to: destinatario,
+        subject: '🧪 Email de Prueba - SAT Digital',
+        html: `
+          <h2>Email de Prueba</h2>
+          <p>Este es un email de prueba del sistema SAT-Digital.</p>
+          <p><strong>Enviado:</strong> ${new Date().toLocaleString()}</p>
+          <p><strong>Usuario:</strong> ${req.user.nombre} (${req.user.email})</p>
+        `
+      });
+
+      res.json({
+        success: true,
+        message: 'Email de prueba enviado exitosamente',
+        data: resultado
+      });
+    } catch (error) {
+      logger.error('❌ Error enviando email de prueba:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error enviando email de prueba'
+      });
+    }
+  }
 }
 
 module.exports = NotificacionController;

@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 const handlebars = require('handlebars');
 const fs = require('fs').promises;
 const path = require('path');
-const { logger } = require('../../../shared/utils/logger');
+const logger = require('../../../shared/utils/logger');
 
 class EmailService {
   constructor() {
@@ -16,7 +16,7 @@ class EmailService {
    */
   async initialize() {
     try {
-      this.transporter = nodemailer.createTransporter({
+      this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
         port: process.env.SMTP_PORT || 587,
         secure: false,
@@ -32,7 +32,7 @@ class EmailService {
       logger.error('❌ Error inicializando EmailService:', error);
       // En desarrollo, usar transporter de prueba
       this.transporter = nodemailer.createTestAccount().then(account => {
-        return nodemailer.createTransporter({
+        return nodemailer.createTransport({
           host: 'smtp.ethereal.email',
           port: 587,
           secure: false,

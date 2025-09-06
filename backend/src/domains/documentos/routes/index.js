@@ -2,6 +2,7 @@ const express = require('express');
 const { verificarToken, verificarRol } = require('../../../shared/middleware/authMiddleware');
 const { upload, handleMulterError } = require('../middleware/upload.middleware');
 const CargaController = require('../controllers/CargaController');
+const { SeccionTecnica } = require('../../../shared/database/models');
 
 const router = express.Router();
 
@@ -55,6 +56,41 @@ router.get('/progreso/:auditoria_id', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Error calculando progreso'
+    });
+  }
+});
+
+/**
+ * @route GET /api/documentos/secciones-tecnicas
+ * @description Obtener todas las secciones técnicas disponibles
+ * @access Todos los usuarios autenticados
+ */
+router.get('/secciones-tecnicas', async (req, res) => {
+  try {
+    const secciones = await SeccionTecnica.findAll({
+      where: { estado: 'activa' },
+      order: [['orden_presentacion', 'ASC']],
+      attributes: [
+        'id',
+        'codigo', 
+        'nombre',
+        'descripcion',
+        'tipo_analisis',
+        'obligatoria',
+        'orden_presentacion'
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: secciones
+    });
+  } catch (error) {
+    console.error('Error obteniendo secciones técnicas:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo secciones técnicas',
+      details: error.message
     });
   }
 });

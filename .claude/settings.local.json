@@ -16,7 +16,13 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(mysql:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(start http://localhost:3008/documentos)",
+      "Bash(ren:*)",
+      "Bash(start http://localhost:3008/comunicacion)",
+      "Bash(taskkill:*)",
+      "Bash(start http://localhost:3008/dashboard)",
+      "Bash(start http://localhost:3000/dashboard)"
     ],
     "deny": [],
     "ask": []

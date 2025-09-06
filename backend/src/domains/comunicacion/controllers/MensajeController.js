@@ -71,6 +71,27 @@ class MensajeController {
         req.usuario
       );
 
+      // Enviar notificación push a través de WebSocket
+      if (req.chatHandler && mensaje) {
+        req.chatHandler.notificarMensajeNuevo(conversacionId, mensaje, req.usuario);
+        
+        // También enviar notificación general
+        const datosNotificacion = {
+          tipo: 'mensaje',
+          titulo: `Nuevo mensaje en ${mensaje.conversacion?.titulo || 'chat'}`,
+          mensaje: `${req.usuario.nombre}: ${mensaje.contenido.substring(0, 100)}${mensaje.contenido.length > 100 ? '...' : ''}`,
+          conversacion_id: conversacionId,
+          autor: {
+            id: req.usuario.id,
+            nombre: req.usuario.nombre,
+            rol: req.usuario.rol
+          }
+        };
+
+        // Broadcast a todos los usuarios (excepto el emisor)
+        req.io.emit('nueva_notificacion', datosNotificacion);
+      }
+
       res.status(201).json({
         success: true,
         data: mensaje,

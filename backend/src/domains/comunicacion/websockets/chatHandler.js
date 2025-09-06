@@ -51,15 +51,34 @@ class ChatHandler {
       // Unirse a sala personal para notificaciones
       socket.join(`user_${socket.usuario.id}`);
 
+      // Notificar a todos sobre nuevo usuario conectado
+      socket.broadcast.emit('user_connected', {
+        id: socket.usuario.id,
+        nombre: socket.usuario.nombre,
+        rol: socket.usuario.rol,
+        conectadoEn: new Date()
+      });
+
       // Eventos del chat
       this.setupChatEvents(socket);
       
       // Eventos de notificaciones
       this.setupNotificationEvents(socket);
 
+      // Solicitar usuarios conectados
+      socket.on('get_connected_users', () => {
+        const usuariosConectados = this.obtenerUsuariosConectados();
+        socket.emit('connected_users', usuariosConectados);
+      });
+
       // Desconexión
       socket.on('disconnect', () => {
         console.log(`❌ Usuario desconectado: ${socket.usuario.nombre}`);
+        
+        // Notificar a todos sobre usuario desconectado
+        socket.broadcast.emit('user_disconnected', socket.usuario.id);
+        
+        // Remover de la lista
         this.connectedUsers.delete(socket.usuario.id);
       });
     });
