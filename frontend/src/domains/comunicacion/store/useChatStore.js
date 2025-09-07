@@ -5,15 +5,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import io from 'socket.io-client';
 import authService from '../../../shared/utils/authService';
+import { useAuthStore } from '../../auth/store/authStore';
 
 // Helper para obtener token de autenticación
 const getAuthToken = () => {
   try {
-    const authData = localStorage.getItem('sat-digital-auth');
-    if (!authData) return null;
-    
-    const parsedAuth = JSON.parse(authData);
-    return parsedAuth.state?.token || null;
+    // Usar directamente el store de auth en lugar de localStorage
+    const authState = useAuthStore.getState();
+    return authState.token || null;
   } catch (error) {
     console.warn('Error obteniendo token:', error);
     return null;
@@ -53,7 +52,7 @@ const useChatStore = create(
           return;
         }
 
-        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:3001', {
+        const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002', {
           auth: { token },
           transports: ['websocket', 'polling']
         });
@@ -114,7 +113,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -149,7 +148,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
             {
               method: 'POST',
               headers: {
@@ -182,11 +181,11 @@ const useChatStore = create(
         }
       },
 
-      enviarMensaje: async (conversacionId, contenido, tipoMensaje = 'texto') => {
+      enviarMensaje: async (conversacionId, contenido, tipoMensaje = 'texto', respuestaAId = null) => {
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/conversaciones/${conversacionId}/mensajes`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/conversaciones/${conversacionId}/mensajes`,
             {
               method: 'POST',
               headers: {
@@ -195,13 +194,51 @@ const useChatStore = create(
               },
               body: JSON.stringify({
                 contenido,
-                tipo_mensaje: tipoMensaje
+                tipo_mensaje: tipoMensaje,
+                responde_a_mensaje_id: respuestaAId
               })
             }
           );
 
           if (!response.ok) {
             throw new Error('Error enviando mensaje');
+          }
+
+          const data = await response.json();
+          
+          // Agregar mensaje localmente
+          get().agregarMensajeLocal(conversacionId, data.data);
+          
+          return data.data;
+        } catch (error) {
+          set({ error: error.message });
+          throw error;
+        }
+      },
+
+      enviarArchivo: async (conversacionId, archivo, contenido = '', respuestaAId = null) => {
+        try {
+          const token = getAuthToken();
+          const formData = new FormData();
+          formData.append('archivo', archivo);
+          formData.append('contenido', contenido);
+          if (respuestaAId) {
+            formData.append('responde_a_mensaje_id', respuestaAId);
+          }
+
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/conversaciones/${conversacionId}/archivos`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              },
+              body: formData
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Error enviando archivo');
           }
 
           const data = await response.json();
@@ -253,7 +290,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/notificaciones`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/notificaciones`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -280,7 +317,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/comunicacion/notificaciones/count`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/notificaciones/count`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -350,6 +387,49 @@ const useChatStore = create(
       limpiarMensajes: () => set({ mensajesActivos: new Map() }),
 
       // Acción para limpiar todo al logout
+      marcarMensajeComoLeido: async (mensajeId) => {
+        try {
+          const token = getAuthToken();
+          const response = await fetch(
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/mensajes/${mensajeId}/leer`,
+            {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Error marcando mensaje como leído');
+          }
+
+          // Actualizar mensaje localmente
+          set(state => {
+            const newMensajes = new Map(state.mensajesActivos);
+            for (const [conversacionId, mensajes] of newMensajes.entries()) {
+              const mensajeIndex = mensajes.findIndex(m => m.id === mensajeId);
+              if (mensajeIndex !== -1) {
+                mensajes[mensajeIndex] = {
+                  ...mensajes[mensajeIndex],
+                  estado_mensaje: 'leido',
+                  leido_at: new Date().toISOString()
+                };
+                break;
+              }
+            }
+            return { mensajesActivos: newMensajes };
+          });
+
+          return true;
+        } catch (error) {
+          console.error('Error marcando mensaje como leído:', error);
+          set({ error: error.message });
+          return false;
+        }
+      },
+
       limpiarTodo: () => {
         const { socket } = get();
         if (socket) {

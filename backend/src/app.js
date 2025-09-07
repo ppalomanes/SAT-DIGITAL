@@ -52,6 +52,8 @@ const io = socketIo(server, {
       'http://localhost:3006',
       'http://localhost:3007',
       'http://localhost:3008',
+      'http://localhost:3010',
+      'http://localhost:3011',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3003',
@@ -60,6 +62,8 @@ const io = socketIo(server, {
       'http://127.0.0.1:3006',
       'http://127.0.0.1:3007',
       'http://127.0.0.1:3008',
+      'http://127.0.0.1:3010',
+      'http://127.0.0.1:3011',
       'http://127.0.0.1:5173'
     ],
     credentials: true,
@@ -92,6 +96,8 @@ const corsOptions = {
     'http://localhost:3006',  // Puerto anterior del frontend
     'http://localhost:3007',  // Puerto anterior del frontend
     'http://localhost:3008',  // Puerto actual del frontend
+    'http://localhost:3010',  // Puerto nuevo del frontend
+    'http://localhost:3011',  // Puerto actual del frontend
     'http://localhost:5173',  // Puerto por defecto de Vite
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3003',
@@ -100,6 +106,8 @@ const corsOptions = {
     'http://127.0.0.1:3006',
     'http://127.0.0.1:3007',
     'http://127.0.0.1:3008',
+    'http://127.0.0.1:3010',
+    'http://127.0.0.1:3011',
     'http://127.0.0.1:5173'
   ],
   credentials: process.env.CORS_CREDENTIALS === 'true' || true,
@@ -118,6 +126,9 @@ app.use(morgan('combined', {
 app.use(cookieParser()); // Parse cookies
 app.use(express.json({ limit: '50mb' })); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Parse URL-encoded bodies
+
+// Servir archivos estáticos (uploads)
+app.use('/uploads', express.static('src/uploads'));
 
 // Middleware para hacer Socket.IO disponible en rutas
 app.use((req, res, next) => {

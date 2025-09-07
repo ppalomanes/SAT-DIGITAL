@@ -19,7 +19,15 @@ import {
   Info as InfoIcon,
   CheckCircle as SuccessIcon,
   Close as CloseIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Reply as ReplyIcon,
+  AttachFile as AttachFileIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
+  Schedule as ScheduleIcon,
+  Done as DoneIcon,
+  Notifications as NotificationIcon,
+  Security as SecurityIcon
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import useChatStore from '../../../domains/comunicacion/store/useChatStore';
@@ -80,16 +88,108 @@ const NotificacionesToast = () => {
       agregarNotificacion(notificacion);
     };
 
+    const handleRespuestaMensaje = (data) => {
+      const notificacion = {
+        id: Date.now() + Math.random(),
+        tipo: 'respuesta',
+        titulo: 'Nueva respuesta',
+        mensaje: `${data.autor?.nombre} respondió tu mensaje: "${data.contenido.substring(0, 80)}${data.contenido.length > 80 ? '...' : ''}"`,
+        avatar: data.autor?.nombre,
+        icono: <ReplyIcon color="secondary" />,
+        timestamp: new Date(),
+        autoHideDuration: 8000,
+        actionUrl: `/comunicacion?conversation=${data.conversacion_id}`,
+        actions: [
+          {
+            label: 'Ver conversación',
+            action: () => window.location.href = `/comunicacion?conversation=${data.conversacion_id}`
+          },
+          {
+            label: 'Responder',
+            action: () => {
+              window.location.href = `/comunicacion?conversation=${data.conversacion_id}&reply=${data.mensaje_id}`;
+            }
+          }
+        ]
+      };
+
+      agregarNotificacion(notificacion);
+    };
+
+    const handleArchivoCompartido = (data) => {
+      const notificacion = {
+        id: Date.now() + Math.random(),
+        tipo: 'archivo',
+        titulo: 'Archivo compartido',
+        mensaje: `${data.autor?.nombre} compartió: ${data.archivo_nombre}`,
+        avatar: data.autor?.nombre,
+        icono: <AttachFileIcon color="info" />,
+        timestamp: new Date(),
+        autoHideDuration: 10000,
+        actionUrl: `/comunicacion?conversation=${data.conversacion_id}`,
+        actions: [
+          {
+            label: 'Descargar',
+            action: () => window.open(data.archivo_url, '_blank')
+          },
+          {
+            label: 'Ver chat',
+            action: () => window.location.href = `/comunicacion?conversation=${data.conversacion_id}`
+          }
+        ]
+      };
+
+      agregarNotificacion(notificacion);
+    };
+
+    const handleDocumentoSubido = (data) => {
+      const notificacion = {
+        id: Date.now() + Math.random(),
+        tipo: 'documento',
+        titulo: 'Documento subido',
+        mensaje: `Se subió "${data.documento_nombre}" a la sección ${data.seccion_nombre}`,
+        icono: <UploadIcon color="success" />,
+        timestamp: new Date(),
+        autoHideDuration: 6000,
+        actionUrl: `/documentos?auditoria=${data.auditoria_id}&seccion=${data.seccion_id}`
+      };
+
+      agregarNotificacion(notificacion);
+    };
+
+    const handleRecordatorio = (data) => {
+      const notificacion = {
+        id: Date.now() + Math.random(),
+        tipo: 'recordatorio',
+        titulo: 'Recordatorio',
+        mensaje: data.mensaje || 'Tienes una tarea pendiente',
+        icono: <ScheduleIcon color="warning" />,
+        timestamp: new Date(),
+        autoHideDuration: 0, // No auto-hide para recordatorios
+        priority: 'high'
+      };
+
+      agregarNotificacion(notificacion);
+    };
+
     // Escuchar eventos específicos
     socket.on('nueva_notificacion', handleNotificacion);
     socket.on('nuevo_mensaje_broadcast', handleNuevoMensaje);
     socket.on('cambio_estado_auditoria', handleCambioEstado);
+    socket.on('respuesta_mensaje', handleRespuestaMensaje);
+    socket.on('archivo_compartido', handleArchivoCompartido);
+    socket.on('documento_subido', handleDocumentoSubido);
+    socket.on('recordatorio', handleRecordatorio);
 
     // Cleanup
     return () => {
       socket.off('nueva_notificacion', handleNotificacion);
       socket.off('nuevo_mensaje_broadcast', handleNuevoMensaje);
       socket.off('cambio_estado_auditoria', handleCambioEstado);
+      socket.off('respuesta_mensaje', handleRespuestaMensaje);
+      socket.off('archivo_compartido', handleArchivoCompartido);
+      socket.off('documento_subido', handleDocumentoSubido);
+      socket.off('recordatorio', handleRecordatorio);
     };
   }, [socket, connected]);
 
@@ -115,11 +215,17 @@ const NotificacionesToast = () => {
   const getIconoPorTipo = (tipo) => {
     const iconos = {
       mensaje: <MessageIcon color="primary" />,
+      respuesta: <ReplyIcon color="secondary" />,
+      archivo: <AttachFileIcon color="info" />,
+      documento: <UploadIcon color="success" />,
+      recordatorio: <ScheduleIcon color="warning" />,
       auditoria: <AuditIcon color="secondary" />,
+      estado: <AuditIcon color="warning" />,
       warning: <WarningIcon color="warning" />,
       error: <WarningIcon color="error" />,
       success: <SuccessIcon color="success" />,
-      info: <InfoIcon color="info" />
+      info: <InfoIcon color="info" />,
+      security: <SecurityIcon color="error" />
     };
     return iconos[tipo] || iconos.info;
   };
@@ -127,11 +233,17 @@ const NotificacionesToast = () => {
   const getAutoHidePorTipo = (tipo) => {
     const tiempos = {
       mensaje: 6000,
+      respuesta: 8000,
+      archivo: 10000,
+      documento: 6000,
+      recordatorio: 0, // No auto-hide para recordatorios
       auditoria: 8000,
+      estado: 8000,
       warning: 10000,
       error: 0, // No auto-hide para errores
       success: 4000,
-      info: 5000
+      info: 5000,
+      security: 0 // No auto-hide para seguridad
     };
     return tiempos[tipo] || 5000;
   };
@@ -139,11 +251,17 @@ const NotificacionesToast = () => {
   const getSeverityPorTipo = (tipo) => {
     const severities = {
       mensaje: 'info',
+      respuesta: 'info',
+      archivo: 'info',
+      documento: 'success',
+      recordatorio: 'warning',
       auditoria: 'warning',
+      estado: 'warning',
       warning: 'warning',
       error: 'error',
       success: 'success',
-      info: 'info'
+      info: 'info',
+      security: 'error'
     };
     return severities[tipo] || 'info';
   };
@@ -232,53 +350,6 @@ const NotificacionesToast = () => {
         </AnimatePresence>
       </Stack>
 
-      {/* Indicador de estado de conexión */}
-      {socket && (
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            zIndex: 10000
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <Alert
-              severity={connected ? 'success' : 'error'}
-              variant="outlined"
-              sx={{
-                borderRadius: 2,
-                fontSize: '0.75rem',
-                py: 0.5,
-                px: 1,
-                backgroundColor: connected ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)'
-              }}
-              icon={
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    backgroundColor: connected ? 'success.main' : 'error.main',
-                    animation: connected ? 'pulse 2s infinite' : 'none',
-                    '@keyframes pulse': {
-                      '0%': { opacity: 1 },
-                      '50%': { opacity: 0.5 },
-                      '100%': { opacity: 1 }
-                    }
-                  }}
-                />
-              }
-            >
-              {connected ? 'Conectado' : 'Desconectado'}
-            </Alert>
-          </motion.div>
-        </Box>
-      )}
     </Box>
   );
 };

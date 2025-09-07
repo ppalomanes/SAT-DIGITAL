@@ -59,6 +59,11 @@ const Mensaje = sequelize.define(
     ip_origen: {
       type: DataTypes.STRING(45),
       allowNull: true
+    },
+    leido_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Timestamp de cuando el mensaje fue leído'
     }
   },
   {

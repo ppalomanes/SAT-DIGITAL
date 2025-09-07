@@ -171,8 +171,16 @@ class MensajeriaService {
   }
 
   static async verificarPermisosConversacion(conversacion, usuario) {
+    console.log('🔐 DEBUG - Verificando permisos:', {
+      usuarioRol: usuario.rol,
+      usuarioEmail: usuario.email,
+      conversacionId: conversacion.id
+    });
+    
     switch (usuario.rol) {
       case 'admin':
+      case 'auditor_general':
+      case 'auditor_interno':
         return true;
 
       case 'auditor':
@@ -183,6 +191,8 @@ class MensajeriaService {
         }
         break;
 
+      case 'jefe_proveedor':
+      case 'tecnico_proveedor':
       case 'proveedor':
         // Verificar que pertenece al proveedor correcto
         const auditoriaConSitio = await Auditoria.findByPk(conversacion.auditoria_id, {
@@ -193,11 +203,50 @@ class MensajeriaService {
         }
         break;
 
+      case 'visualizador':
+        // Los visualizadores pueden ver pero no participar activamente
+        throw new Error('Los visualizadores no pueden enviar mensajes');
+
       default:
         throw new Error('Rol de usuario no autorizado');
     }
 
     return true;
+  }
+
+  static async marcarMensajeComoLeido(mensajeId, usuarioId) {
+    try {
+      const mensaje = await Mensaje.findByPk(mensajeId);
+      
+      if (!mensaje) {
+        throw new Error('Mensaje no encontrado');
+      }
+
+      // Solo permitir marcar como leído si no es el autor del mensaje
+      if (mensaje.usuario_id === usuarioId) {
+        return true; // Los mensajes propios ya están "leídos"
+      }
+
+      // Actualizar estado y timestamp
+      await mensaje.update({
+        estado_mensaje: 'leido',
+        leido_at: new Date()
+      });
+
+      // Registrar en bitácora
+      await registrarBitacora(
+        usuarioId,
+        'MENSAJE_LEIDO',
+        'Mensaje',
+        mensajeId,
+        'Mensaje marcado como leído',
+        null
+      );
+
+      return true;
+    } catch (error) {
+      throw new Error(`Error marcando mensaje como leído: ${error.message}`);
+    }
   }
 }
 
