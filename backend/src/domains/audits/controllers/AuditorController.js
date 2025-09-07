@@ -580,6 +580,74 @@ class AuditorController {
   }
 
   /**
+   * Obtener métricas del workflow de auditorías
+   * GET /api/auditorias/metricas-workflow
+   */
+  static async obtenerMetricasWorkflow(req, res) {
+    try {
+      const WorkflowService = require('../services/WorkflowService');
+      const metricas = await WorkflowService.obtenerMetricas();
+
+      if (!metricas) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error obteniendo métricas'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          workflow_metricas: metricas,
+          timestamp: new Date(),
+          estados_disponibles: WorkflowService.ESTADOS
+        }
+      });
+
+    } catch (error) {
+      logger.error('Error obteniendo métricas workflow:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Forzar verificación de transiciones automáticas
+   * POST /api/auditorias/verificar-transiciones
+   */
+  static async verificarTransicionesAutomaticas(req, res) {
+    try {
+      // Solo admin puede forzar verificaciones
+      if (req.usuario.rol !== 'admin') {
+        return res.status(403).json({
+          success: false,
+          message: 'Solo administradores pueden ejecutar verificaciones'
+        });
+      }
+
+      const WorkflowService = require('../services/WorkflowService');
+      const resultados = await WorkflowService.ejecutarVerificacionesProgramadas();
+
+      res.json({
+        success: true,
+        message: 'Verificaciones ejecutadas correctamente',
+        data: resultados
+      });
+
+    } catch (error) {
+      logger.error('Error ejecutando verificaciones:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
    * Exportar reporte de estado de auditorías
    * POST /api/auditorias/exportar-reporte
    */

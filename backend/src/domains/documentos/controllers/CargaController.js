@@ -144,6 +144,17 @@ class CargaController {
         }
       }
 
+      // Verificar transiciones automáticas de workflow
+      if (documentosGuardados.length > 0) {
+        const WorkflowService = require('../../audits/services/WorkflowService');
+        
+        // Verificar transición a EN_CARGA (primer documento)
+        await WorkflowService.verificarInicioCargar(auditoria_id, req.usuario.id);
+        
+        // Verificar transición a PENDIENTE_EVALUACION (carga completa)
+        await WorkflowService.verificarCargaCompleta(auditoria_id, req.usuario.id);
+      }
+
       // Calcular progreso de la auditoría
       const progreso = await CargaController.calcularProgreso(auditoria_id);
 

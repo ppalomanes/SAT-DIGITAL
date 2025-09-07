@@ -7,6 +7,7 @@
 const express = require('express');
 const { verificarToken, verificarRol } = require('../../../shared/middleware/authMiddleware');
 const AuditorController = require('../controllers/AuditorController');
+const WorkflowController = require('../controllers/WorkflowController');
 const router = express.Router();
 
 // Middleware de autenticación para todas las rutas
@@ -62,12 +63,85 @@ router.put('/:id/estado',
 );
 
 /**
+ * GET /api/auditorias/metricas-workflow
+ * Métricas del workflow de auditorías
+ */
+router.get('/metricas-workflow',
+  verificarRol('admin', 'auditor_general', 'auditor_interno'),
+  AuditorController.obtenerMetricasWorkflow
+);
+
+/**
+ * POST /api/auditorias/verificar-transiciones
+ * Forzar verificación de transiciones automáticas (solo admin)
+ */
+router.post('/verificar-transiciones',
+  verificarRol('admin'),
+  AuditorController.verificarTransicionesAutomaticas
+);
+
+/**
  * POST /api/auditorias/exportar-reporte
  * Exportar reporte de estado
  */
 router.post('/exportar-reporte',
   verificarRol('admin', 'auditor_general', 'auditor_interno'),
   AuditorController.exportarReporte
+);
+
+/**
+ * CHECKPOINT 2.9 - WORKFLOW DE ESTADOS AUTOMÁTICOS
+ */
+
+/**
+ * GET /api/auditorias/workflow/metricas
+ * Métricas generales del workflow
+ */
+router.get('/workflow/metricas',
+  verificarRol('admin', 'auditor_general', 'auditor_interno'),
+  WorkflowController.obtenerMetricas
+);
+
+/**
+ * GET /api/auditorias/:auditoriaId/progreso
+ * Progreso específico de una auditoría
+ */
+router.get('/:auditoriaId/progreso',
+  WorkflowController.obtenerProgresoAuditoria
+);
+
+/**
+ * POST /api/auditorias/:auditoriaId/forzar-transicion
+ * Forzar transición de estado (solo administradores)
+ */
+router.post('/:auditoriaId/forzar-transicion',
+  verificarRol('admin', 'auditor_general'),
+  WorkflowController.forzarTransicion
+);
+
+/**
+ * POST /api/auditorias/:auditoriaId/verificar-transiciones
+ * Verificar manualmente transiciones automáticas
+ */
+router.post('/:auditoriaId/verificar-transiciones',
+  WorkflowController.verificarTransicionesManual
+);
+
+/**
+ * GET /api/auditorias/:auditoriaId/historial-estados
+ * Historial de cambios de estado
+ */
+router.get('/:auditoriaId/historial-estados',
+  WorkflowController.obtenerHistorialEstados
+);
+
+/**
+ * POST /api/auditorias/workflow/verificaciones-programadas
+ * Ejecutar verificaciones programadas
+ */
+router.post('/workflow/verificaciones-programadas',
+  verificarRol('admin'),
+  WorkflowController.ejecutarVerificacionesProgramadas
 );
 
 module.exports = router;

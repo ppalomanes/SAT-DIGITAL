@@ -35,6 +35,9 @@ import {
 } from '@mui/icons-material';
 import { useAuthStore } from '../../auth/store/authStore';
 import { periodoService } from '../../calendario/services/periodoService';
+import WorkflowMetrics from '../components/WorkflowMetrics';
+import ProgressIndicator from '../../../shared/components/Progress/ProgressIndicator';
+import { useWorkflow } from '../../../shared/hooks/useWorkflow';
 import dayjs from 'dayjs';
 
 const MOCK_DATA = {
@@ -152,6 +155,14 @@ const Dashboard = () => {
   
   const theme = useTheme();
   const { usuario } = useAuthStore();
+  
+  // Hook de workflow para métricas globales
+  const { 
+    metricas, 
+    obtenerMetricas,
+    metricasFormateadas,
+    loading: workflowLoading 
+  } = useWorkflow();
 
   useEffect(() => {
     cargarDatosDashboard();
@@ -277,233 +288,214 @@ const Dashboard = () => {
         </Box>
       )}
 
-      <Grid container spacing={3}>
-        
-        <Grid item xs={12}>
-          <Grid container spacing={3}>
-            {Object.entries(MOCK_DATA.metricas_principales).map(([key, metrica]) => (
-              <Grid item xs={12} sm={6} md={3} key={key}>
-                <Card className="dashboard__metric-card">
-                  <CardContent>
-                    <Box display="flex" alignItems="center" justifyContent="space-between">
-                      <Box>
-                        <Typography color="textSecondary" gutterBottom variant="body2">
-                          {key.replace('_', ' ').charAt(0).toUpperCase() + key.replace('_', ' ').slice(1)}
-                        </Typography>
-                        <Typography variant="h4" component="h2" fontWeight="bold">
-                          {metrica.valor}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center">
-                        {getTendenciaIcon(metrica.tendencia)}
-                        <Typography 
-                          variant="body2" 
-                          sx={{ 
-                            ml: 0.5,
-                            color: metrica.tendencia === 'up' ? theme.palette.success.main : theme.palette.error.main,
-                            fontWeight: 'bold'
-                          }}
-                        >
-                          {metrica.cambio > 0 ? '+' : ''}{metrica.cambio}%
-                        </Typography>
-                      </Box>
+      {/* Métricas del Workflow */}
+      <WorkflowMetrics />
+
+      <Grid container spacing={3} sx={{ mt: 2 }}>
+
+        {/* Sección de Métricas de Workflow */}
+        <Grid item xs={12} md={6} lg={4}>
+          <Card variant="outlined" sx={{ borderRadius: 2, height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight="600" mb={2} color="text.primary">
+                Estado del Workflow
+              </Typography>
+              
+              {metricas && !workflowLoading ? (
+                <Box>
+                  {/* Resumen rápido */}
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Box textAlign="center">
+                      <Typography variant="h4" color="primary" fontWeight="bold">
+                        {metricas.global?.programadas || 0}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Programadas
+                      </Typography>
                     </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+                    <Box textAlign="center">
+                      <Typography variant="h4" color="warning.main" fontWeight="bold">
+                        {metricas.global?.en_carga || 0}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        En Carga
+                      </Typography>
+                    </Box>
+                    <Box textAlign="center">
+                      <Typography variant="h4" color="success.main" fontWeight="bold">
+                        {metricas.global?.cerradas || 0}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Cerradas
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Botón para ver detalles */}
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    fullWidth
+                    onClick={() => obtenerMetricas()}
+                    startIcon={<RefreshIcon />}
+                  >
+                    Actualizar Métricas
+                  </Button>
+                </Box>
+              ) : (
+                <Box>
+                  <LinearProgress sx={{ mb: 2 }} />
+                  <Typography variant="body2" color="text.secondary" textAlign="center">
+                    Cargando métricas de workflow...
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
         </Grid>
 
         <Grid item xs={12} lg={8}>
-          <Card className="dashboard__recent-audits">
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" component="h3" fontWeight="bold">
-                  Auditorías recientes
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Estado actual de las auditorías en curso
-                </Typography>
-              </Box>
-
-              <List>
-                {MOCK_DATA.auditorias_recientes.map((auditoria, index) => {
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight="600" mb={2} color="text.primary">
+                Actividad Reciente
+              </Typography>
+              
+              <Box display="flex" flexDirection="column" gap={1.5}>
+                {MOCK_DATA.auditorias_recientes.slice(0, 3).map((auditoria) => {
                   const estadoStyle = getEstadoColor(auditoria.estado);
-                  
                   return (
-                    <ListItem 
+                    <Box 
                       key={auditoria.id}
-                      className="dashboard__audit-item"
-                      sx={{
-                        border: `1px solid ${theme.palette.divider}`,
-                        borderRadius: 2,
-                        mb: 1,
-                        backgroundColor: 'background.paper'
+                      display="flex" 
+                      alignItems="center" 
+                      justifyContent="space-between"
+                      py={1.5}
+                      px={2}
+                      sx={{ 
+                        borderLeft: `3px solid ${estadoStyle.color}`,
+                        backgroundColor: `${estadoStyle.color}08`,
+                        borderRadius: 1,
+                        '&:hover': {
+                          backgroundColor: `${estadoStyle.color}15`
+                        }
                       }}
                     >
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: estadoStyle.color }}>
-                          {auditoria.auditor}
-                        </Avatar>
-                      </ListItemAvatar>
-                      
-                      <ListItemText
-                        primary={
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="subtitle1" fontWeight="bold">
-                              {auditoria.proveedor}
-                            </Typography>
-                            <Chip 
-                              label={auditoria.estado}
-                              size="small"
-                              sx={{
-                                backgroundColor: estadoStyle.bg,
-                                color: estadoStyle.color,
-                                fontWeight: 'bold'
-                              }}
-                            />
-                          </Box>
-                        }
-                        secondary={
-                          <Box mt={1}>
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                              {auditoria.sitio} • {auditoria.auditor_nombre}
-                            </Typography>
-                            <Box display="flex" alignItems="center" gap={2}>
-                              <Box flex={1}>
-                                <LinearProgress 
-                                  variant="determinate" 
-                                  value={auditoria.progreso}
-                                  sx={{
-                                    height: 6,
-                                    borderRadius: 3,
-                                    backgroundColor: alpha(estadoStyle.color, 0.2),
-                                    '& .MuiLinearProgress-bar': {
-                                      backgroundColor: estadoStyle.color
-                                    }
-                                  }}
-                                />
-                              </Box>
-                              <Typography variant="caption" fontWeight="bold">
-                                {auditoria.progreso}%
-                              </Typography>
-                              {auditoria.puntaje && (
-                                <Chip 
-                                  label={`${auditoria.puntaje}pts`}
-                                  size="small"
-                                  color="success"
-                                  variant="outlined"
-                                />
-                              )}
-                            </Box>
-                          </Box>
-                        }
-                      />
-                      
-                      <Box textAlign="right">
+                      <Box flex={1}>
+                        <Typography variant="body2" fontWeight="500" color="text.primary">
+                          {auditoria.proveedor}
+                        </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {dayjs(auditoria.fecha).format('DD/MM/YYYY')}
+                          {auditoria.sitio} • {dayjs(auditoria.fecha).format('DD/MM')}
                         </Typography>
                       </Box>
-                    </ListItem>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Typography variant="caption" color="text.secondary">
+                          {auditoria.progreso}%
+                        </Typography>
+                        <Chip
+                          label={auditoria.estado}
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontSize: '0.7rem',
+                            backgroundColor: estadoStyle.color,
+                            color: 'white'
+                          }}
+                        />
+                      </Box>
+                    </Box>
                   );
                 })}
-              </List>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
         <Grid item xs={12} lg={4}>
-          <Grid container spacing={3}>
-            
-            <Grid item xs={12}>
-              <Card className="dashboard__quick-actions">
-                <CardContent>
-                  <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom>
-                    Acciones rápidas
-                  </Typography>
-                  
-                  <Grid container spacing={2}>
-                    {MOCK_DATA.acciones_rapidas.map((accion) => (
-                      <Grid item xs={6} key={accion.id}>
-                        <Paper
-                          className="dashboard__action-card"
-                          sx={{
-                            p: 2,
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease',
-                            border: `1px solid ${theme.palette.divider}`,
-                            '&:hover': {
-                              transform: 'translateY(-2px)',
-                              boxShadow: theme.shadows[8],
-                              backgroundColor: alpha(theme.palette.primary.main, 0.05)
-                            }
-                          }}
-                        >
-                          <Box sx={{ color: theme.palette.primary.main, mb: 1 }}>
-                            {accion.icono}
-                          </Box>
-                          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
-                            {accion.titulo}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {accion.descripcion}
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" fontWeight="600" mb={2} color="text.primary">
+                Panel de Control
+              </Typography>
+              
+              {/* Acciones Rápidas Minimalistas */}
+              <Box mb={3}>
+                <Typography variant="subtitle2" color="text.secondary" mb={1.5} sx={{ fontSize: '0.8rem' }}>
+                  ACCIONES RÁPIDAS
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={1}>
+                  {MOCK_DATA.acciones_rapidas.slice(0, 3).map((accion) => (
+                    <Box
+                      key={accion.id}
+                      display="flex"
+                      alignItems="center"
+                      gap={1.5}
+                      py={1}
+                      px={1.5}
+                      sx={{
+                        borderRadius: 1,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                          transform: 'translateX(2px)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ color: theme.palette.primary.main }}>
+                        {accion.icono}
+                      </Box>
+                      <Typography variant="body2" fontWeight="500">
+                        {accion.titulo}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
 
-            <Grid item xs={12}>
-              <Card className="dashboard__alerts">
-                <CardContent>
-                  <Typography variant="h6" component="h3" fontWeight="bold" gutterBottom>
-                    Alertas del sistema
-                  </Typography>
-                  
-                  <List sx={{ p: 0 }}>
-                    {MOCK_DATA.alertas_criticas.map((alerta) => (
-                      <ListItem 
-                        key={alerta.id}
-                        sx={{ 
-                          px: 0, 
-                          py: 1,
-                          borderBottom: `1px solid ${theme.palette.divider}`
-                        }}
-                      >
-                        <ListItemAvatar>
-                          {getAlertIcon(alerta.tipo)}
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={
-                            <Typography variant="body2">
-                              {alerta.mensaje}
-                            </Typography>
-                          }
-                          secondary={alerta.fecha}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                  
-                  <Button 
-                    fullWidth 
-                    variant="outlined" 
-                    size="small" 
-                    sx={{ mt: 2 }}
-                  >
-                    Ver todas las alertas
-                  </Button>
-                </CardContent>
-              </Card>
-            </Grid>
-
-          </Grid>
+              {/* Alertas Minimalistas */}
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary" mb={1.5} sx={{ fontSize: '0.8rem' }}>
+                  ALERTAS RECIENTES
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={1.5}>
+                  {MOCK_DATA.alertas_criticas.slice(0, 2).map((alerta) => (
+                    <Box
+                      key={alerta.id}
+                      display="flex"
+                      alignItems="flex-start"
+                      gap={1.5}
+                      py={1.5}
+                      px={1.5}
+                      sx={{
+                        borderRadius: 1,
+                        backgroundColor: alerta.tipo === 'error' ? 
+                          alpha(theme.palette.error.main, 0.08) :
+                          alerta.tipo === 'warning' ?
+                          alpha(theme.palette.warning.main, 0.08) :
+                          alpha(theme.palette.info.main, 0.08),
+                        borderLeft: `3px solid ${
+                          alerta.tipo === 'error' ? theme.palette.error.main :
+                          alerta.tipo === 'warning' ? theme.palette.warning.main :
+                          theme.palette.info.main
+                        }`
+                      }}
+                    >
+                      <Box flex={1}>
+                        <Typography variant="body2" sx={{ fontSize: '0.85rem', lineHeight: 1.3 }}>
+                          {alerta.mensaje}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                          {alerta.fecha}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
 
       </Grid>
