@@ -2,22 +2,7 @@
 // Checkpoint 2.10 - Gestión de estado para sistema de reportes
 
 import { create } from 'zustand';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:3002/api';
-
-// Configurar interceptor para autenticación
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-});
-
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import { apiClient } from '../../../shared/utils/authService';
 
 const useReportesStore = create((set, get) => ({
   // Estado
