@@ -8,6 +8,7 @@ const express = require('express');
 const { verificarToken, verificarRol } = require('../../../shared/middleware/authMiddleware');
 const AuditorController = require('../controllers/AuditorController');
 const WorkflowController = require('../controllers/WorkflowController');
+const reportesRoutes = require('./reportes.routes');
 const router = express.Router();
 
 // Middleware de autenticación para todas las rutas
@@ -143,5 +144,10 @@ router.post('/workflow/verificaciones-programadas',
   verificarRol('admin'),
   WorkflowController.ejecutarVerificacionesProgramadas
 );
+
+/**
+ * CHECKPOINT 2.10 - REPORTES Y ANALYTICS
+ */
+router.use('/reportes', reportesRoutes);
 
 module.exports = router;

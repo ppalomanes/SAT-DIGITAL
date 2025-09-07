@@ -19,7 +19,8 @@ import {
   Divider,
   useTheme,
   alpha,
-  Chip
+  Chip,
+  Alert
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -37,7 +38,8 @@ import {
   MenuOpen as MenuIcon,
   Schedule as ScheduleIcon,
   ChatOutlined as ChatIcon,
-  Person as PersonIcon
+  Person as PersonIcon,
+  Analytics as AnalyticsIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../domains/auth/store/authStore';
 import { useWebSocket } from '../../../domains/comunicacion/hooks/useWebSocket';
@@ -113,7 +115,7 @@ const menuItems = {
     {
       id: 'analytics',
       title: 'Analytics',
-      icon: <BarChartIcon />,
+      icon: <AnalyticsIcon />,
       path: '/analytics',
       badge: null
     },
@@ -203,7 +205,7 @@ const menuItems = {
     {
       id: 'analytics',
       title: 'Analytics',
-      icon: <BarChartIcon />,
+      icon: <AnalyticsIcon />,
       path: '/analytics',
       badge: null
     }
@@ -281,24 +283,53 @@ const AdminLayout = ({ children }) => {
       <Box 
         className="admin-layout__drawer-header"
         sx={{
-          p: 3,
+          height: 64,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          px: 2,
           background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-          color: 'white',
-          textAlign: 'center'
+          color: 'white'
         }}
       >
-        <Typography variant="h5" component="h1" fontWeight="bold" mb={1}>
+        <Typography variant="h6" component="h1" fontWeight="bold" sx={{ lineHeight: 1.1, mb: 0.25 }}>
           SAT-Digital
         </Typography>
-        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+        <Typography variant="caption" sx={{ opacity: 0.9, fontSize: '0.7rem', lineHeight: 1 }}>
           Sistema de Auditorías Técnicas
         </Typography>
       </Box>
 
 
       {/* Navegación */}
-      <Box sx={{ flex: 1, overflow: 'auto' }}>
-        <List className="admin-layout__nav" sx={{ px: 1, py: 2 }}>
+      <Box 
+        sx={{ 
+          flex: 1, 
+          overflow: 'auto',
+          // Estilos de scrollbar transparente/discreto
+          '&::-webkit-scrollbar': {
+            width: '4px',
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: alpha(theme.palette.text.secondary, 0.08),
+            borderRadius: '2px',
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.text.secondary, 0.15),
+            }
+          },
+          // Para Firefox
+          scrollbarWidth: 'thin',
+          scrollbarColor: `${alpha(theme.palette.text.secondary, 0.08)} transparent`,
+        }}
+      >
+        <List 
+          className="admin-layout__nav" 
+          sx={{ px: 1, py: 2 }}
+        >
         {currentMenuItems.map((item) => {
           const isActive = location.pathname === item.path;
           
@@ -379,48 +410,51 @@ const AdminLayout = ({ children }) => {
         <Box 
           className="admin-layout__user-info-footer"
           sx={{
-            p: 1.5,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            px: 1.5,
             borderTop: `1px solid ${theme.palette.divider}`
           }}
         >
-          <Box display="flex" alignItems="center" gap={1.5}>
-            <Avatar 
-              sx={{ 
-                width: 32, 
-                height: 32,
-                bgcolor: getRolColor(usuario?.rol)
-              }}
-            >
-              {usuario?.nombre?.charAt(0)?.toUpperCase()}
-            </Avatar>
-            <Box flex={1} minWidth={0}>
-              <Typography variant="body2" fontWeight="600" noWrap sx={{ fontSize: '0.875rem' }}>
+          <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+            <Box display="flex" alignItems="center" gap={1.5} flex={1} minWidth={0}>
+              <Avatar 
+                sx={{ 
+                  width: 32, 
+                  height: 32,
+                  bgcolor: getRolColor(usuario?.rol)
+                }}
+              >
+                {usuario?.nombre?.charAt(0)?.toUpperCase()}
+              </Avatar>
+              <Typography variant="body2" fontWeight="600" noWrap sx={{ fontSize: '0.8rem' }}>
                 {usuario?.nombre || 'Usuario'}
               </Typography>
-              <Box display="flex" alignItems="center" gap={0.5} mt={0.25}>
-                <Chip 
-                  label={usuario?.rol?.charAt(0).toUpperCase() + usuario?.rol?.slice(1)}
-                  size="small"
-                  sx={{
-                    backgroundColor: getRolColor(usuario?.rol),
-                    color: 'white',
-                    fontSize: '0.65rem',
-                    height: 16,
-                    '& .MuiChip-label': { px: 0.5 }
-                  }}
-                />
-                <Chip 
-                  label={connected ? 'Online' : 'Offline'}
-                  size="small"
-                  sx={{
-                    backgroundColor: connected ? '#4caf50' : '#9e9e9e',
-                    color: 'white',
-                    fontSize: '0.65rem',
-                    height: 16,
-                    '& .MuiChip-label': { px: 0.5 }
-                  }}
-                />
-              </Box>
+            </Box>
+            <Box display="flex" alignItems="center" gap={0.5}>
+              <Chip 
+                label={usuario?.rol?.charAt(0).toUpperCase() + usuario?.rol?.slice(1)}
+                size="small"
+                sx={{
+                  backgroundColor: getRolColor(usuario?.rol),
+                  color: 'white',
+                  fontSize: '0.65rem',
+                  height: 18,
+                  '& .MuiChip-label': { px: 0.5 }
+                }}
+              />
+              <Chip 
+                label={connected ? 'Online' : 'Offline'}
+                size="small"
+                sx={{
+                  backgroundColor: connected ? '#4caf50' : '#9e9e9e',
+                  color: 'white',
+                  fontSize: '0.65rem',
+                  height: 18,
+                  '& .MuiChip-label': { px: 0.5 }
+                }}
+              />
             </Box>
           </Box>
         </Box>
@@ -537,14 +571,17 @@ const AdminLayout = ({ children }) => {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          p: 3,
+          px: 3,
+          pt: 3,
+          pb: 0,
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           minHeight: '100vh',
-          backgroundColor: alpha(theme.palette.primary.main, 0.02)
+          backgroundColor: alpha(theme.palette.primary.main, 0.02),
+          overflow: 'hidden'
         }}
       >
         <Toolbar />
-        <Box className="admin-layout__page-content" sx={{ flexGrow: 1 }}>
+        <Box className="admin-layout__page-content" sx={{ flexGrow: 1, mb: 3 }}>
           {children}
         </Box>
 
@@ -553,14 +590,74 @@ const AdminLayout = ({ children }) => {
           component="footer"
           sx={{ 
             mt: 'auto',
-            py: 2,
+            height: 64,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             borderTop: `1px solid ${theme.palette.divider}`,
-            textAlign: 'center'
+            position: 'relative'
           }}
         >
           <Typography variant="caption" color="text.secondary">
             SAT-Digital v1.0 © 2025 Sistema de Auditorías Técnicas
           </Typography>
+          
+          {/* Connection Status Indicator */}
+          <Box
+            sx={{
+              position: 'absolute',
+              right: 16,
+              top: '50%',
+              transform: 'translateY(-50%)'
+            }}
+          >
+            <Alert
+              severity={connected ? 'success' : 'error'}
+              variant="outlined"
+              sx={{
+                height: 28,
+                minWidth: 120,
+                borderRadius: 3,
+                fontSize: '0.7rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                animation: connected ? 'pulse 2s infinite' : 'none',
+                '@keyframes pulse': {
+                  '0%': {
+                    boxShadow: `0 0 0 0 ${connected ? 'rgba(76, 175, 80, 0.7)' : 'rgba(244, 67, 54, 0.7)'}`
+                  },
+                  '70%': {
+                    boxShadow: `0 0 0 8px ${connected ? 'rgba(76, 175, 80, 0)' : 'rgba(244, 67, 54, 0)'}`
+                  },
+                  '100%': {
+                    boxShadow: `0 0 0 0 ${connected ? 'rgba(76, 175, 80, 0)' : 'rgba(244, 67, 54, 0)'}`
+                  }
+                },
+                '& .MuiAlert-message': {
+                  padding: '10px',
+                  lineHeight: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap'
+                },
+                '& .MuiAlert-icon': {
+                  fontSize: '0.85rem',
+                  marginRight: 0.5,
+                  display: 'flex',
+                  alignItems: 'center'
+                },
+                '& .MuiAlert-action': {
+                  display: 'none'
+                }
+              }}
+            >
+              {connected ? 'Conectado' : 'Desconectado'}
+            </Alert>
+          </Box>
         </Box>
 
         {/* Menu de Usuario */}

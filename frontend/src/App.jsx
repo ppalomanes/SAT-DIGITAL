@@ -14,6 +14,7 @@ import ProveedoresPage from './domains/proveedores/pages/ProveedoresPage';
 import PeriodosAdmin from './domains/calendario/components/PeriodosAdmin';
 import DocumentosPage from './domains/documentos/pages/DocumentosPage';
 import ComunicacionPage from './domains/comunicacion/pages/ComunicacionPage';
+import AnalyticsDashboard from './domains/reportes/components/AnalyticsDashboard';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -261,7 +262,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminLayout>
-                    <div>Módulo de Reportes - En desarrollo</div>
+                    <AnalyticsDashboard />
                   </AdminLayout>
                 </ProtectedRoute>
               } 
@@ -272,7 +273,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminLayout>
-                    <div>Módulo de Analytics - En desarrollo</div>
+                    <AnalyticsDashboard />
                   </AdminLayout>
                 </ProtectedRoute>
               } 
