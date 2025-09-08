@@ -23,8 +23,17 @@ router.post('/auditorias/:auditoriaId/conversaciones', MensajeController.crearCo
 // Enviar mensaje a conversación
 router.post('/conversaciones/:conversacionId/mensajes', MensajeController.enviarMensaje);
 
+// Enviar archivo a conversación
+router.post('/conversaciones/:conversacionId/archivos', 
+  MensajeController.getUploadMiddleware(),
+  MensajeController.enviarMensajeConArchivo
+);
+
 // Marcar conversación como leída
 router.put('/conversaciones/:conversacionId/leer', MensajeController.marcarLeida);
+
+// Marcar mensaje específico como leído
+router.put('/mensajes/:mensajeId/leer', MensajeController.marcarMensajeComoLeido);
 
 // =============================================
 // RUTAS DE NOTIFICACIONES

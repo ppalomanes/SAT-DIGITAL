@@ -823,7 +823,7 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                                 }}
                                 onClick={() => {
                                   if (mensaje.archivo_adjunto) {
-                                    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+                                    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
                                     window.open(`${baseUrl}${mensaje.archivo_adjunto}`, '_blank');
                                   }
                                 }}

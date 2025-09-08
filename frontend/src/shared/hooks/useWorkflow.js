@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuthStore } from '../../domains/auth/store/authStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 export const useWorkflow = (auditoriaId) => {
   const [progreso, setProgreso] = useState(null);

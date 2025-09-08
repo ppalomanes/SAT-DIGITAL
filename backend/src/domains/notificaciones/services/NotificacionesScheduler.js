@@ -1,10 +1,10 @@
-// Servicio de Notificaciones Programadas Automáticas
-// Checkpoint 2.4 - Sistema de Notificaciones Automáticas
+// Servicio de Programación y Alertas Automáticas de Notificaciones
+// Checkpoint 2.4 - Sistema completo de notificaciones automáticas
 
 const cron = require('node-cron');
 const EmailService = require('./EmailService');
 const NotificacionService = require('../../comunicacion/services/NotificacionService');
-const { Usuario, Auditoria, Sitio, Proveedor } = require('../../../shared/database/models');
+const { Usuario, Auditoria, Sitio, Proveedor, Documento, Conversacion, Mensaje } = require('../../../shared/database/models');
 const { Op } = require('sequelize');
 const logger = require('../../../shared/utils/logger');
 
@@ -316,16 +316,175 @@ class NotificacionesScheduler {
    * Métodos auxiliares
    */
   async contarMensajesNoLeidos(auditorId) {
-    // Implementar conteo de mensajes no leídos para el auditor
-    return 0; // Placeholder
+    try {
+      const count = await Mensaje.count({
+        include: [{
+          model: Conversacion,
+          as: 'conversacion',
+          include: [{
+            model: Auditoria,
+            as: 'auditoria',
+            where: { auditor_asignado_id: auditorId }
+          }]
+        }],
+        where: {
+          leido: false
+        }
+      });
+      return count;
+    } catch (error) {
+      console.error('Error contando mensajes no leídos:', error);
+      return 0;
+    }
   }
 
   async obtenerProximasVisitas(auditorId) {
-    return []; // Placeholder
+    try {
+      const proximaSemana = new Date();
+      proximaSemana.setDate(proximaSemana.getDate() + 7);
+
+      const visitas = await Auditoria.findAll({
+        where: {
+          auditor_asignado_id: auditorId,
+          fecha_visita: {
+            [Op.between]: [new Date(), proximaSemana]
+          }
+        },
+        include: [{
+          model: Sitio,
+          as: 'sitio',
+          include: [{
+            model: Proveedor,
+            as: 'proveedor'
+          }]
+        }],
+        order: [['fecha_visita', 'ASC']]
+      });
+
+      return visitas.map(v => ({
+        id: v.id,
+        sitio: v.sitio.nombre,
+        proveedor: v.sitio.proveedor.nombre_comercial,
+        fecha: v.fecha_visita
+      }));
+    } catch (error) {
+      console.error('Error obteniendo próximas visitas:', error);
+      return [];
+    }
   }
 
   async obtenerAlertasCriticas(auditorId) {
-    return []; // Placeholder
+    try {
+      const hoy = new Date();
+      const manana = new Date(hoy.getTime() + 24 * 60 * 60 * 1000);
+
+      const alertasCriticas = await Auditoria.findAll({
+        where: {
+          auditor_asignado_id: auditorId,
+          fecha_limite_carga: {
+            [Op.lte]: manana
+          },
+          estado: {
+            [Op.in]: ['en_carga', 'programada']
+          }
+        },
+        include: [{
+          model: Sitio,
+          as: 'sitio',
+          include: [{
+            model: Proveedor,
+            as: 'proveedor'
+          }]
+        }]
+      });
+
+      return alertasCriticas.map(a => ({
+        id: a.id,
+        sitio: a.sitio.nombre,
+        proveedor: a.sitio.proveedor.nombre_comercial,
+        fechaLimite: a.fecha_limite_carga,
+        estado: a.estado
+      }));
+    } catch (error) {
+      console.error('Error obteniendo alertas críticas:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Método para ejecutar jobs manualmente (útil para testing)
+   */
+  async ejecutarJobManual(nombreJob) {
+    const metodosJob = {
+      'recordatorios-vencimiento': () => this.enviarRecordatorios(new Date(), 0, 'manual'),
+      'resumenes-diarios': () => this.generarResumenesDiarios(),
+      'inicio-periodo': () => this.notificarInicioPeriodo(),
+      'limpieza-notificaciones': () => this.limpiarNotificacionesAntiguas()
+    };
+
+    if (metodosJob[nombreJob]) {
+      console.log(`🔄 Ejecutando job manual: ${nombreJob}`);
+      await metodosJob[nombreJob]();
+      console.log(`✅ Job manual completado: ${nombreJob}`);
+    } else {
+      throw new Error(`Job no encontrado: ${nombreJob}`);
+    }
+  }
+
+  async generarResumenesDiarios() {
+    const auditores = await Usuario.findAll({
+      where: {
+        rol: ['auditor_general', 'auditor_interno'],
+        activo: true
+      }
+    });
+
+    for (const auditor of auditores) {
+      await this.generarResumenDiario(auditor);
+    }
+  }
+
+  async notificarInicioPeriodo() {
+    const hoy = new Date();
+    const proximaSemana = new Date(hoy.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const auditoriasNuevas = await Auditoria.findAll({
+      where: {
+        fecha_inicio: {
+          [Op.between]: [hoy.toISOString().split('T')[0], proximaSemana.toISOString().split('T')[0]]
+        },
+        estado: 'programada'
+      },
+      include: [{
+        model: Sitio,
+        as: 'sitio',
+        include: [{
+          model: Proveedor,
+          as: 'proveedor',
+          include: [{
+            model: Usuario,
+            as: 'usuarios',
+            where: { rol: ['jefe_proveedor', 'tecnico_proveedor'] }
+          }]
+        }]
+      }]
+    });
+
+    for (const auditoria of auditoriasNuevas) {
+      const proveedor = auditoria.sitio.proveedor;
+      
+      for (const usuario of proveedor.usuarios) {
+        await EmailService.notificarInicioPeriodo(usuario, auditoria, auditoria.fecha_limite_carga);
+      }
+    }
+  }
+
+  async limpiarNotificacionesAntiguas() {
+    const hace30dias = new Date();
+    hace30dias.setDate(hace30dias.getDate() - 30);
+
+    // Esta funcionalidad se implementará cuando tengamos el modelo de notificaciones
+    console.log('🧹 Limpieza de notificaciones programada');
   }
 
   /**

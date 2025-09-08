@@ -179,6 +179,90 @@ class EmailService {
   }
 
   /**
+   * Notificación de vencimiento de auditoría
+   */
+  async enviarNotificacionVencimiento(auditorId, auditoriaId) {
+    try {
+      const { Usuario, Auditoria, Sitio, Proveedor } = require('../../../shared/database/models');
+      
+      const auditor = await Usuario.findByPk(auditorId);
+      const auditoria = await Auditoria.findByPk(auditoriaId, {
+        include: [{
+          model: Sitio,
+          as: 'sitio',
+          include: [{
+            model: Proveedor,
+            as: 'proveedor'
+          }]
+        }]
+      });
+
+      if (!auditor || !auditoria) {
+        throw new Error('Auditor o auditoría no encontrados');
+      }
+
+      return await this.sendEmail({
+        to: auditor.email,
+        subject: `⏰ AUDITORÍA VENCIDA - ${auditoria.sitio.nombre}`,
+        template: 'auditoria-vencida',
+        data: {
+          auditor: auditor.nombre,
+          sitio: auditoria.sitio.nombre,
+          proveedor: auditoria.sitio.proveedor.razon_social,
+          fechaLimite: auditoria.fecha_limite_carga,
+          enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}/revision`
+        }
+      });
+    } catch (error) {
+      logger.error('Error enviando notificación de vencimiento:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Notificación de transición automática de estado
+   */
+  async notificarTransicionAutomatica(auditoria, estadoAnterior, estadoNuevo, motivo) {
+    try {
+      const { AsignacionAuditor, Usuario } = require('../../../shared/database/models');
+      
+      // Obtener auditor asignado y proveedor
+      const asignacion = await AsignacionAuditor.findOne({
+        where: { auditoria_id: auditoria.id },
+        include: [{
+          model: Usuario,
+          as: 'auditor',
+          attributes: ['id', 'email', 'nombre']
+        }]
+      });
+
+      if (!asignacion) {
+        return { success: false, error: 'No hay auditor asignado' };
+      }
+
+      const subject = `🔄 Estado Automatico Actualizado - ${auditoria.sitio?.nombre}`;
+      
+      return await this.sendEmail({
+        to: asignacion.auditor.email,
+        subject,
+        template: 'transicion-automatica',
+        data: {
+          auditor: asignacion.auditor.nombre,
+          sitio: auditoria.sitio?.nombre || 'Sitio',
+          estadoAnterior,
+          estadoNuevo,
+          motivo,
+          fecha: new Date(),
+          enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}`
+        }
+      });
+    } catch (error) {
+      logger.error('Error enviando notificación de transición:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Enviar resumen diario para auditores
    */
   async enviarResumenDiario(auditor, resumenData) {
@@ -193,6 +277,96 @@ class EmailService {
         mensajesNoLeidos: resumenData.mensajesNoLeidos,
         proximasVisitas: resumenData.proximasVisitas,
         alertasCriticas: resumenData.alertasCriticas
+      }
+    });
+  }
+
+  /**
+   * Enviar resumen semanal para administradores
+   */
+  async enviarResumenSemanal(emailAdmin, resumen) {
+    return await this.sendEmail({
+      to: emailAdmin,
+      subject: `📊 Resumen Semanal SAT-Digital - ${new Date().toLocaleDateString()}`,
+      template: 'resumen-semanal',
+      data: {
+        fecha: new Date(),
+        totalAuditorias: resumen.totalAuditorias,
+        documentosSubidos: resumen.documentosSubidos,
+        mensajesEnviados: resumen.mensajesEnviados,
+        auditoriasPorEstado: resumen.auditoriasPorEstado
+      }
+    });
+  }
+
+  /**
+   * Enviar alerta urgente (24 horas)
+   */
+  async enviarAlertaUrgente(email, auditoria) {
+    return await this.sendEmail({
+      to: email,
+      subject: `🚨 URGENTE: Auditoría vence en menos de 24 horas - ${auditoria.sitio.nombre}`,
+      template: 'alerta-urgente',
+      data: {
+        sitio: auditoria.sitio.nombre,
+        proveedor: auditoria.proveedor?.nombre_comercial || auditoria.sitio.proveedor.nombre_comercial,
+        fechaLimite: auditoria.fecha_limite_carga,
+        enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}`
+      }
+    });
+  }
+
+  /**
+   * Enviar alerta previa (72 horas)
+   */
+  async enviarAlertaPrevia(email, auditoria) {
+    return await this.sendEmail({
+      to: email,
+      subject: `⚠️  Recordatorio: Auditoría vence en 3 días - ${auditoria.sitio.nombre}`,
+      template: 'alerta-previa',
+      data: {
+        sitio: auditoria.sitio.nombre,
+        proveedor: auditoria.proveedor?.nombre_comercial || auditoria.sitio.proveedor.nombre_comercial,
+        fechaLimite: auditoria.fecha_limite_carga,
+        enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}`
+      }
+    });
+  }
+
+  /**
+   * Enviar recordatorio de documentos pendientes
+   */
+  async enviarRecordatorioDocumentos(email, auditoria, porcentaje) {
+    return await this.sendEmail({
+      to: email,
+      subject: `📄 Recordatorio: Documentos pendientes - ${auditoria.sitio.nombre} (${porcentaje}% completada)`,
+      template: 'recordatorio-documentos',
+      data: {
+        sitio: auditoria.sitio.nombre,
+        proveedor: auditoria.proveedor?.nombre_comercial || auditoria.sitio.proveedor.nombre_comercial,
+        porcentaje,
+        fechaLimite: auditoria.fecha_limite_carga,
+        enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}`
+      }
+    });
+  }
+
+  /**
+   * Enviar recordatorio de próxima visita
+   */
+  async enviarRecordatorioVisita(email, auditoria) {
+    const fechaVisita = new Date(auditoria.fecha_visita).toLocaleDateString('es-AR');
+    
+    return await this.sendEmail({
+      to: email,
+      subject: `🗓️  Recordatorio: Visita programada - ${auditoria.sitio.nombre}`,
+      template: 'recordatorio-visita',
+      data: {
+        sitio: auditoria.sitio.nombre,
+        proveedor: auditoria.proveedor?.nombre_comercial || auditoria.sitio.proveedor.nombre_comercial,
+        fechaVisita,
+        auditor: auditoria.auditor?.nombre,
+        enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}`
       }
     });
   }

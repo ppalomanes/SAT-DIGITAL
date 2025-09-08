@@ -52,7 +52,7 @@ const useChatStore = create(
           return;
         }
 
-        const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002', {
+        const newSocket = io(import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001', {
           auth: { token },
           transports: ['websocket', 'polling']
         });
@@ -113,7 +113,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -148,7 +148,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/auditorias/${auditoriaId}/conversaciones`,
             {
               method: 'POST',
               headers: {
@@ -185,7 +185,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/conversaciones/${conversacionId}/mensajes`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/conversaciones/${conversacionId}/mensajes`,
             {
               method: 'POST',
               headers: {
@@ -227,7 +227,7 @@ const useChatStore = create(
           }
 
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/conversaciones/${conversacionId}/archivos`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/conversaciones/${conversacionId}/archivos`,
             {
               method: 'POST',
               headers: {
@@ -290,7 +290,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/notificaciones`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/notificaciones`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -317,7 +317,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/notificaciones/count`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/notificaciones/count`,
             {
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -391,7 +391,7 @@ const useChatStore = create(
         try {
           const token = getAuthToken();
           const response = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002'}/api/comunicacion/mensajes/${mensajeId}/leer`,
+            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/comunicacion/mensajes/${mensajeId}/leer`,
             {
               method: 'PUT',
               headers: {

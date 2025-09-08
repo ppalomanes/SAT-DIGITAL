@@ -15,6 +15,7 @@ import PeriodosAdmin from './domains/calendario/components/PeriodosAdmin';
 import DocumentosPage from './domains/documentos/pages/DocumentosPage';
 import ComunicacionPage from './domains/comunicacion/pages/ComunicacionPage';
 import AnalyticsDashboard from './domains/reportes/components/AnalyticsDashboard';
+import PanelControlAuditores from './domains/auditores/components/PanelControlAuditores';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -274,6 +275,16 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <AnalyticsDashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/panel-auditor" 
+              element={
+                <ProtectedRoute allowedRoles={['auditor_general', 'auditor_interno', 'admin']}>
+                  <AdminLayout>
+                    <PanelControlAuditores />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

@@ -22,7 +22,20 @@
       "Bash(start http://localhost:3008/comunicacion)",
       "Bash(taskkill:*)",
       "Bash(start http://localhost:3008/dashboard)",
-      "Bash(start http://localhost:3000/dashboard)"
+      "Bash(start http://localhost:3000/dashboard)",
+      "Bash(start http://localhost:3010/dashboard)",
+      "Bash(start http://localhost:3010/comunicacion)",
+      "Bash(start http://localhost:3010/)",
+      "Bash(PORT=3002 npm run dev)",
+      "Bash(start http://localhost:3011)",
+      "Bash(start http://localhost:5173/reportes)",
+      "Bash(WMIC:*)",
+      "Bash(start http://localhost:3008/panel-auditor)",
+      "Bash(start http://localhost:3008/login)",
+      "Bash(powershell:*)",
+      "Bash(start http://localhost:3009/login)",
+      "Bash(start http://localhost:3009)",
+      "Bash(start http://localhost:3010)"
     ],
     "deny": [],
     "ask": []

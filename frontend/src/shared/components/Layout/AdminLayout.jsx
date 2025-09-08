@@ -120,6 +120,13 @@ const menuItems = {
       badge: null
     },
     {
+      id: 'panel-auditor',
+      title: 'Panel Auditor',
+      icon: <SecurityIcon />,
+      path: '/panel-auditor',
+      badge: null
+    },
+    {
       id: 'configuracion',
       title: 'Configuración',
       icon: <SettingsIcon />,
@@ -133,6 +140,13 @@ const menuItems = {
       title: 'Mi Panel',
       icon: <DashboardIcon />,
       path: '/dashboard',
+      badge: null
+    },
+    {
+      id: 'panel-auditor',
+      title: 'Panel Control',
+      icon: <SecurityIcon />,
+      path: '/panel-auditor',
       badge: null
     },
     {

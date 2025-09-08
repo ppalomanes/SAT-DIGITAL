@@ -24,7 +24,7 @@ const { errorHandler, notFoundHandler } = require('./shared/middleware/errorHand
 // ChatHandler for WebSocket communication
 const ChatHandler = require('./domains/comunicacion/websockets/chatHandler');
 // Sistema de notificaciones automáticas
-// const NotificacionesScheduler = require('./domains/notificaciones/services/NotificacionesScheduler'); // TEMP: Deshabilitado
+const NotificacionesScheduler = require('./domains/notificaciones/services/NotificacionesScheduler');
 
 // Importar rutas por dominio
 const authRoutes = require('./domains/auth/routes');
@@ -34,7 +34,8 @@ const auditRoutes = require('./domains/audits/routes');
 const calendarioRoutes = require('./domains/calendario/routes');
 const documentosRoutes = require('./domains/documentos/routes');
 const comunicacionRoutes = require('./domains/comunicacion/routes');
-// const notificacionesRoutes = require('./domains/notificaciones/routes'); // TEMP: Deshabilitado por error en routes
+const notificacionesRoutes = require('./domains/notificaciones/routes');
+const auditoresRoutes = require('./domains/auditores/routes');
 
 // Inicializar Express y HTTP Server
 const app = express();
@@ -161,7 +162,8 @@ app.use(`${API_PREFIX}/auditorias`, auditRoutes);
 app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
 app.use(`${API_PREFIX}/documentos`, documentosRoutes);
 app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes);
-// app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes); // TEMP: Deshabilitado por errores
+app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes);
+app.use(`${API_PREFIX}/auditores`, auditoresRoutes);
 
 // Documentación API (Swagger) - solo en desarrollo
 if (process.env.NODE_ENV === 'development') {
@@ -198,10 +200,10 @@ const startServer = async () => {
     logger.info('✅ WebSocket chat handler initialized');
 
     // Inicializar sistema de notificaciones automáticas
-    // if (process.env.NODE_ENV !== 'test') {
-    //   NotificacionesScheduler.inicializar();
-    //   logger.info('✅ Sistema de notificaciones automáticas inicializado');
-    // } // TEMP: Deshabilitado
+    if (process.env.NODE_ENV !== 'test') {
+      NotificacionesScheduler.inicializar();
+      logger.info('✅ Sistema de notificaciones automáticas inicializado');
+    }
 
     // Iniciar servidor
     server.listen(PORT, () => {
@@ -215,6 +217,12 @@ const startServer = async () => {
     // Graceful shutdown
     const gracefulShutdown = (signal) => {
       logger.info(`${signal} received. Starting graceful shutdown...`);
+      
+      // Detener scheduler de notificaciones
+      if (NotificacionesScheduler) {
+        NotificacionesScheduler.detener();
+        logger.info('Notifications scheduler stopped');
+      }
       
       // Cerrar WebSocket connections
       if (global.chatHandler) {
