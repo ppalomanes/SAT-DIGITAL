@@ -329,19 +329,17 @@ const PanelControlAuditores = () => {
                     <ListItemIcon>
                       <CheckCircle color={visita.estado === 'confirmada' ? 'success' : 'warning'} />
                     </ListItemIcon>
-                    <ListItemText
-                      primary={visita.sitio}
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {visita.proveedor}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {format(visita.fecha, 'dd/MM/yyyy HH:mm', { locale: es })}
-                          </Typography>
-                        </Box>
-                      }
-                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                        {visita.sitio}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {visita.proveedor}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {format(visita.fecha, 'dd/MM/yyyy HH:mm', { locale: es })}
+                      </Typography>
+                    </Box>
                     <Chip 
                       label={visita.estado} 
                       size="small" 
@@ -407,16 +405,14 @@ const PanelControlAuditores = () => {
                     <ListItemIcon>
                       {actividad.tipo === 'documento' ? <Description /> : <Chat />}
                     </ListItemIcon>
-                    <ListItemText
-                      primary={actividad.descripcion}
-                      secondary={
-                        <Box>
-                          <Typography variant="caption" color="text.secondary">
-                            {actividad.usuario} - {format(actividad.timestamp, 'HH:mm', { locale: es })}
-                          </Typography>
-                        </Box>
-                      }
-                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1">
+                        {actividad.descripcion}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {actividad.usuario} - {format(actividad.timestamp, 'HH:mm', { locale: es })}
+                      </Typography>
+                    </Box>
                   </ListItem>
                 ))}
               </List>

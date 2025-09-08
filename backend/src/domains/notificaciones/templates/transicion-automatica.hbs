@@ -1,0 +1,137 @@
+<h2>🔄 Cambio Automático de Estado de Auditoría</h2>
+
+<div class="alert {{#if (eq nuevo_estado 'cerrada')}}success{{else if (eq nuevo_estado 'evaluada')}}success{{else}}info{{/if}}">
+    <strong>Estado actualizado automáticamente</strong> por el sistema basado en las reglas de negocio configuradas.
+</div>
+
+<h3>Detalles del Cambio</h3>
+<table class="data-table">
+    <tr>
+        <th>Sitio</th>
+        <td><strong>{{auditoria.sitio.nombre}}</strong></td>
+    </tr>
+    <tr>
+        <th>Proveedor</th>
+        <td>{{auditoria.sitio.proveedor.nombre}}</td>
+    </tr>
+    <tr>
+        <th>Período</th>
+        <td>{{auditoria.periodo.nombre}}</td>
+    </tr>
+    <tr>
+        <th>Estado Anterior</th>
+        <td><span class="status-badge status-{{estado_anterior}}">{{estado_anterior}}</span></td>
+    </tr>
+    <tr>
+        <th>Estado Nuevo</th>
+        <td><span class="status-badge status-{{nuevo_estado}}">{{nuevo_estado}}</span></td>
+    </tr>
+    <tr>
+        <th>Fecha/Hora</th>
+        <td>{{timestamp_formato}}</td>
+    </tr>
+</table>
+
+<div class="divider"></div>
+
+<h3>📝 Motivo del Cambio</h3>
+<div class="alert info">
+    {{motivo}}
+</div>
+
+{{#if (eq nuevo_estado 'en_carga')}}
+<h3>📤 Próximos Pasos - Carga de Documentos</h3>
+<ul style="margin: 15px 0 0 20px; line-height: 1.8;">
+    <li><strong>Acción:</strong> Comenzar a cargar documentos técnicos</li>
+    <li><strong>Plazo:</strong> Hasta {{fecha_limite_formato}}</li>
+    <li><strong>Secciones:</strong> {{secciones_obligatorias}} secciones técnicas obligatorias</li>
+    <li><strong>Formatos:</strong> PDF, Excel, imágenes (JPG/PNG)</li>
+</ul>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{base_url}}/documentos/cargar/{{auditoria.id}}" class="button">
+        📤 Comenzar Carga de Documentos
+    </a>
+</div>
+{{/if}}
+
+{{#if (eq nuevo_estado 'pendiente_evaluacion')}}
+<h3>⏳ Próximos Pasos - Evaluación</h3>
+<ul style="margin: 15px 0 0 20px; line-height: 1.8;">
+    <li><strong>Estado:</strong> Documentos cargados completamente</li>
+    <li><strong>Acción:</strong> El auditor realizará la evaluación</li>
+    <li><strong>Tiempo estimado:</strong> 3-5 días hábiles</li>
+    <li><strong>Comunicación:</strong> Se le notificará cualquier consulta</li>
+</ul>
+
+<div class="alert success">
+    <strong>✅ ¡Felicitaciones!</strong> Ha completado exitosamente la carga de todos los documentos requeridos.
+</div>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{base_url}}/comunicacion/{{auditoria.id}}" class="button">
+        💬 Chat con Auditor
+    </a>
+</div>
+{{/if}}
+
+{{#if (eq nuevo_estado 'evaluada')}}
+<h3>✅ Evaluación Completada</h3>
+<div class="alert success">
+    <strong>¡Evaluación finalizada!</strong> Su auditoría ha sido evaluada exitosamente por el auditor.
+</div>
+
+<ul style="margin: 15px 0 0 20px; line-height: 1.8;">
+    <li><strong>Resultado:</strong> Evaluación técnica completada</li>
+    <li><strong>Próximo paso:</strong> Revisión y cierre administrativo</li>
+    <li><strong>Documentos:</strong> Disponibles para descarga</li>
+</ul>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{base_url}}/auditorias/{{auditoria.id}}/resultados" class="button">
+        📊 Ver Resultados
+    </a>
+</div>
+{{/if}}
+
+{{#if (eq nuevo_estado 'cerrada')}}
+<h3>🎯 Auditoría Cerrada</h3>
+<div class="alert success">
+    <strong>¡Proceso completado!</strong> La auditoría ha sido oficialmente cerrada.
+</div>
+
+<ul style="margin: 15px 0 0 20px; line-height: 1.8;">
+    <li><strong>Estado:</strong> Proceso de auditoría finalizado</li>
+    <li><strong>Documentos:</strong> Archivados permanentemente</li>
+    <li><strong>Reportes:</strong> Disponibles en el sistema</li>
+    <li><strong>Siguiente:</strong> Próximo período programado</li>
+</ul>
+
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{base_url}}/reportes/auditoria/{{auditoria.id}}" class="button">
+        📄 Descargar Reporte Final
+    </a>
+</div>
+{{/if}}
+
+<div class="divider"></div>
+
+<h3>📞 Información de Contacto</h3>
+<table class="data-table">
+    <tr>
+        <th>Auditor Asignado</th>
+        <td>{{auditor.nombre}}</td>
+    </tr>
+    <tr>
+        <th>Email</th>
+        <td><a href="mailto:{{auditor.email}}">{{auditor.email}}</a></td>
+    </tr>
+    <tr>
+        <th>Sistema de Chat</th>
+        <td><a href="{{base_url}}/comunicacion/{{auditoria.id}}">Chat en tiempo real</a></td>
+    </tr>
+</table>
+
+<div class="alert info">
+    <strong>💡 Recordatorio:</strong> Este cambio se realizó automáticamente. Si tiene dudas o requiere información adicional, no dude en contactar a su auditor asignado.
+</div>

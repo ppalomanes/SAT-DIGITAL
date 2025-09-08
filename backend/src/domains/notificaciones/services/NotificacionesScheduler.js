@@ -328,7 +328,7 @@ class NotificacionesScheduler {
           }]
         }],
         where: {
-          leido: false
+          estado_mensaje: ['enviado', 'respondido']
         }
       });
       return count;

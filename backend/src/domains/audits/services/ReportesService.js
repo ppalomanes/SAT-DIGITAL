@@ -212,20 +212,20 @@ class ReportesService {
         [Usuario.sequelize.literal(`(
           SELECT COUNT(*) 
           FROM auditorias 
-          WHERE auditor_asignado_id = Usuario.id 
+          WHERE auditor_asignado_id = usuarios.id 
           ${periodo ? `AND periodo = '${periodo}'` : ''}
         )`), 'total_asignadas'],
         [Usuario.sequelize.literal(`(
           SELECT COUNT(*) 
           FROM auditorias 
-          WHERE auditor_asignado_id = Usuario.id 
+          WHERE auditor_asignado_id = usuarios.id 
           AND estado IN ('evaluada', 'cerrada')
           ${periodo ? `AND periodo = '${periodo}'` : ''}
         )`), 'completadas'],
         [Usuario.sequelize.literal(`(
           SELECT AVG(DATEDIFF(updated_at, created_at))
           FROM auditorias 
-          WHERE auditor_asignado_id = Usuario.id 
+          WHERE auditor_asignado_id = usuarios.id 
           AND estado IN ('evaluada', 'cerrada')
           ${periodo ? `AND periodo = '${periodo}'` : ''}
         )`), 'tiempo_promedio_dias']

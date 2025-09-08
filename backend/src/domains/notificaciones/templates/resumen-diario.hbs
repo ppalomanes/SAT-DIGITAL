@@ -1,0 +1,166 @@
+<h2>📈 Resumen Diario de Actividades</h2>
+
+<div class="alert info">
+    <strong>📅 {{fecha_resumen}}</strong> - Resumen de actividades del día en el sistema SAT Digital
+</div>
+
+<h3>👤 Información Personal</h3>
+<table class="data-table">
+    <tr>
+        <th>Usuario</th>
+        <td><strong>{{usuario.nombre}}</strong></td>
+    </tr>
+    <tr>
+        <th>Rol</th>
+        <td>{{usuario.rol}}</td>
+    </tr>
+    {{#if usuario.proveedor}}
+    <tr>
+        <th>Proveedor</th>
+        <td>{{usuario.proveedor.nombre}}</td>
+    </tr>
+    {{/if}}
+</table>
+
+<h3>📊 Métricas del Día</h3>
+<table class="data-table">
+    <tr>
+        <th>Auditorías Activas</th>
+        <td><strong>{{metricas.auditorias_activas}}</strong></td>
+    </tr>
+    <tr>
+        <th>Documentos Cargados Hoy</th>
+        <td><strong>{{metricas.documentos_cargados_hoy}}</strong></td>
+    </tr>
+    <tr>
+        <th>Mensajes de Chat</th>
+        <td><strong>{{metricas.mensajes_chat_hoy}}</strong></td>
+    </tr>
+    <tr>
+        <th>Transiciones de Estado</th>
+        <td><strong>{{metricas.transiciones_hoy}}</strong></td>
+    </tr>
+</table>
+
+{{#if alertas_importantes}}
+<div class="alert warning">
+    <h4>⚠️ Alertas Importantes</h4>
+    <ul style="margin: 10px 0 0 20px;">
+        {{#each alertas_importantes}}
+        <li><strong>{{sitio}}:</strong> {{mensaje}} ({{dias_restantes}} días)</li>
+        {{/each}}
+    </ul>
+</div>
+{{/if}}
+
+<h3>🏢 Estado de Auditorías</h3>
+{{#each auditorias_resumen}}
+<div style="margin: 15px 0; padding: 15px; background: #fafafa; border-radius: 6px; border-left: 4px solid 
+{{#if (eq estado 'en_carga')}}#ff9800{{else if (eq estado 'pendiente_evaluacion')}}#2196f3{{else if (eq estado 'evaluada')}}#4caf50{{else}}#9e9e9e{{/if}};">
+    <h4 style="margin: 0 0 10px 0;">{{sitio.nombre}}</h4>
+    <table style="width: 100%; font-size: 14px;">
+        <tr>
+            <td><strong>Estado:</strong></td>
+            <td><span class="status-badge status-{{estado}}">{{estado}}</span></td>
+        </tr>
+        <tr>
+            <td><strong>Progreso:</strong></td>
+            <td>{{progreso.secciones_completas}}/{{progreso.secciones_totales}} secciones ({{progreso.porcentaje_total}}%)</td>
+        </tr>
+        <tr>
+            <td><strong>Fecha Límite:</strong></td>
+            <td>{{fecha_limite_formato}} <span style="color: {{#if (lt dias_restantes 7)}}#f44336{{else}}#666{{/if}};">({{dias_restantes}} días)</span></td>
+        </tr>
+        {{#if actividad_hoy}}
+        <tr>
+            <td><strong>Actividad Hoy:</strong></td>
+            <td style="color: #4caf50;">✅ {{actividad_hoy}}</td>
+        </tr>
+        {{/if}}
+    </table>
+</div>
+{{/each}}
+
+{{#if mensajes_pendientes}}
+<div class="divider"></div>
+<h3>💬 Mensajes Pendientes de Respuesta</h3>
+<div class="alert info">
+    Tienes <strong>{{mensajes_pendientes.length}}</strong> mensajes sin responder en el sistema de chat.
+</div>
+{{#each mensajes_pendientes}}
+<div style="margin: 10px 0; padding: 10px; background: #e3f2fd; border-radius: 4px;">
+    <strong>{{de}}:</strong> {{mensaje_preview}}...<br>
+    <small style="color: #666;">{{tiempo_transcurrido}} - Auditoría {{auditoria_sitio}}</small>
+</div>
+{{/each}}
+{{/if}}
+
+<div class="divider"></div>
+
+<h3>🎯 Tareas Recomendadas para Mañana</h3>
+<ul style="margin: 15px 0 0 20px; line-height: 1.8;">
+    {{#each tareas_recomendadas}}
+    <li>{{this}}</li>
+    {{/each}}
+</ul>
+
+{{#if proximos_vencimientos}}
+<div class="alert warning">
+    <h4>📅 Próximos Vencimientos (7 días)</h4>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Sitio</th>
+                <th>Estado</th>
+                <th>Fecha Límite</th>
+                <th>Días</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each proximos_vencimientos}}
+            <tr>
+                <td><strong>{{sitio}}</strong></td>
+                <td><span class="status-badge status-{{estado}}">{{estado}}</span></td>
+                <td>{{fecha_limite}}</td>
+                <td style="color: {{#if (lt dias 3)}}#f44336{{else if (lt dias 7)}}#ff9800{{else}}#666{{/if}};">{{dias}} días</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+{{/if}}
+
+<div class="divider"></div>
+
+<h3>🔗 Accesos Rápidos</h3>
+<div style="text-align: center; margin: 25px 0;">
+    <a href="{{base_url}}/dashboard" class="button">
+        🏠 Dashboard Principal
+    </a>
+    {{#if (eq usuario.rol 'jefe_proveedor')}}
+    <a href="{{base_url}}/documentos" class="button">
+        📤 Cargar Documentos
+    </a>
+    {{/if}}
+    <a href="{{base_url}}/comunicacion" class="button">
+        💬 Sistema de Chat
+    </a>
+</div>
+
+<div class="alert info">
+    <strong>💡 Consejo del día:</strong> {{consejo_diario}}
+</div>
+
+<div class="divider"></div>
+
+<p style="text-align: center; color: #666; font-size: 14px;">
+    <strong>📊 Estadísticas de la semana:</strong><br>
+    {{metricas.documentos_semana}} documentos cargados • 
+    {{metricas.mensajes_semana}} mensajes enviados • 
+    {{metricas.auditorias_completadas_semana}} auditorías avanzadas
+</p>
+
+<p style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
+    Para desactivar este resumen diario, puede configurarlo en 
+    <a href="{{base_url}}/configuracion/notificaciones">Configuración de Notificaciones</a>
+</p>

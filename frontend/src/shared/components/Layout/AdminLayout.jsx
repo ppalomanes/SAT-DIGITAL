@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -39,11 +39,13 @@ import {
   Schedule as ScheduleIcon,
   ChatOutlined as ChatIcon,
   Person as PersonIcon,
-  Analytics as AnalyticsIcon
+  Analytics as AnalyticsIcon,
+  Search
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../domains/auth/store/authStore';
 import { useWebSocket } from '../../../domains/comunicacion/hooks/useWebSocket';
 import NotificacionesToast from '../Notifications/NotificacionesToast';
+import GlobalSearch from '../Search/GlobalSearch';
 
 const DRAWER_WIDTH = 280;
 
@@ -54,6 +56,13 @@ const menuItems = {
       title: 'Overview',
       icon: <DashboardIcon />,
       path: '/dashboard',
+      badge: null
+    },
+    {
+      id: 'dashboard-ejecutivo',
+      title: 'Dashboard Ejecutivo',
+      icon: <AnalyticsIcon />,
+      path: '/dashboard-ejecutivo',
       badge: null
     },
     {
@@ -140,6 +149,13 @@ const menuItems = {
       title: 'Mi Panel',
       icon: <DashboardIcon />,
       path: '/dashboard',
+      badge: null
+    },
+    {
+      id: 'dashboard-ejecutivo',
+      title: 'Analytics',
+      icon: <AnalyticsIcon />,
+      path: '/dashboard-ejecutivo',
       badge: null
     },
     {
@@ -230,6 +246,7 @@ const AdminLayout = ({ children }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const theme = useTheme();
   const navigate = useNavigate();
@@ -238,6 +255,19 @@ const AdminLayout = ({ children }) => {
   
   // Inicializar WebSocket para chat y notificaciones en tiempo real
   const { connected } = useWebSocket();
+
+  // Manejar Ctrl+K para abrir búsqueda
+  React.useEffect(() => {
+    const handleKeyDown = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const currentMenuItems = menuItems[usuario?.rol] || menuItems.admin;
 
@@ -507,6 +537,16 @@ const AdminLayout = ({ children }) => {
 
           {/* Controles del Header */}
           <Box display="flex" alignItems="center" gap={1}>
+            {/* Búsqueda Global */}
+            <IconButton
+              color="inherit"
+              onClick={() => setSearchOpen(true)}
+              className="admin-layout__search"
+              title="Buscar (Ctrl+K)"
+            >
+              <Search />
+            </IconButton>
+            
             {/* Notificaciones */}
             <IconButton
               color="inherit"
@@ -746,6 +786,12 @@ const AdminLayout = ({ children }) => {
 
         {/* Sistema de notificaciones toast global */}
         <NotificacionesToast />
+        
+        {/* Búsqueda Global */}
+        <GlobalSearch 
+          open={searchOpen} 
+          onClose={() => setSearchOpen(false)} 
+        />
       </Box>
     </Box>
   );

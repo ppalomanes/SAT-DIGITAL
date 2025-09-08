@@ -151,7 +151,7 @@ const ResumenEjecutivoCard = ({ resumen, loading, filtrosActivos }) => {
                   estado === 'cerrada' ? 'success' :
                   estado === 'evaluada' ? 'info' :
                   estado === 'en_carga' ? 'warning' :
-                  estado === 'pendiente_evaluacion' ? 'secondary' : 'default';
+                  estado === 'pendiente_evaluacion' ? 'secondary' : 'primary';
 
                 return (
                   <ProgressBar

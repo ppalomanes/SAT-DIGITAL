@@ -9,6 +9,7 @@ import AdminLayout from './shared/components/Layout/AdminLayout';
 // Páginas
 import LoginPage from './domains/auth/pages/LoginPage';
 import Dashboard from './domains/dashboard/pages/Dashboard';
+import DashboardEjecutivo from './domains/dashboard/components/DashboardEjecutivo';
 import UsuariosPage from './domains/usuarios/pages/UsuariosPage';
 import ProveedoresPage from './domains/proveedores/pages/ProveedoresPage';
 import PeriodosAdmin from './domains/calendario/components/PeriodosAdmin';
@@ -186,6 +187,18 @@ function App() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <Dashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Dashboard Ejecutivo */}
+            <Route 
+              path="/dashboard-ejecutivo" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'auditor_general']}>
+                  <AdminLayout>
+                    <DashboardEjecutivo />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

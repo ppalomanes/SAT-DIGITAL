@@ -191,12 +191,12 @@ class ReportesController {
       const { Auditoria } = require('../../../shared/database/models');
       
       const periodos = await Auditoria.findAll({
-        attributes: ['periodo_auditoria'],
-        group: ['periodo_auditoria'],
-        order: [['periodo_auditoria', 'DESC']]
+        attributes: ['periodo'],
+        group: ['periodo'],
+        order: [['periodo', 'DESC']]
       });
 
-      const periodosUnicos = periodos.map(p => p.periodo_auditoria);
+      const periodosUnicos = periodos.map(p => p.periodo);
       
       res.json({
         success: true,
@@ -222,9 +222,9 @@ class ReportesController {
       const { Proveedor } = require('../../../shared/database/models');
       
       const proveedores = await Proveedor.findAll({
-        attributes: ['id', 'nombre', 'cuit'],
-        where: { activo: true },
-        order: [['nombre', 'ASC']]
+        attributes: ['id', 'razon_social', 'cuit'],
+        where: { estado: 'activo' },
+        order: [['razon_social', 'ASC']]
       });
       
       res.json({

@@ -38,6 +38,7 @@ import { periodoService } from '../../calendario/services/periodoService';
 import WorkflowMetrics from '../components/WorkflowMetrics';
 import ProgressIndicator from '../../../shared/components/Progress/ProgressIndicator';
 import { useWorkflow } from '../../../shared/hooks/useWorkflow';
+import DashboardProveedores from '../../proveedores/components/DashboardProveedores';
 import dayjs from 'dayjs';
 
 const MOCK_DATA = {
@@ -155,6 +156,11 @@ const Dashboard = () => {
   
   const theme = useTheme();
   const { usuario } = useAuthStore();
+  
+  // Si el usuario es proveedor, mostrar dashboard específico
+  if (usuario?.rol === 'jefe_proveedor' || usuario?.rol === 'tecnico_proveedor') {
+    return <DashboardProveedores />;
+  }
   
   // Hook de workflow para métricas globales
   const { 

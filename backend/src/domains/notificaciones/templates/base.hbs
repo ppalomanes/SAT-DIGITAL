@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{titulo}} - SAT Digital</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f4f4f4;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+        
+        .header .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #1976d2;
+            font-weight: bold;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+        
+        .alert.info {
+            background-color: #e3f2fd;
+            border-left-color: #2196f3;
+            color: #0d47a1;
+        }
+        
+        .alert.warning {
+            background-color: #fff3e0;
+            border-left-color: #ff9800;
+            color: #e65100;
+        }
+        
+        .alert.error {
+            background-color: #ffebee;
+            border-left-color: #f44336;
+            color: #b71c1c;
+        }
+        
+        .alert.success {
+            background-color: #e8f5e8;
+            border-left-color: #4caf50;
+            color: #2e7d32;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white !important;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 15px 0;
+            transition: transform 0.2s;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .button.secondary {
+            background: #6c757d;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #fafafa;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .data-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-programada {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .status-en-carga {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .status-pendiente-evaluacion {
+            background: #e8f5e8;
+            color: #388e3c;
+        }
+        
+        .status-evaluada {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        
+        .status-cerrada {
+            background: #fafafa;
+            color: #616161;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .footer a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+            margin: 25px 0;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .data-table th,
+            .data-table td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">SAT</div>
+            <h1>{{titulo}}</h1>
+            <div class="subtitle">Sistema de Auditorías Técnicas Digitalizado</div>
+        </div>
+        
+        <div class="content">
+            {{{contenido}}}
+        </div>
+        
+        <div class="footer">
+            <p><strong>SAT Digital</strong> - Sistema de Gestión de Auditorías Técnicas</p>
+            <p>Este es un mensaje automático, por favor no responder directamente.</p>
+            <p>Para consultas contactar a: <a href="mailto:soporte@satdigital.com">soporte@satdigital.com</a></p>
+            <div class="divider"></div>
+            <p style="font-size: 12px; color: #999;">
+                Generado automáticamente el {{fecha_envio}} | 
+                <a href="{{base_url}}">Acceder al Sistema</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

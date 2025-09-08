@@ -50,13 +50,64 @@ class EmailService {
    */
   async loadTemplate(templateName, data) {
     try {
-      const templatePath = path.join(__dirname, '../templates', `${templateName}.html`);
+      // Cargar template base
+      const basePath = path.join(__dirname, '../templates', 'base.hbs');
+      const baseContent = await fs.readFile(basePath, 'utf8');
+      
+      // Cargar template específico
+      const templatePath = path.join(__dirname, '../templates', `${templateName}.hbs`);
       const templateContent = await fs.readFile(templatePath, 'utf8');
-      const template = handlebars.compile(templateContent);
-      return template(data);
+      
+      // Registrar helpers de handlebars
+      handlebars.registerHelper('eq', function(a, b) {
+        return a === b;
+      });
+      
+      handlebars.registerHelper('lt', function(a, b) {
+        return a < b;
+      });
+      
+      handlebars.registerHelper('if', function(conditional, options) {
+        if (conditional) {
+          return options.fn(this);
+        }
+        return options.inverse(this);
+      });
+
+      // Preparar datos con información adicional
+      const templateData = {
+        ...data,
+        fecha_envio: new Date().toLocaleString('es-AR'),
+        base_url: process.env.FRONTEND_URL || 'http://localhost:5173'
+      };
+      
+      // Compilar template específico
+      const contentTemplate = handlebars.compile(templateContent);
+      const compiledContent = contentTemplate(templateData);
+      
+      // Compilar template base con el contenido
+      const baseTemplate = handlebars.compile(baseContent);
+      const finalHtml = baseTemplate({
+        ...templateData,
+        contenido: compiledContent
+      });
+      
+      return finalHtml;
     } catch (error) {
       logger.error(`Error cargando template ${templateName}:`, error);
-      return null;
+      
+      // Fallback a template simple
+      return `
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>${data.titulo || 'Notificación SAT Digital'}</h2>
+            <p>Ha ocurrido un evento en el sistema que requiere su atención.</p>
+            <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}">Acceder al Sistema</a></p>
+            <hr>
+            <small>Este es un mensaje automático del Sistema SAT Digital</small>
+          </body>
+        </html>
+      `;
     }
   }
 
@@ -224,9 +275,9 @@ class EmailService {
    */
   async notificarTransicionAutomatica(auditoria, estadoAnterior, estadoNuevo, motivo) {
     try {
-      const { AsignacionAuditor, Usuario } = require('../../../shared/database/models');
+      const { AsignacionAuditor, Usuario, SeccionTecnica } = require('../../../shared/database/models');
       
-      // Obtener auditor asignado y proveedor
+      // Obtener auditor asignado
       const asignacion = await AsignacionAuditor.findOne({
         where: { auditoria_id: auditoria.id },
         include: [{
@@ -240,20 +291,40 @@ class EmailService {
         return { success: false, error: 'No hay auditor asignado' };
       }
 
-      const subject = `🔄 Estado Automatico Actualizado - ${auditoria.sitio?.nombre}`;
+      // Obtener información adicional según el estado
+      let datosAdicionales = {};
+      
+      if (estadoNuevo === 'en_carga') {
+        const secciones = await SeccionTecnica.count({
+          where: { obligatoria: true, estado: 'activa' }
+        });
+        datosAdicionales.secciones_obligatorias = secciones;
+      }
+
+      const subject = `🔄 Estado Automático Actualizado - ${auditoria.sitio?.nombre}`;
       
       return await this.sendEmail({
         to: asignacion.auditor.email,
         subject,
         template: 'transicion-automatica',
         data: {
-          auditor: asignacion.auditor.nombre,
-          sitio: auditoria.sitio?.nombre || 'Sitio',
-          estadoAnterior,
-          estadoNuevo,
-          motivo,
-          fecha: new Date(),
-          enlaceAuditoria: `${process.env.FRONTEND_URL}/auditorias/${auditoria.id}`
+          titulo: 'Cambio Automático de Estado',
+          auditoria: {
+            id: auditoria.id,
+            sitio: { nombre: auditoria.sitio?.nombre || 'Sitio' },
+            periodo: { nombre: auditoria.periodo?.nombre || 'Período Actual' }
+          },
+          auditor: {
+            nombre: asignacion.auditor.nombre,
+            email: asignacion.auditor.email
+          },
+          estado_anterior: estadoAnterior,
+          nuevo_estado: estadoNuevo,
+          motivo: motivo,
+          timestamp_formato: new Date().toLocaleString('es-AR'),
+          fecha_limite_formato: auditoria.fecha_limite_carga ? 
+            new Date(auditoria.fecha_limite_carga).toLocaleDateString('es-AR') : 'No definida',
+          ...datosAdicionales
         }
       });
     } catch (error) {
@@ -263,22 +334,86 @@ class EmailService {
   }
 
   /**
+   * Enviar recordatorio de vencimiento con template mejorado
+   */
+  async enviarRecordatorioVencimiento(auditoria, progreso, diasRestantes, seccionesFaltantes, auditor) {
+    try {
+      const subject = diasRestantes <= 1 ? 
+        `🚨 ÚLTIMO DÍA - ${auditoria.sitio.nombre}` :
+        `⏰ ${diasRestantes} días restantes - ${auditoria.sitio.nombre}`;
+
+      return await this.sendEmail({
+        to: auditoria.sitio.proveedor.email_contacto || auditor.email,
+        subject,
+        template: 'recordatorio-vencimiento',
+        data: {
+          titulo: 'Recordatorio de Vencimiento',
+          auditoria: {
+            id: auditoria.id,
+            sitio: { 
+              nombre: auditoria.sitio.nombre,
+              proveedor: { nombre: auditoria.sitio.proveedor.razon_social }
+            },
+            periodo: { nombre: auditoria.periodo?.nombre || 'Período Actual' },
+            estado: auditoria.estado
+          },
+          fecha_limite_formato: new Date(auditoria.fecha_limite_carga).toLocaleDateString('es-AR'),
+          dias_restantes: diasRestantes,
+          progreso,
+          secciones_faltantes: seccionesFaltantes,
+          auditor: {
+            nombre: auditor.nombre,
+            email: auditor.email
+          },
+          ultima_actualizacion: new Date().toLocaleString('es-AR')
+        }
+      });
+    } catch (error) {
+      logger.error('Error enviando recordatorio de vencimiento:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Enviar resumen diario para auditores
    */
-  async enviarResumenDiario(auditor, resumenData) {
-    return await this.sendEmail({
-      to: auditor.email,
-      subject: `📊 Resumen Diario - ${new Date().toLocaleDateString()}`,
-      template: 'resumen-diario',
-      data: {
-        auditor: auditor.nombre,
-        fecha: new Date(),
-        auditoriasPendientes: resumenData.auditoriasPendientes,
-        mensajesNoLeidos: resumenData.mensajesNoLeidos,
-        proximasVisitas: resumenData.proximasVisitas,
-        alertasCriticas: resumenData.alertasCriticas
-      }
-    });
+  async enviarResumenDiario(usuario, datosResumen) {
+    try {
+      return await this.sendEmail({
+        to: usuario.email,
+        subject: `📊 Resumen Diario SAT Digital - ${new Date().toLocaleDateString('es-AR')}`,
+        template: 'resumen-diario',
+        data: {
+          titulo: 'Resumen Diario de Actividades',
+          fecha_resumen: new Date().toLocaleDateString('es-AR', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          usuario: {
+            nombre: usuario.nombre,
+            rol: usuario.rol,
+            proveedor: usuario.proveedor ? { nombre: usuario.proveedor.razon_social } : null
+          },
+          metricas: datosResumen.metricas || {},
+          alertas_importantes: datosResumen.alertas || [],
+          auditorias_resumen: datosResumen.auditorias || [],
+          mensajes_pendientes: datosResumen.mensajesPendientes || [],
+          tareas_recomendadas: datosResumen.tareasRecomendadas || [
+            'Revisar auditorías próximas a vencer',
+            'Responder mensajes pendientes en el chat',
+            'Verificar documentos cargados recientemente',
+            'Actualizar el estado de auditorías en progreso'
+          ],
+          proximos_vencimientos: datosResumen.proximosVencimientos || [],
+          consejo_diario: datosResumen.consejo || 'Mantenga una comunicación fluida con los proveedores para agilizar el proceso de auditoría.'
+        }
+      });
+    } catch (error) {
+      logger.error('Error enviando resumen diario:', error);
+      return { success: false, error: error.message };
+    }
   }
 
   /**
