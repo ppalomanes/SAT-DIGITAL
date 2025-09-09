@@ -1,0 +1,97 @@
+<!-- Template para cambios de estado de auditoría -->
+<div class="message">
+    <h2 style="color: #1e293b; font-size: 20px; margin-bottom: 16px;">
+        Cambio de Estado en Auditoría
+    </h2>
+    <p>La auditoría <strong>{{auditoria.codigo}}</strong> para el sitio <strong>{{auditoria.sitio}}</strong> 
+       ha cambiado su estado.</p>
+</div>
+
+<!-- Información de la Auditoría -->
+<div class="meta-info">
+    <table>
+        <tr>
+            <td>Código de Auditoría:</td>
+            <td><strong>{{auditoria.codigo}}</strong></td>
+        </tr>
+        <tr>
+            <td>Proveedor:</td>
+            <td>{{auditoria.proveedor}}</td>
+        </tr>
+        <tr>
+            <td>Sitio:</td>
+            <td>{{auditoria.sitio}}</td>
+        </tr>
+        <tr>
+            <td>Período:</td>
+            <td>{{auditoria.periodo}}</td>
+        </tr>
+        <tr>
+            <td>Estado Anterior:</td>
+            <td><span class="status-badge status-{{estado_anterior_class}}">{{estado_anterior}}</span></td>
+        </tr>
+        <tr style="border-bottom: 2px solid #206bc4;">
+            <td>Estado Actual:</td>
+            <td><span class="status-badge status-{{estado_actual_class}}">{{estado_actual}}</span></td>
+        </tr>
+    </table>
+</div>
+
+<!-- Mensaje específico según el estado -->
+{{#if (eq estado_actual "en_carga")}}
+<div class="info-box">
+    <h3>📋 Auditoría Habilitada para Carga</h3>
+    <p>Ya puedes comenzar a cargar los documentos requeridos para esta auditoría.</p>
+    <p><strong>Secciones pendientes:</strong> {{auditoria.secciones_pendientes}}</p>
+</div>
+{{/if}}
+
+{{#if (eq estado_actual "pendiente_evaluacion")}}
+<div class="alert-box">
+    <h3>⏳ Pendiente de Evaluación</h3>
+    <p>Los documentos han sido cargados y están pendientes de evaluación por el auditor asignado.</p>
+    <p><strong>Auditor Asignado:</strong> {{auditoria.auditor_asignado}}</p>
+</div>
+{{/if}}
+
+{{#if (eq estado_actual "evaluada")}}
+<div class="success-box">
+    <h3>✅ Auditoría Evaluada</h3>
+    <p>La auditoría ha sido evaluada exitosamente.</p>
+    <p><strong>Calificación:</strong> {{auditoria.calificacion}}</p>
+    <p><strong>Observaciones:</strong> {{auditoria.observaciones}}</p>
+</div>
+{{/if}}
+
+{{#if (eq estado_actual "cerrada")}}
+<div class="success-box">
+    <h3>🎯 Auditoría Cerrada</h3>
+    <p>La auditoría ha sido completada y cerrada oficialmente.</p>
+    <p><strong>Fecha de Cierre:</strong> {{auditoria.fecha_cierre}}</p>
+</div>
+{{/if}}
+
+<!-- Próximos pasos según el estado -->
+{{#if proximos_pasos}}
+<div class="divider"></div>
+<div style="margin-top: 24px;">
+    <h3 style="color: #374151; font-size: 16px; margin-bottom: 12px;">📋 Próximos Pasos</h3>
+    <ul style="margin-left: 20px; color: #6b7280;">
+        {{#each proximos_pasos}}
+        <li style="margin: 8px 0;">{{this}}</li>
+        {{/each}}
+    </ul>
+</div>
+{{/if}}
+
+<!-- Datos adicionales del cambio -->
+{{#if cambio_realizado_por}}
+<div class="divider"></div>
+<div style="font-size: 14px; color: #6b7280; text-align: center;">
+    <p>Cambio realizado por: <strong>{{cambio_realizado_por}}</strong></p>
+    <p>Fecha y hora: {{fecha_cambio}}</p>
+    {{#if motivo_cambio}}
+    <p>Motivo: {{motivo_cambio}}</p>
+    {{/if}}
+</div>
+{{/if}}

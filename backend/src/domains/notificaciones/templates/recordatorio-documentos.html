@@ -1,0 +1,129 @@
+<!-- Template para recordatorios de carga de documentos -->
+<div class="message">
+    <h2 style="color: #1e293b; font-size: 20px; margin-bottom: 16px;">
+        📄 Recordatorio de Carga de Documentos
+    </h2>
+    <p>Tienes documentos pendientes de carga para la auditoría <strong>{{auditoria.codigo}}</strong> 
+       del sitio <strong>{{auditoria.sitio}}</strong>.</p>
+</div>
+
+<!-- Información de la Auditoría -->
+<div class="meta-info">
+    <table>
+        <tr>
+            <td>Código de Auditoría:</td>
+            <td><strong>{{auditoria.codigo}}</strong></td>
+        </tr>
+        <tr>
+            <td>Proveedor:</td>
+            <td>{{auditoria.proveedor}}</td>
+        </tr>
+        <tr>
+            <td>Sitio:</td>
+            <td>{{auditoria.sitio}}</td>
+        </tr>
+        <tr>
+            <td>Período:</td>
+            <td>{{auditoria.periodo}}</td>
+        </tr>
+        <tr>
+            <td>Fecha Límite:</td>
+            <td><strong style="color: #dc2626;">{{fecha_limite}}</strong></td>
+        </tr>
+        <tr>
+            <td>Días Restantes:</td>
+            <td>
+                {{#if (gt dias_restantes 7)}}
+                    <span style="color: #16a34a;">{{dias_restantes}} días</span>
+                {{else if (gt dias_restantes 3)}}
+                    <span style="color: #b45309;">{{dias_restantes}} días</span>
+                {{else}}
+                    <span style="color: #dc2626;">{{dias_restantes}} días</span>
+                {{/if}}
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Tipo de recordatorio según urgencia -->
+{{#if (lt dias_restantes 3)}}
+<div class="alert-box">
+    <h3>🚨 URGENTE - Vencimiento Próximo</h3>
+    <p>La fecha límite para cargar los documentos está muy cerca. Es importante que completes 
+       la carga lo antes posible para evitar retrasos en el proceso de auditoría.</p>
+</div>
+{{else if (lt dias_restantes 7)}}
+<div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 24px 0; border-radius: 0 6px 6px 0;">
+    <h3 style="color: #b45309; font-size: 16px; margin-bottom: 8px;">⚠️ Recordatorio Importante</h3>
+    <p style="color: #78350f; font-size: 14px;">Te quedan {{dias_restantes}} días para completar 
+       la carga de documentos. Planifica tiempo suficiente para revisar y subir todos los archivos requeridos.</p>
+</div>
+{{else}}
+<div class="info-box">
+    <h3>📅 Recordatorio Programado</h3>
+    <p>Este es un recordatorio automático para que no olvides cargar los documentos requeridos 
+       para esta auditoría.</p>
+</div>
+{{/if}}
+
+<!-- Secciones Pendientes -->
+{{#if secciones_pendientes}}
+<div class="divider"></div>
+<h3 style="color: #374151; font-size: 16px; margin-bottom: 16px;">📋 Secciones Pendientes de Carga</h3>
+<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+    {{#each secciones_pendientes}}
+    <div style="background-color: white; border-radius: 6px; padding: 16px; margin-bottom: 12px; border-left: 4px solid #206bc4;">
+        <h4 style="color: #1e293b; font-size: 14px; font-weight: 600; margin-bottom: 8px;">
+            {{numero}}. {{nombre}}
+        </h4>
+        <p style="color: #6b7280; font-size: 13px; margin-bottom: 8px;">{{descripcion}}</p>
+        <div style="display: flex; align-items: center; gap: 16px; font-size: 12px;">
+            <span style="color: #16a34a;">
+                <strong>Subidos:</strong> {{documentos_subidos}}/{{documentos_requeridos}}
+            </span>
+            {{#if (lt documentos_subidos documentos_requeridos)}}
+            <span style="color: #dc2626;">
+                <strong>Faltantes:</strong> {{subtract documentos_requeridos documentos_subidos}}
+            </span>
+            {{/if}}
+        </div>
+    </div>
+    {{/each}}
+</div>
+{{/if}}
+
+<!-- Progreso General -->
+{{#if progreso_general}}
+<div class="divider"></div>
+<h3 style="color: #374151; font-size: 16px; margin-bottom: 12px;">📊 Progreso General</h3>
+<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; text-align: center;">
+    <div style="background-color: #e5e7eb; border-radius: 8px; height: 16px; position: relative; margin-bottom: 12px;">
+        <div style="background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%); height: 100%; border-radius: 8px; width: {{progreso_general}}%;"></div>
+    </div>
+    <p style="font-size: 18px; font-weight: 600; color: #1e293b;">{{progreso_general}}% Completado</p>
+    <p style="font-size: 14px; color: #6b7280;">
+        {{documentos_subidos_total}} de {{documentos_requeridos_total}} documentos cargados
+    </p>
+</div>
+{{/if}}
+
+<!-- Consejos útiles -->
+<div class="divider"></div>
+<div style="background-color: #f0f9ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 20px;">
+    <h3 style="color: #1e40af; font-size: 16px; margin-bottom: 12px;">💡 Consejos para la Carga</h3>
+    <ul style="margin-left: 20px; color: #1e40af; font-size: 14px;">
+        <li style="margin: 6px 0;">Verifica que los archivos estén en formato PDF, JPG o PNG</li>
+        <li style="margin: 6px 0;">Asegúrate de que los documentos sean legibles y estén completos</li>
+        <li style="margin: 6px 0;">El tamaño máximo por archivo es de 10MB</li>
+        <li style="margin: 6px 0;">Puedes cargar múltiples archivos por sección si es necesario</li>
+    </ul>
+</div>
+
+<!-- Información de contacto -->
+{{#if contacto_soporte}}
+<div class="divider"></div>
+<div style="text-align: center; font-size: 14px; color: #6b7280;">
+    <p>Si tienes problemas con la carga de documentos, puedes contactar a:</p>
+    <p><strong>{{contacto_soporte.nombre}}</strong> - {{contacto_soporte.email}} - {{contacto_soporte.telefono}}</p>
+</div>
+{{/if}}

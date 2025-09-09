@@ -6,9 +6,11 @@ const router = express.Router();
 
 // Importar sub-rutas
 const schedulerRoutes = require('./scheduler.routes');
+const emailTestRoutes = require('./email-test.routes');
 
 // Configurar sub-rutas
 router.use('/scheduler', schedulerRoutes);
+router.use('/email-test', emailTestRoutes);
 
 // Endpoint de health check general del dominio
 router.get('/health', (req, res) => {
@@ -20,7 +22,9 @@ router.get('/health', (req, res) => {
     features: [
       'scheduler',
       'email_service',
-      'automated_alerts'
+      'automated_alerts',
+      'email_templates',
+      'bulk_email_sending'
     ]
   });
 });
@@ -34,6 +38,7 @@ router.get('/info', (req, res) => {
     description: 'Sistema de notificaciones automáticas y alertas programadas',
     endpoints: {
       '/scheduler': 'Gestión del programador de notificaciones',
+      '/email-test': 'Sistema de testing de templates de email',
       '/health': 'Estado del dominio de notificaciones'
     },
     checkpoint: '2.4 - Sistema de Notificaciones y Alertas Automáticos',

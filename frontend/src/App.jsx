@@ -17,6 +17,7 @@ import DocumentosPage from './domains/documentos/pages/DocumentosPage';
 import ComunicacionPage from './domains/comunicacion/pages/ComunicacionPage';
 import AnalyticsDashboard from './domains/reportes/components/AnalyticsDashboard';
 import PanelControlAuditores from './domains/auditores/components/PanelControlAuditores';
+import EmailTestingPage from './domains/notificaciones/pages/EmailTestingPage';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -317,9 +318,9 @@ function App() {
             <Route 
               path="/notificaciones" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin', 'auditor_general', 'auditor_interno']}>
                   <AdminLayout>
-                    <div>Módulo de Notificaciones - En desarrollo</div>
+                    <EmailTestingPage />
                   </AdminLayout>
                 </ProtectedRoute>
               } 

@@ -1,0 +1,32 @@
+<!-- Template para notificaciones generales -->
+<div class="message">
+    <h2 style="color: #1e293b; font-size: 20px; margin-bottom: 16px;">{{titulo_notificacion}}</h2>
+    <p>{{mensaje_principal}}</p>
+</div>
+
+{{#if detalles_importantes}}
+<div class="info-box">
+    <h3>Información Importante</h3>
+    {{#each detalles_importantes}}
+    <p><strong>{{nombre}}:</strong> {{valor}}</p>
+    {{/each}}
+</div>
+{{/if}}
+
+{{#if acciones_requeridas}}
+<div class="alert-box">
+    <h3>Acciones Requeridas</h3>
+    <ul style="margin-left: 20px; color: #374151;">
+        {{#each acciones_requeridas}}
+        <li style="margin: 8px 0;">{{this}}</li>
+        {{/each}}
+    </ul>
+</div>
+{{/if}}
+
+{{#if informacion_adicional}}
+<div class="divider"></div>
+<div style="font-size: 14px; color: #6b7280;">
+    <p>{{informacion_adicional}}</p>
+</div>
+{{/if}}

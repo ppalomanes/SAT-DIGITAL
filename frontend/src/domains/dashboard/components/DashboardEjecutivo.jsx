@@ -1,13 +1,13 @@
 /**
- * Dashboard Ejecutivo Avanzado con Gráficos
- * Checkpoint 2.8: Vista analítica avanzada para administradores y auditores generales
+ * Dashboard Ejecutivo Moderno - Estilo Tabler
+ * Transformación completa con diseño contemporáneo
  * 
- * Funcionalidades:
- * - Gráficos de tendencias y métricas
- * - Análisis de cumplimiento por proveedor
- * - Reportes de productividad
- * - Métricas de tiempo real
- * - Comparaciones históricas
+ * Características:
+ * - Diseño limpio y minimalista
+ * - Gráficos modernos con Recharts
+ * - Paleta de colores sofisticada
+ * - Tipografía mejorada
+ * - Animaciones suaves
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -31,7 +31,8 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemIcon
+  ListItemIcon,
+  CircularProgress
 } from '@mui/material';
 import {
   Dashboard,
@@ -54,41 +55,52 @@ import {
   Timeline,
   Group,
   Assignment,
-  Speed
+  Speed,
+  People,
+  Description
 } from '@mui/icons-material';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart as RechartsBarChart,
+  Bar,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
   Legend,
-  Filler
-} from 'chart.js';
-import { Line, Bar, Doughnut, Radar } from 'react-chartjs-2';
+  RadialBarChart,
+  RadialBar
+} from 'recharts';
 import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useAuthStore } from '../../auth/store/authStore';
 
-// Registrar componentes de Chart.js
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
+// Paleta de colores moderna Tabler
+const COLORS = {
+  primary: '#206bc4',
+  secondary: '#6c757d',
+  success: '#2fb344',
+  danger: '#d63384',
+  warning: '#fd7e14',
+  info: '#17a2b8',
+  light: '#f8f9fa',
+  dark: '#1e293b',
+  muted: '#868e96',
+  gradient: {
+    primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    success: 'linear-gradient(135deg, #6be6d0 0%, #48bb78 100%)',
+    warning: 'linear-gradient(135deg, #ffeaa0 0%, #ff9800 100%)',
+    info: 'linear-gradient(135deg, #89ddff 0%, #21CBF3 100%)'
+  },
+  chart: ['#206bc4', '#2fb344', '#fd7e14', '#d63384', '#17a2b8', '#6c757d']
+};
 
 const DashboardEjecutivo = () => {
   const { user } = useAuthStore();
@@ -135,8 +147,28 @@ const DashboardEjecutivo = () => {
         satisfaccion_proveedores: 4.2,
         eficiencia_operativa: 91.2,
         documentos_procesados: 2450,
-        tendencia_cumplimiento: 5.2 // % de mejora
+        tendencia_cumplimiento: 5.2,
+        // Datos SAT-Digital específicos
+        auditorias_asignadas: 156,
+        pendientes_revision: 87,
+        proximas_visitas: 12,
+        alertas_activas: 3
       },
+      tendencias_recharts: [
+        { mes: 'Jun', auditorias: 18, cumplimiento: 85, documentos: 380 },
+        { mes: 'Jul', auditorias: 22, cumplimiento: 87, documentos: 425 },
+        { mes: 'Ago', auditorias: 19, cumplimiento: 84, documentos: 390 },
+        { mes: 'Sep', auditorias: 25, cumplimiento: 88, documentos: 445 },
+        { mes: 'Oct', auditorias: 28, cumplimiento: 91, documentos: 480 },
+        { mes: 'Nov', auditorias: 24, cumplimiento: 89, documentos: 430 }
+      ],
+      distribucion_estados_recharts: [
+        { nombre: 'Programada', valor: 12, color: COLORS.chart[0] },
+        { nombre: 'En Carga', valor: 28, color: COLORS.chart[1] },
+        { nombre: 'Pendiente Eval.', valor: 15, color: COLORS.chart[2] },
+        { nombre: 'Evaluada', valor: 18, color: COLORS.chart[3] },
+        { nombre: 'Cerrada', valor: 83, color: COLORS.chart[4] }
+      ],
       tendencias_temporales: {
         labels: meses,
         auditorias_completadas: [18, 22, 19, 25, 28, 24],
@@ -221,102 +253,141 @@ const DashboardEjecutivo = () => {
     };
   };
 
-  // Configuración de gráficos
-  const opcionesTendencia = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Tendencias de Cumplimiento (6 meses)'
+  // Componente KPI Card moderno estilo Tabler
+  const KPICard = ({ title, value, icon: IconComponent, color = COLORS.primary, trend, subtitle, percentage }) => (
+    <Card sx={{ 
+      height: '100%', 
+      borderRadius: 3,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+      transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
+      '&:hover': {
+        boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+        transform: 'translateY(-2px)'
       }
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        max: 100
-      }
-    }
-  };
+    }}>
+      <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.75rem', fontWeight: 500 }}>
+              {title}
+            </Typography>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+              {value}
+            </Typography>
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                {subtitle}
+              </Typography>
+            )}
+          </Box>
+          <Box sx={{ 
+            width: 48, 
+            height: 48, 
+            borderRadius: 2, 
+            backgroundColor: `${color}15`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <IconComponent sx={{ color, fontSize: 24 }} />
+          </Box>
+        </Box>
+        {trend && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {trend > 0 ? (
+              <TrendingUp sx={{ color: COLORS.success, fontSize: 16 }} />
+            ) : (
+              <TrendingDown sx={{ color: COLORS.danger, fontSize: 16 }} />
+            )}
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: trend > 0 ? COLORS.success : COLORS.danger,
+                fontWeight: 600
+              }}
+            >
+              {Math.abs(trend)}%
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              desde el mes anterior
+            </Typography>
+          </Box>
+        )}
+        {percentage && (
+          <Box sx={{ mt: 1 }}>
+            <LinearProgress 
+              variant="determinate" 
+              value={percentage} 
+              sx={{ 
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: `${color}20`,
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: color,
+                  borderRadius: 3
+                }
+              }} 
+            />
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
 
-  const datosTendencia = {
-    labels: datosAnalytics.tendencias_temporales?.labels || [],
-    datasets: [
-      {
-        label: 'Cumplimiento Promedio (%)',
-        data: datosAnalytics.tendencias_temporales?.cumplimiento_promedio || [],
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        fill: true,
-        tension: 0.1
-      },
-      {
-        label: 'Auditorías Completadas',
-        data: datosAnalytics.tendencias_temporales?.auditorias_completadas || [],
-        borderColor: 'rgb(255, 99, 132)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        yAxisID: 'y1',
-      }
-    ]
-  };
-
-  const opcionesEstados = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'right',
-      },
-      title: {
-        display: true,
-        text: 'Distribución de Estados Actuales'
-      }
-    }
-  };
-
-  const datosEstados = {
-    labels: datosAnalytics.distribucion_estados?.labels || [],
-    datasets: [{
-      data: datosAnalytics.distribucion_estados?.datos || [],
-      backgroundColor: datosAnalytics.distribucion_estados?.colores || [],
-      borderWidth: 2,
-      borderColor: '#fff'
-    }]
-  };
-
-  const datosRadar = {
-    labels: ['Cumplimiento', 'Velocidad', 'Calidad', 'Comunicación', 'Eficiencia'],
-    datasets: datosAnalytics.rendimiento_proveedores?.slice(0, 3).map((proveedor, index) => ({
-      label: proveedor.nombre.split(' ')[0],
-      data: [
-        proveedor.cumplimiento,
-        100 - proveedor.tiempo_promedio * 5, // Convertir a escala 0-100
-        95 - Math.random() * 10, // Simular calidad
-        90 + Math.random() * 10, // Simular comunicación
-        proveedor.eficiencia
-      ],
-      backgroundColor: `rgba(${54 + index * 50}, ${162 + index * 30}, ${235 - index * 20}, 0.2)`,
-      borderColor: `rgba(${54 + index * 50}, ${162 + index * 30}, ${235 - index * 20}, 1)`,
-      pointBackgroundColor: `rgba(${54 + index * 50}, ${162 + index * 30}, ${235 - index * 20}, 1)`
-    })) || []
-  };
-
-  const opcionesRadar = {
-    responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Comparativa de Rendimiento Top 3'
-      }
-    },
-    scales: {
-      r: {
-        beginAtZero: true,
-        max: 100
-      }
-    }
-  };
+  // Componente de progreso circular moderno
+  const CircularProgressCard = ({ title, value, icon: IconComponent }) => (
+    <Card sx={{ 
+      height: '100%', 
+      borderRadius: 3,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)'
+    }}>
+      <CardContent sx={{ p: 3, textAlign: 'center' }}>
+        <IconComponent sx={{ color: COLORS.info, fontSize: 32, mb: 2 }} />
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          {title}
+        </Typography>
+        <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
+          <CircularProgress
+            variant="determinate"
+            value={value}
+            size={80}
+            thickness={4}
+            sx={{
+              color: COLORS.info,
+              '& .MuiCircularProgress-circle': {
+                strokeLinecap: 'round',
+              }
+            }}
+          />
+          <CircularProgress
+            variant="determinate"
+            value={100}
+            size={80}
+            thickness={4}
+            sx={{
+              color: `${COLORS.info}20`,
+              position: 'absolute',
+              left: 0,
+            }}
+          />
+          <Box sx={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              {`${Math.round(value)}%`}
+            </Typography>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
 
   if (loading) {
     return (
@@ -328,346 +399,663 @@ const DashboardEjecutivo = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ 
+      p: { xs: 2, md: 3 }, 
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh'
+    }}>
+      {/* Header Moderno */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'flex-start', md: 'center' },
+        flexDirection: { xs: 'column', md: 'row' },
+        gap: 2,
+        mb: 4,
+        pb: 3,
+        borderBottom: '1px solid #e9ecef'
+      }}>
         <Box>
-          <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Analytics color="primary" />
-            Dashboard Ejecutivo
+          <Typography 
+            variant="h4" 
+            sx={{ 
+              fontWeight: 700, 
+              color: '#1e293b',
+              mb: 0.5,
+              fontSize: { xs: '1.5rem', md: '2rem' }
+            }}
+          >
+            Dashboard
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Análisis avanzado y métricas estratégicas
+          <Typography 
+            variant="subtitle1" 
+            color="text.secondary"
+            sx={{ fontWeight: 400 }}
+          >
+            Bienvenido de vuelta, {user?.nombre || 'Pawel'}
+          </Typography>
+          <Typography 
+            variant="body2" 
+            color="text.secondary"
+            sx={{ fontSize: '0.875rem' }}
+          >
+            Tienes 5 nuevos mensajes y 2 notificaciones.
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Período</InputLabel>
-            <Select
-              value={filtros.periodo}
-              label="Período"
-              onChange={(e) => setFiltros(prev => ({ ...prev, periodo: e.target.value }))}
-            >
-              <MenuItem value="3_meses">3 Meses</MenuItem>
-              <MenuItem value="6_meses">6 Meses</MenuItem>
-              <MenuItem value="1_año">1 Año</MenuItem>
-            </Select>
-          </FormControl>
-          <IconButton onClick={cargarDatosAnalytics} color="primary">
-            <Refresh />
-          </IconButton>
-          <Button startIcon={<FileDownload />} variant="outlined">
-            Exportar
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Button 
+            variant="outlined" 
+            size="small"
+            sx={{ 
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500
+            }}
+          >
+            Nueva vista
+          </Button>
+          <Button 
+            variant="contained" 
+            startIcon={<FileDownload />}
+            size="small"
+            sx={{ 
+              borderRadius: 2,
+              textTransform: 'none',
+              fontWeight: 500,
+              backgroundColor: COLORS.primary,
+              '&:hover': {
+                backgroundColor: '#1a5490'
+              }
+            }}
+          >
+            Crear nuevo reporte
           </Button>
         </Box>
       </Box>
 
-      {/* KPIs Principales */}
+      {/* Tarjeta de Bienvenida SAT-Digital */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} lg={2}>
+        <Grid item xs={12} lg={8}>
           <Card sx={{ 
-            bgcolor: 'primary.main', 
+            height: 200,
+            background: COLORS.gradient.primary,
             color: 'white',
-            height: '140px',
-            display: 'flex',
-            alignItems: 'center'
+            borderRadius: 3,
+            overflow: 'hidden',
+            position: 'relative'
           }}>
-            <CardContent sx={{ 
-              textAlign: 'center', 
-              width: '100%',
+            <CardContent sx={{ p: 3, height: '100%' }}>
+              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, fontFamily: 'var(--font-primary)' }}>
+                Bienvenido al Dashboard Ejecutivo
+              </Typography>
+              <Typography variant="body1" sx={{ opacity: 0.9, mb: 2, fontFamily: 'var(--font-primary)' }}>
+                Sistema de Auditorías Técnicas - SAT Digital v1.0
+              </Typography>
+              <Typography variant="body2" sx={{ opacity: 0.8, mb: 3 }}>
+                Análisis avanzado y métricas estratégicas para auditorías técnicas
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 4, mt: 2 }}>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {datosAnalytics.metricas_globales?.total_auditorias || '156'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                    TOTAL AUDITORÍAS
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {datosAnalytics.metricas_globales?.cumplimiento_promedio || '87.5'}%
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                    CUMPLIMIENTO PROMEDIO
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    {datosAnalytics.metricas_globales?.documentos_procesados || '2450'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                    DOCUMENTOS PROCESADOS
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+            <Box sx={{
+              position: 'absolute',
+              right: -20,
+              bottom: -20,
+              width: 150,
+              height: 150,
+              opacity: 0.2,
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1
+              justifyContent: 'center'
             }}>
-              <Assignment fontSize="large" />
-              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {datosAnalytics.metricas_globales?.total_auditorias || '156'}
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                Total Auditorías
-              </Typography>
+              <Analytics sx={{ fontSize: 120 }} />
+            </Box>
+          </Card>
+        </Grid>
+
+        {/* KPI Circular - Eficiencia */}
+        <Grid item xs={12} lg={4}>
+          <CircularProgressCard 
+            title="EFICIENCIA OPERATIVA"
+            value={datosAnalytics.metricas_globales?.eficiencia_operativa || 91.2}
+            icon={Speed}
+          />
+        </Grid>
+      </Grid>
+
+      {/* KPIs Principales SAT-Digital */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={6} md={3}>
+          <KPICard 
+            title="AUDITORÍAS ASIGNADAS"
+            value={datosAnalytics.metricas_globales?.auditorias_asignadas || '156'}
+            icon={Assignment}
+            color={COLORS.primary}
+            trend={datosAnalytics.metricas_globales?.tendencia_cumplimiento || 5.2}
+            subtitle="Total en el sistema"
+          />
+        </Grid>
+        
+        <Grid item xs={6} md={3}>
+          <KPICard 
+            title="PENDIENTES REVISIÓN"
+            value={datosAnalytics.metricas_globales?.pendientes_revision || '87'}
+            icon={Schedule}
+            color={COLORS.warning}
+            percentage={Math.round((datosAnalytics.metricas_globales?.pendientes_revision || 87) / (datosAnalytics.metricas_globales?.total_auditorias || 156) * 100)}
+            subtitle="Requieren atención"
+          />
+        </Grid>
+        
+        <Grid item xs={6} md={3}>
+          <KPICard 
+            title="PRÓXIMAS VISITAS"
+            value={datosAnalytics.metricas_globales?.proximas_visitas || '12'}
+            icon={Schedule}
+            color={COLORS.info}
+            trend={0}
+            subtitle="Programadas este mes"
+          />
+        </Grid>
+        
+        <Grid item xs={6} md={3}>
+          <KPICard 
+            title="ALERTAS ACTIVAS"
+            value={datosAnalytics.metricas_globales?.alertas_activas || '3'}
+            icon={Warning}
+            color={COLORS.danger}
+            subtitle="Requieren acción inmediata"
+          />
+        </Grid>
+      </Grid>
+
+      {/* Tarjetas de acciones rápidas */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={6} md={3}>
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            transition: 'all 0.3s ease',
+            '&:hover': { transform: 'translateY(-2px)' }
+          }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  borderRadius: 2, 
+                  backgroundColor: `${COLORS.primary}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Assignment sx={{ color: COLORS.primary, fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    132 Ventas
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    12 pagos pendientes
+                  </Typography>
+                </Box>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} lg={2}>
+        <Grid item xs={6} md={3}>
           <Card sx={{ 
-            bgcolor: 'success.main', 
-            color: 'white',
-            height: '140px',
-            display: 'flex',
-            alignItems: 'center'
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            transition: 'all 0.3s ease',
+            '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ 
-              textAlign: 'center', 
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1
-            }}>
-              <Speed fontSize="large" />
-              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {datosAnalytics.metricas_globales?.cumplimiento_promedio || '87.5'}%
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                Cumplimiento
-              </Typography>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  borderRadius: 2, 
+                  backgroundColor: `${COLORS.success}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <CheckCircle sx={{ color: COLORS.success, fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    78 Órdenes
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    32 enviadas
+                  </Typography>
+                </Box>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
-
-        <Grid item xs={12} sm={6} lg={2}>
+        
+        <Grid item xs={6} md={3}>
           <Card sx={{ 
-            bgcolor: 'info.main', 
-            color: 'white',
-            height: '140px',
-            display: 'flex',
-            alignItems: 'center'
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            transition: 'all 0.3s ease',
+            '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ 
-              textAlign: 'center', 
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1
-            }}>
-              <Schedule fontSize="large" />
-              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {datosAnalytics.metricas_globales?.tiempo_promedio_resolucion || '12.3'}
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                Días Promedio
-              </Typography>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  borderRadius: 2, 
+                  backgroundColor: `${COLORS.dark}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Description sx={{ color: COLORS.dark, fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    623 Compartidos
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    16 hoy
+                  </Typography>
+                </Box>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
-
-        <Grid item xs={12} sm={6} lg={2}>
+        
+        <Grid item xs={6} md={3}>
           <Card sx={{ 
-            bgcolor: 'warning.main', 
-            color: 'white',
-            height: '140px',
-            display: 'flex',
-            alignItems: 'center'
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            transition: 'all 0.3s ease',
+            '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ 
-              textAlign: 'center', 
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1
-            }}>
-              <TrendingUp fontSize="large" />
-              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {datosAnalytics.metricas_globales?.eficiencia_operativa || '91.2'}%
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                Eficiencia
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} lg={2}>
-          <Card sx={{ 
-            bgcolor: 'secondary.main', 
-            color: 'white',
-            height: '140px',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <CardContent sx={{ 
-              textAlign: 'center', 
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1
-            }}>
-              <Assessment fontSize="large" />
-              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {datosAnalytics.metricas_globales?.documentos_procesados || '2450'}
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                Documentos
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} lg={2}>
-          <Card sx={{ 
-            bgcolor: 'error.main', 
-            color: 'white',
-            height: '140px',
-            display: 'flex',
-            alignItems: 'center'
-          }}>
-            <CardContent sx={{ 
-              textAlign: 'center', 
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1
-            }}>
-              {datosAnalytics.metricas_globales?.tendencia_cumplimiento > 0 ? 
-                <TrendingUp fontSize="large" /> : 
-                <TrendingDown fontSize="large" />
-              }
-              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1 }}>
-                {Math.abs(datosAnalytics.metricas_globales?.tendencia_cumplimiento || 5.2)}%
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-                Tendencia
-              </Typography>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ 
+                  width: 48, 
+                  height: 48, 
+                  borderRadius: 2, 
+                  backgroundColor: `${COLORS.info}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <TrendingUp sx={{ color: COLORS.info, fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    132 Me Gusta
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    21 hoy
+                  </Typography>
+                </Box>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
       <Grid container spacing={3}>
-        {/* Gráfico de Tendencias */}
+        {/* Tendencias de Auditorías SAT-Digital */}
         <Grid item xs={12} lg={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ShowChart />
-                Tendencias de Cumplimiento
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            height: '450px'
+          }}>
+            <CardContent sx={{ p: 3, height: '100%' }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b', fontFamily: 'var(--font-primary)' }}>
+                Tendencias de Cumplimiento - Últimos 6 meses
               </Typography>
-              <Box sx={{ height: 400 }}>
-                <Line key="line-chart" data={datosTendencia} options={opcionesTendencia} />
-              </Box>
+              <ResponsiveContainer width="100%" height={350}>
+                <AreaChart data={datosAnalytics.tendencias_recharts}>
+                  <defs>
+                    <linearGradient id="colorAuditorias" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorCumplimiento" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={COLORS.success} stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor={COLORS.success} stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                  <XAxis 
+                    dataKey="mes" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: '#6c757d' }}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: '#6c757d' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e9ecef',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="auditorias"
+                    stroke={COLORS.primary}
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorAuditorias)"
+                    name="Auditorías Completadas"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="cumplimiento"
+                    stroke={COLORS.success}
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorCumplimiento)"
+                    name="% Cumplimiento"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Distribución de Estados */}
+        {/* Estados de Auditorías */}
         <Grid item xs={12} lg={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PieChart />
-                Estados Actuales
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+            height: '450px'
+          }}>
+            <CardContent sx={{ p: 3, height: '100%' }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b', fontFamily: 'var(--font-primary)' }}>
+                Distribución por Estados
               </Typography>
-              <Box sx={{ height: 400 }}>
-                <Doughnut key="doughnut-chart" data={datosEstados} options={opcionesEstados} />
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={datosAnalytics.distribucion_estados_recharts}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="valor"
+                    label={({ nombre, valor }) => `${nombre}: ${valor}`}
+                  >
+                    {datosAnalytics.distribucion_estados_recharts?.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+              <Box sx={{ mt: 2 }}>
+                {datosAnalytics.distribucion_estados_recharts?.map((estado, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Box sx={{ width: 12, height: 12, backgroundColor: estado.color, borderRadius: '50%' }} />
+                    <Typography variant="body2" sx={{ fontFamily: 'var(--font-primary)' }}>
+                      {estado.nombre}: {estado.valor}
+                    </Typography>
+                  </Box>
+                ))}
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Comparativa de Proveedores */}
+        {/* Almacenamiento - Gráfico de Barras */}
         <Grid item xs={12} lg={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <BarChart />
-                Análisis Comparativo
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Usando almacenamiento 4804.45 MB de 6 GB
               </Typography>
-              <Box sx={{ height: 350 }}>
-                <Radar key="radar-chart" data={datosRadar} options={opcionesRadar} />
+              <Box sx={{ mt: 2, mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.primary }} />
+                  <Typography variant="body2">Regular</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.info }} />
+                  <Typography variant="body2">Sistema</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.warning }} />
+                  <Typography variant="body2">Compartido</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.muted }} />
+                  <Typography variant="body2">Libre</Typography>
+                </Box>
               </Box>
+              <ResponsiveContainer width="100%" height={200}>
+                <RechartsBarChart data={[
+                  { name: 'Regular', value: 2500, fill: COLORS.primary },
+                  { name: 'Sistema', value: 1800, fill: COLORS.info },
+                  { name: 'Compartido', value: 504.45, fill: COLORS.warning },
+                  { name: 'Libre', value: 1195.55, fill: COLORS.muted }
+                ]}>
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} />
+                </RechartsBarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Ranking de Proveedores */}
+        {/* Actividad de Desarrollo */}
         <Grid item xs={12} lg={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Business />
-                Rendimiento por Proveedor
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b' }}>
+                Actividad de desarrollo
               </Typography>
-              <List>
-                {datosAnalytics.rendimiento_proveedores?.map((proveedor, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <Avatar sx={{ 
-                        bgcolor: index < 2 ? 'success.main' : index < 4 ? 'warning.main' : 'error.main',
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={datosAnalytics.tendencias_recharts}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
+                    <XAxis 
+                      dataKey="mes" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#6c757d' }}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#6c757d' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="documentos"
+                      stroke={COLORS.info}
+                      strokeWidth={3}
+                      dot={{ fill: COLORS.info, strokeWidth: 2, r: 4 }}
+                      name="Documentos"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
+              
+              {/* Lista de actividades */}
+              <Box sx={{ mt: 3 }}>
+                {[
+                  { user: 'Fix Sass compatibility', time: '28 Nov 2019', status: 'success' },
+                  { user: 'Change deprecated', time: '27 Nov 2019', status: 'warning' },
+                  { user: 'Justify content', time: '26 Nov 2019', status: 'info' }
+                ].map((activity, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
+                    <Avatar 
+                      sx={{ 
                         width: 32, 
-                        height: 32 
-                      }}>
-                        {index + 1}
-                      </Avatar>
-                    </ListItemIcon>
+                        height: 32,
+                        backgroundColor: activity.status === 'success' ? COLORS.success : 
+                                       activity.status === 'warning' ? COLORS.warning : COLORS.info,
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      {activity.user.charAt(0)}
+                    </Avatar>
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {activity.user}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {activity.time}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Rendimiento de Proveedores SAT-Digital */}
+        <Grid item xs={12}>
+          <Card sx={{ 
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b', fontFamily: 'var(--font-primary)' }}>
+                Rendimiento de Proveedores
+              </Typography>
+              
+              {/* Headers de la tabla */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 2,
+                pb: 1,
+                borderBottom: '1px solid #e9ecef'
+              }}>
+                <Typography variant="caption" sx={{ flex: 1, fontWeight: 600, color: '#6c757d', fontFamily: 'var(--font-primary)' }}>
+                  PROVEEDOR
+                </Typography>
+                <Typography variant="caption" sx={{ width: 100, textAlign: 'right', fontWeight: 600, color: '#6c757d', fontFamily: 'var(--font-primary)' }}>
+                  AUDITORÍAS
+                </Typography>
+                <Typography variant="caption" sx={{ width: 120, textAlign: 'right', fontWeight: 600, color: '#6c757d', fontFamily: 'var(--font-primary)' }}>
+                  CUMPLIMIENTO
+                </Typography>
+                <Typography variant="caption" sx={{ width: 100, textAlign: 'right', fontWeight: 600, color: '#6c757d', fontFamily: 'var(--font-primary)' }}>
+                  TIEMPO PROM.
+                </Typography>
+                <Box sx={{ width: 60 }} />
+              </Box>
+              
+              <Box>
+                {datosAnalytics.rendimiento_proveedores?.map((proveedor, index) => (
+                  <Box key={index} sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    py: 2,
+                    borderBottom: index < datosAnalytics.rendimiento_proveedores.length - 1 ? '1px solid #f1f3f4' : 'none'
+                  }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, fontFamily: 'var(--font-primary)' }}>
                         {proveedor.nombre}
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
-                        <Chip 
-                          size="small" 
-                          label={`${proveedor.cumplimiento}%`}
-                          color={proveedor.cumplimiento > 90 ? 'success' : proveedor.cumplimiento > 85 ? 'warning' : 'error'}
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {proveedor.auditorias} auditorías
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {proveedor.tiempo_promedio} días
-                        </Typography>
-                      </Box>
                     </Box>
-                    {proveedor.tendencia === 'up' && <TrendingUp color="success" />}
-                    {proveedor.tendencia === 'down' && <TrendingDown color="error" />}
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Alertas Ejecutivas */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Warning />
-                Alertas Ejecutivas
-              </Typography>
-              <Grid container spacing={2}>
-                {datosAnalytics.alertas_ejecutivas?.map((alerta, index) => (
-                  <Grid item xs={12} md={4} key={index}>
-                    <Paper sx={{ 
-                      p: 2, 
-                      borderLeft: `4px solid ${
-                        alerta.tipo === 'success' ? '#4caf50' : 
-                        alerta.tipo === 'warning' ? '#ff9800' : 
-                        alerta.tipo === 'error' ? '#f44336' : '#2196f3'
-                      }`
-                    }}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {alerta.titulo}
+                    <Box sx={{ width: 100, textAlign: 'right' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'var(--font-primary)' }}>
+                        {proveedor.auditorias}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {alerta.descripcion}
-                      </Typography>
+                    </Box>
+                    <Box sx={{ width: 120, textAlign: 'right' }}>
                       <Chip 
-                        size="small" 
-                        label={`Impacto ${alerta.impacto}`}
-                        sx={{ mt: 1 }}
-                        color={alerta.impacto === 'alto' ? 'error' : alerta.impacto === 'medio' ? 'warning' : 'info'}
+                        label={`${proveedor.cumplimiento}%`}
+                        size="small"
+                        color={proveedor.cumplimiento > 90 ? 'success' : proveedor.cumplimiento > 85 ? 'warning' : 'error'}
+                        sx={{ fontFamily: 'var(--font-primary)' }}
                       />
-                    </Paper>
-                  </Grid>
+                    </Box>
+                    <Box sx={{ width: 100, textAlign: 'right' }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'var(--font-primary)' }}>
+                        {proveedor.tiempo_promedio} días
+                      </Typography>
+                    </Box>
+                    <Box sx={{ width: 60, textAlign: 'right' }}>
+                      {proveedor.tendencia === 'up' ? (
+                        <TrendingUp sx={{ color: COLORS.success, fontSize: 18 }} />
+                      ) : proveedor.tendencia === 'down' ? (
+                        <TrendingDown sx={{ color: COLORS.danger, fontSize: 18 }} />
+                      ) : (
+                        <Box sx={{ width: 18, height: 2, backgroundColor: COLORS.muted, borderRadius: 1 }} />
+                      )}
+                    </Box>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+      
+      {/* Footer */}
+      <Box sx={{ 
+        mt: 4, 
+        pt: 3, 
+        borderTop: '1px solid #e9ecef',
+        textAlign: 'center'
+      }}>
+        <Typography variant="body2" color="text.secondary">
+          SAT-Digital v1.0 © 2025 Sistema de Auditorías Técnicas
+        </Typography>
+      </Box>
     </Box>
   );
 };

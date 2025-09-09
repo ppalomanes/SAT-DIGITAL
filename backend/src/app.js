@@ -55,6 +55,7 @@ const io = socketIo(server, {
       'http://localhost:3008',
       'http://localhost:3010',
       'http://localhost:3011',
+      'http://localhost:3012',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3003',
@@ -65,6 +66,7 @@ const io = socketIo(server, {
       'http://127.0.0.1:3008',
       'http://127.0.0.1:3010',
       'http://127.0.0.1:3011',
+      'http://127.0.0.1:3012',
       'http://127.0.0.1:5173'
     ],
     credentials: true,
@@ -99,6 +101,7 @@ const corsOptions = {
     'http://localhost:3008',  // Puerto actual del frontend
     'http://localhost:3010',  // Puerto nuevo del frontend
     'http://localhost:3011',  // Puerto actual del frontend
+    'http://localhost:3012',  // Puerto actual del frontend Dashboard
     'http://localhost:5173',  // Puerto por defecto de Vite
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3003',
@@ -109,6 +112,7 @@ const corsOptions = {
     'http://127.0.0.1:3008',
     'http://127.0.0.1:3010',
     'http://127.0.0.1:3011',
+    'http://127.0.0.1:3012',
     'http://127.0.0.1:5173'
   ],
   credentials: process.env.CORS_CREDENTIALS === 'true' || true,

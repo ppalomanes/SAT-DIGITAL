@@ -51,34 +51,35 @@ class EmailService {
   async loadTemplate(templateName, data) {
     try {
       // Cargar template base
-      const basePath = path.join(__dirname, '../templates', 'base.hbs');
+      const basePath = path.join(__dirname, '../templates', 'base.html');
       const baseContent = await fs.readFile(basePath, 'utf8');
       
-      // Cargar template específico
-      const templatePath = path.join(__dirname, '../templates', `${templateName}.hbs`);
-      const templateContent = await fs.readFile(templatePath, 'utf8');
+      // Cargar template específico (intentar .html primero, luego .hbs)
+      let templatePath = path.join(__dirname, '../templates', `${templateName}.html`);
+      let templateContent;
+      
+      try {
+        templateContent = await fs.readFile(templatePath, 'utf8');
+      } catch (error) {
+        // Fallback a .hbs si no existe .html
+        templatePath = path.join(__dirname, '../templates', `${templateName}.hbs`);
+        templateContent = await fs.readFile(templatePath, 'utf8');
+      }
       
       // Registrar helpers de handlebars
-      handlebars.registerHelper('eq', function(a, b) {
-        return a === b;
-      });
-      
-      handlebars.registerHelper('lt', function(a, b) {
-        return a < b;
-      });
-      
-      handlebars.registerHelper('if', function(conditional, options) {
-        if (conditional) {
-          return options.fn(this);
-        }
-        return options.inverse(this);
-      });
+      this.registerHandlebarsHelpers();
 
       // Preparar datos con información adicional
       const templateData = {
         ...data,
-        fecha_envio: new Date().toLocaleString('es-AR'),
-        base_url: process.env.FRONTEND_URL || 'http://localhost:5173'
+        fecha_envio: new Date().toLocaleDateString('es-AR', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        base_url: process.env.FRONTEND_URL || 'http://localhost:3012'
       };
       
       // Compilar template específico
@@ -89,7 +90,9 @@ class EmailService {
       const baseTemplate = handlebars.compile(baseContent);
       const finalHtml = baseTemplate({
         ...templateData,
-        contenido: compiledContent
+        contenido_principal: compiledContent,
+        destinatario: data.destinatario || data.usuario?.nombre || data.auditor?.nombre,
+        titulo: data.titulo || 'Notificación SAT-Digital'
       });
       
       return finalHtml;
@@ -97,18 +100,74 @@ class EmailService {
       logger.error(`Error cargando template ${templateName}:`, error);
       
       // Fallback a template simple
-      return `
-        <html>
-          <body style="font-family: Arial, sans-serif; padding: 20px;">
+      return this.createFallbackTemplate(data);
+    }
+  }
+
+  /**
+   * Registrar helpers de Handlebars
+   */
+  registerHandlebarsHelpers() {
+    handlebars.registerHelper('eq', function(a, b) {
+      return a === b;
+    });
+    
+    handlebars.registerHelper('lt', function(a, b) {
+      return a < b;
+    });
+
+    handlebars.registerHelper('gt', function(a, b) {
+      return a > b;
+    });
+
+    handlebars.registerHelper('subtract', function(a, b) {
+      return a - b;
+    });
+    
+    handlebars.registerHelper('if', function(conditional, options) {
+      if (conditional) {
+        return options.fn(this);
+      }
+      return options.inverse(this);
+    });
+
+    handlebars.registerHelper('formatDate', function(date) {
+      return new Date(date).toLocaleDateString('es-AR');
+    });
+
+    handlebars.registerHelper('formatDateTime', function(date) {
+      return new Date(date).toLocaleString('es-AR');
+    });
+  }
+
+  /**
+   * Crear template de fallback simple
+   */
+  createFallbackTemplate(data) {
+    return `
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background-color: #f8f9fa; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+            .header { background: #206bc4; color: white; padding: 20px; margin: -30px -30px 30px -30px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>SAT-Digital</h1>
+            </div>
             <h2>${data.titulo || 'Notificación SAT Digital'}</h2>
             <p>Ha ocurrido un evento en el sistema que requiere su atención.</p>
-            <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}">Acceder al Sistema</a></p>
-            <hr>
-            <small>Este es un mensaje automático del Sistema SAT Digital</small>
-          </body>
-        </html>
-      `;
-    }
+            <p><a href="${process.env.FRONTEND_URL || 'http://localhost:3012'}" style="background: #206bc4; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Acceder al Sistema</a></p>
+            <hr style="margin: 30px 0;">
+            <small style="color: #6c757d;">Este es un mensaje automático del Sistema SAT Digital</small>
+          </div>
+        </body>
+      </html>
+    `;
   }
 
   /**
@@ -435,6 +494,180 @@ class EmailService {
   }
 
   /**
+   * Envío masivo de emails con control de límites
+   */
+  async sendBulkEmails(emailList, templateName, baseData, options = {}) {
+    const {
+      batchSize = 10, // Emails por lote
+      delayBetweenBatches = 1000, // Delay en ms entre lotes
+      maxRetries = 3
+    } = options;
+
+    const results = {
+      total: emailList.length,
+      sent: 0,
+      failed: 0,
+      errors: []
+    };
+
+    logger.info(`📧 Iniciando envío masivo: ${emailList.length} emails`);
+
+    // Procesar en lotes
+    for (let i = 0; i < emailList.length; i += batchSize) {
+      const batch = emailList.slice(i, i + batchSize);
+      const batchPromises = batch.map(emailData => 
+        this.sendEmailWithRetry({
+          to: emailData.email,
+          subject: emailData.subject || baseData.subject,
+          template: templateName,
+          data: { ...baseData, ...emailData.data }
+        }, maxRetries)
+      );
+
+      try {
+        const batchResults = await Promise.allSettled(batchPromises);
+        
+        batchResults.forEach((result, index) => {
+          if (result.status === 'fulfilled' && result.value.success) {
+            results.sent++;
+          } else {
+            results.failed++;
+            results.errors.push({
+              email: batch[index].email,
+              error: result.reason || result.value?.error
+            });
+          }
+        });
+
+        logger.info(`📧 Lote ${Math.floor(i/batchSize) + 1}/${Math.ceil(emailList.length/batchSize)} completado`);
+
+        // Delay entre lotes para evitar rate limiting
+        if (i + batchSize < emailList.length) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
+        }
+      } catch (error) {
+        logger.error('Error procesando lote de emails:', error);
+        results.failed += batch.length;
+      }
+    }
+
+    logger.info(`📧 Envío masivo completado: ${results.sent} enviados, ${results.failed} fallidos`);
+    return results;
+  }
+
+  /**
+   * Enviar email con reintentos
+   */
+  async sendEmailWithRetry(emailOptions, maxRetries = 3) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.sendEmail(emailOptions);
+        if (result.success) {
+          return result;
+        }
+        lastError = result.error;
+      } catch (error) {
+        lastError = error.message;
+        logger.warn(`Intento ${attempt}/${maxRetries} falló para ${emailOptions.to}: ${error.message}`);
+      }
+
+      // Delay exponencial entre reintentos
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    return { success: false, error: lastError };
+  }
+
+  /**
+   * Enviar notificación masiva a múltiples usuarios
+   */
+  async sendMassNotification(usuarios, templateName, data) {
+    const emailList = usuarios.map(usuario => ({
+      email: usuario.email,
+      data: {
+        destinatario: usuario.nombre,
+        usuario: usuario,
+        ...data
+      }
+    }));
+
+    return await this.sendBulkEmails(emailList, templateName, data);
+  }
+
+  /**
+   * Test de envío de email con template específico
+   */
+  async testEmailTemplate(templateName, testEmail, sampleData) {
+    try {
+      logger.info(`🧪 Testing template ${templateName} to ${testEmail}`);
+      
+      const result = await this.sendEmail({
+        to: testEmail,
+        subject: `[TEST] SAT-Digital - Template ${templateName}`,
+        template: templateName,
+        data: {
+          ...sampleData,
+          destinatario: 'Usuario de Prueba',
+          titulo: `Test de Template: ${templateName}`
+        }
+      });
+
+      if (result.success) {
+        logger.info(`✅ Template ${templateName} enviado exitosamente`);
+        return {
+          success: true,
+          templateName,
+          messageId: result.messageId,
+          previewUrl: result.preview
+        };
+      } else {
+        logger.error(`❌ Error enviando template ${templateName}:`, result.error);
+        return {
+          success: false,
+          templateName,
+          error: result.error
+        };
+      }
+    } catch (error) {
+      logger.error(`❌ Error testing template ${templateName}:`, error);
+      return {
+        success: false,
+        templateName,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Obtener lista de templates disponibles
+   */
+  async getAvailableTemplates() {
+    try {
+      const templatesDir = path.join(__dirname, '../templates');
+      const files = await fs.readdir(templatesDir);
+      
+      const templates = files
+        .filter(file => file.endsWith('.html') || file.endsWith('.hbs'))
+        .filter(file => !file.startsWith('base.')) // Excluir template base
+        .map(file => ({
+          name: file.replace(/\.(html|hbs)$/, ''),
+          file: file,
+          type: file.endsWith('.html') ? 'HTML' : 'Handlebars'
+        }));
+
+      return templates;
+    } catch (error) {
+      logger.error('Error obteniendo templates:', error);
+      return [];
+    }
+  }
+
+  /**
    * Enviar alerta urgente (24 horas)
    */
   async enviarAlertaUrgente(email, auditoria) {
@@ -507,4 +740,10 @@ class EmailService {
   }
 }
 
-module.exports = new EmailService();
+// Crear instancia única
+const emailServiceInstance = new EmailService();
+
+// Registrar helpers al inicializar
+emailServiceInstance.registerHandlebarsHelpers();
+
+module.exports = emailServiceInstance;

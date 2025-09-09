@@ -35,7 +35,14 @@
       "Bash(powershell:*)",
       "Bash(start http://localhost:3009/login)",
       "Bash(start http://localhost:3009)",
-      "Bash(start http://localhost:3010)"
+      "Bash(start http://localhost:3010)",
+      "Bash(xcopy:*)",
+      "Bash(robocopy:*)",
+      "Bash(copy:*)",
+      "Bash(start http://localhost:3012/dashboard)",
+      "Bash(dir \"C:\\Users\\u543524\\Downloads\\Iconos y Fuentes\\FONT Primaria\")",
+      "Bash(dir:*)",
+      "Bash(start http://localhost:3012/dashboard-ejecutivo)"
     ],
     "deny": [],
     "ask": []
