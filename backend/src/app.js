@@ -36,6 +36,8 @@ const documentosRoutes = require('./domains/documentos/routes');
 const comunicacionRoutes = require('./domains/comunicacion/routes');
 const notificacionesRoutes = require('./domains/notificaciones/routes');
 const auditoresRoutes = require('./domains/auditores/routes');
+const { parqueInformaticoRoutes } = require('./domains/parque-informatico/routes');
+const iaAnalisisRoutes = require('./domains/ia-analisis/routes/analysisRoutes');
 
 // Inicializar Express y HTTP Server
 const app = express();
@@ -53,9 +55,11 @@ const io = socketIo(server, {
       'http://localhost:3006',
       'http://localhost:3007',
       'http://localhost:3008',
+      'http://localhost:3009',
       'http://localhost:3010',
       'http://localhost:3011',
       'http://localhost:3012',
+      'http://localhost:3014',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3003',
@@ -64,9 +68,11 @@ const io = socketIo(server, {
       'http://127.0.0.1:3006',
       'http://127.0.0.1:3007',
       'http://127.0.0.1:3008',
+      'http://127.0.0.1:3009',
       'http://127.0.0.1:3010',
       'http://127.0.0.1:3011',
       'http://127.0.0.1:3012',
+      'http://127.0.0.1:3014',
       'http://127.0.0.1:5173'
     ],
     credentials: true,
@@ -99,9 +105,11 @@ const corsOptions = {
     'http://localhost:3006',  // Puerto anterior del frontend
     'http://localhost:3007',  // Puerto anterior del frontend
     'http://localhost:3008',  // Puerto actual del frontend
+    'http://localhost:3009',  // Puerto nuevo del frontend
     'http://localhost:3010',  // Puerto nuevo del frontend
     'http://localhost:3011',  // Puerto actual del frontend
     'http://localhost:3012',  // Puerto actual del frontend Dashboard
+    'http://localhost:3014',  // Puerto nuevo del frontend
     'http://localhost:5173',  // Puerto por defecto de Vite
     'http://127.0.0.1:3000',
     'http://127.0.0.1:3003',
@@ -110,9 +118,11 @@ const corsOptions = {
     'http://127.0.0.1:3006',
     'http://127.0.0.1:3007',
     'http://127.0.0.1:3008',
+    'http://127.0.0.1:3009',
     'http://127.0.0.1:3010',
     'http://127.0.0.1:3011',
     'http://127.0.0.1:3012',
+    'http://127.0.0.1:3014',
     'http://127.0.0.1:5173'
   ],
   credentials: process.env.CORS_CREDENTIALS === 'true' || true,
@@ -168,6 +178,8 @@ app.use(`${API_PREFIX}/documentos`, documentosRoutes);
 app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes);
 app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes);
 app.use(`${API_PREFIX}/auditores`, auditoresRoutes);
+app.use(`${API_PREFIX}/parque-informatico`, parqueInformaticoRoutes);
+app.use(`${API_PREFIX}/ia-analisis`, iaAnalisisRoutes);
 
 // Documentación API (Swagger) - solo en desarrollo
 if (process.env.NODE_ENV === 'development') {

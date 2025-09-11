@@ -1,99 +1,33 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  Typography,
-  Alert,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  InputAdornment,
-  IconButton,
-  Paper,
-  useTheme,
-  alpha
-} from '@mui/material';
-import {
-  Email as EmailIcon,
-  Lock as LockIcon,
   Visibility,
   VisibilityOff,
-  Shield as ShieldIcon,
   Person as PersonIcon,
-  Business as BusinessIcon
+  Lock as LockIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../store/authStore';
 
-// Usuarios predefinidos para pruebas (coinciden con la base de datos)
+// Usuarios predefinidos simplificados
 const USUARIOS_PRUEBA = [
-  {
-    email: 'admin@satdigital.com',
-    password: 'admin123',
-    rol: 'admin',
-    nombre: 'Administrador Sistema',
-    descripcion: 'Acceso completo al sistema'
-  },
-  {
-    email: 'auditor@satdigital.com',
-    password: 'auditor123',
-    rol: 'auditor_general',
-    nombre: 'Juan Carlos - Auditor General',
-    descripcion: 'Gestión completa de auditorías'
-  },
-  {
-    email: 'auditoria@satdigital.com',
-    password: 'auditor123',
-    rol: 'auditor_interno',
-    nombre: 'Ana María - Auditora Interna',
-    descripcion: 'Evaluación técnica de auditorías'
-  },
-  {
-    email: 'proveedor@activo.com',
-    password: 'proveedor123',
-    rol: 'jefe_proveedor',
-    nombre: 'Jefe Grupo Activo SRL',
-    descripcion: 'Gestión sitios del proveedor'
-  },
-  {
-    email: 'tecnico@activo.com',
-    password: 'tecnico123',
-    rol: 'tecnico_proveedor',
-    nombre: 'Luis - Técnico Activo',
-    descripcion: 'Soporte técnico del proveedor'
-  },
-  {
-    email: 'visualizador@satdigital.com',
-    password: 'visual123',
-    rol: 'visualizador',
-    nombre: 'Carlos - Gerente Ejecutivo',
-    descripcion: 'Dashboards ejecutivos'
-  }
+  { email: 'admin@satdigital.com', password: 'admin123', nombre: 'Admin', iniciales: 'A' },
+  { email: 'auditor@satdigital.com', password: 'auditor123', nombre: 'Auditor', iniciales: 'AU' },
+  { email: 'proveedor@activo.com', password: 'proveedor123', nombre: 'Proveedor', iniciales: 'P' },
+  { email: 'visualizador@satdigital.com', password: 'visual123', nombre: 'Viewer', iniciales: 'V' }
 ];
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const theme = useTheme();
   const { loginAsync } = useAuthStore();
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     if (error) setError('');
   };
 
@@ -104,269 +38,488 @@ const LoginPage = () => {
 
     try {
       const result = await loginAsync(formData.email, formData.password);
-      
       if (result.success) {
         navigate('/dashboard');
       } else {
         setError(result.error || 'Error de autenticación');
       }
-
     } catch (err) {
-      console.error('Error en login:', err);
-      setError(err.message || 'Error de conexión con el servidor');
+      setError(err.message || 'Error de conexión');
     } finally {
       setLoading(false);
     }
   };
 
   const handleUsuarioPrueba = (usuario) => {
-    setFormData({
-      email: usuario.email,
-      password: usuario.password
-    });
-  };
-
-  const getRolIcon = (rol) => {
-    switch (rol) {
-      case 'admin': return <ShieldIcon />;
-      case 'auditor_general': return <PersonIcon />;
-      case 'auditor_interno': return <PersonIcon />;
-      case 'jefe_proveedor': return <BusinessIcon />;
-      case 'tecnico_proveedor': return <BusinessIcon />;
-      case 'visualizador': return <PersonIcon />;
-      default: return <PersonIcon />;
-    }
-  };
-
-  const getRolColor = (rol) => {
-    switch (rol) {
-      case 'admin': return theme.palette.error.main;
-      case 'auditor_general': return theme.palette.primary.main;
-      case 'auditor_interno': return theme.palette.info.main;
-      case 'jefe_proveedor': return theme.palette.success.main;
-      case 'tecnico_proveedor': return theme.palette.success.dark;
-      case 'visualizador': return theme.palette.warning.main;
-      default: return theme.palette.text.secondary;
-    }
+    setFormData({ email: usuario.email, password: usuario.password });
   };
 
   return (
-    <Box className="login-page">
-      <Box
-        className="login-page__background"
-        sx={{
+    <>
+      <div 
+        style={{ 
           minHeight: '100vh',
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 2
+          padding: '20px'
         }}
       >
-        <Box className="login-page__container" sx={{ maxWidth: 1200, width: '100%' }}>
-          <Box display="flex" gap={4} alignItems="flex-start">
-            
-            <Card 
-              className="login-card"
-              sx={{ 
-                flex: 1,
-                maxWidth: 450,
-                boxShadow: theme.shadows[24],
-                borderRadius: 3
-              }}
-            >
-              <CardContent sx={{ p: 4 }}>
-                <Box className="login-card__header" textAlign="center" mb={3}>
-                  <Box
-                    className="login-card__logo"
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: 2,
-                      background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 16px auto',
-                      boxShadow: theme.shadows[8]
-                    }}
-                  >
-                    <ShieldIcon sx={{ fontSize: 40, color: 'white' }} />
-                  </Box>
+        <div style={{ 
+          maxWidth: '400px', 
+          width: '100%',
+          animation: 'fadeInUp 0.8s ease-out'
+        }}>
+          
+          {/* Card principal con efecto glassmorphism */}
+          <div 
+            style={{ 
+              padding: '40px',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '24px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+              color: 'white',
+              animation: 'cardGlow 3s ease-in-out infinite alternate'
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center' }}>
+              
+              {/* Avatar usuario */}
+              <div
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}
+              >
+                <PersonIcon style={{ 
+                  fontSize: 40, 
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  animation: 'iconPulse 2s ease-in-out infinite'
+                }} />
+              </div>
+
+              {/* Título del sistema */}
+              <div style={{ 
+                textAlign: 'center', 
+                color: 'white',
+                animation: 'titleSlideIn 1s ease-out 0.3s both'
+              }}>
+                <h1 style={{ 
+                  fontSize: '28px', 
+                  fontWeight: 'bold', 
+                  margin: '0 0 8px 0',
+                  color: 'white',
+                  animation: 'textGlow 2s ease-in-out infinite alternate'
+                }}>
+                  SAT-Digital
+                </h1>
+                <p style={{ 
+                  fontSize: '16px', 
+                  margin: '0 0 8px 0',
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  animation: 'subtitleFade 1.2s ease-out 0.6s both'
+                }}>
+                  Sistema de Auditorías Técnicas
+                </p>
+                <p style={{ 
+                  fontSize: '14px', 
+                  margin: '0',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  animation: 'subtitleFade 1.4s ease-out 0.9s both'
+                }}>
+                  Inicio de Sesión
+                </p>
+              </div>
+
+              {/* Formulario */}
+              <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                   
-                  <Typography variant="h4" component="h1" fontWeight="bold" color="primary">
-                    SAT-Digital
-                  </Typography>
-                  <Typography variant="subtitle1" color="text.secondary" mb={2}>
-                    Sistema de Auditorías Técnicas
-                  </Typography>
-                </Box>
-
-                <Box component="form" onSubmit={handleSubmit} className="login-form">
-                  <Typography variant="h5" component="h2" mb={3} textAlign="center">
-                    Iniciar Sesión
-                  </Typography>
-
                   {error && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
+                    <div 
+                      style={{ 
+                        color: '#ff6b6b', 
+                        textAlign: 'center',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(255, 107, 107, 0.3)',
+                        fontSize: '14px'
+                      }}
+                    >
                       {error}
-                    </Alert>
+                    </div>
                   )}
 
-                  <TextField
-                    fullWidth
-                    name="email"
-                    label="Email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    margin="normal"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <EmailIcon color="primary" />
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{ mb: 2 }}
-                  />
+                  {/* Campo Email */}
+                  <div style={{ position: 'relative' }}>
+                    <PersonIcon 
+                      style={{ 
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: 20,
+                        zIndex: 1
+                      }}
+                    />
+                    <input
+                      name="email"
+                      type="email"
+                      placeholder="Correo electrónico"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '16px 0 16px 32px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
+                        color: 'white',
+                        fontSize: '16px',
+                        outline: 'none',
+                        fontFamily: 'inherit',
+                        boxSizing: 'border-box'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderBottom = '1px solid rgba(255, 255, 255, 0.8)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderBottom = '1px solid rgba(255, 255, 255, 0.3)';
+                      }}
+                    />
+                  </div>
 
-                  <TextField
-                    fullWidth
-                    name="password"
-                    label="Contraseña"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    required
-                    margin="normal"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockIcon color="primary" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{ mb: 3 }}
-                  />
+                  {/* Campo Password */}
+                  <div style={{ position: 'relative' }}>
+                    <LockIcon 
+                      style={{ 
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: 20,
+                        zIndex: 1
+                      }}
+                    />
+                    <input
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Contraseña"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '16px 40px 16px 32px',
+                        background: 'transparent',
+                        border: 'none',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.4)',
+                        color: 'white',
+                        fontSize: '16px',
+                        outline: 'none',
+                        fontFamily: 'inherit',
+                        boxSizing: 'border-box'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderBottom = '1px solid rgba(255, 255, 255, 0.8)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderBottom = '1px solid rgba(255, 255, 255, 0.3)';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ 
+                        position: 'absolute',
+                        right: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '8px'
+                      }}
+                    >
+                      {showPassword ? 
+                        <VisibilityOff style={{ fontSize: 18 }} /> : 
+                        <Visibility style={{ fontSize: 18 }} />
+                      }
+                    </button>
+                  </div>
 
-                  <Button
+                  {/* Checkbox Remember me y Forgot Password */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input 
+                        type="checkbox" 
+                        id="remember" 
+                        style={{ 
+                          accentColor: 'rgba(255, 255, 255, 0.8)',
+                          transform: 'scale(0.9)'
+                        }} 
+                      />
+                      <label 
+                        htmlFor="remember"
+                        style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '14px', cursor: 'pointer' }}
+                      >
+                        Recordarme
+                      </label>
+                    </div>
+                    <span 
+                      style={{ 
+                        color: 'rgba(255, 255, 255, 0.7)', 
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </span>
+                  </div>
+
+                  {/* Botón LOGIN */}
+                  <button
                     type="submit"
-                    fullWidth
-                    variant="contained"
-                    size="large"
                     disabled={loading}
-                    sx={{
-                      py: 1.5,
-                      mb: 2,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontSize: '1.1rem'
+                    style={{
+                      marginTop: '16px',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50px',
+                      padding: '16px',
+                      fontWeight: 600,
+                      fontSize: '16px',
+                      letterSpacing: '1px',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      opacity: loading ? 0.7 : 1,
+                      boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+                      transition: 'all 0.3s ease',
+                      width: '100%'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!loading) {
+                        e.target.style.transform = 'translateY(-2px)';
+                        e.target.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.3)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'translateY(0px)';
+                      e.target.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
                     }}
                   >
-                    {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+                    {loading ? 'INICIANDO SESIÓN...' : 'INICIAR SESIÓN'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
 
-            <Paper 
-              className="usuarios-prueba"
-              sx={{ 
-                flex: 1,
-                maxWidth: 400,
-                p: 3,
-                borderRadius: 3,
-                backgroundColor: alpha(theme.palette.background.paper, 0.95),
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <Typography variant="h6" component="h3" mb={2} color="primary" fontWeight="bold">
-                Usuarios de prueba:
-              </Typography>
+          {/* Panel de usuarios discreto */}
+          <div style={{ marginTop: '32px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+              
+              <span style={{ 
+                color: 'rgba(255, 255, 255, 0.8)', 
+                fontWeight: 500, 
+                fontSize: '16px',
+                marginBottom: '8px'
+              }}>
+                Usuarios de prueba
+              </span>
 
-              <List className="usuarios-prueba__list" sx={{ p: 0 }}>
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(2, 1fr)', 
+                gap: '12px', 
+                width: '100%',
+                maxWidth: '350px'
+              }}>
                 {USUARIOS_PRUEBA.map((usuario, index) => (
-                  <ListItem
+                  <div
                     key={index}
-                    className="usuarios-prueba__item"
-                    sx={{
-                      flexDirection: 'column',
-                      alignItems: 'stretch',
-                      p: 2,
-                      mb: 1,
-                      borderRadius: 2,
-                      border: `1px solid ${alpha(getRolColor(usuario.rol), 0.2)}`,
-                      backgroundColor: alpha(getRolColor(usuario.rol), 0.05),
+                    style={{
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      '&:hover': {
-                        backgroundColor: alpha(getRolColor(usuario.rol), 0.1),
-                        transform: 'translateY(-1px)',
-                        boxShadow: theme.shadows[4]
-                      }
+                      opacity: 0.85
                     }}
+                    className="user-glass"
                     onClick={() => handleUsuarioPrueba(usuario)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '0.85';
+                      e.currentTarget.style.transform = 'translateY(0px)';
+                    }}
                   >
-                    <Box display="flex" alignItems="center" mb={1}>
-                      <Box 
-                        sx={{ 
-                          color: getRolColor(usuario.rol),
-                          mr: 1,
+                    <div style={{ 
+                      padding: '12px 16px',
+                      borderRadius: '16px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      backdropFilter: 'blur(10px)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      minHeight: '50px'
+                    }}>
+                      <div 
+                        style={{ 
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                          color: 'white',
                           display: 'flex',
-                          alignItems: 'center'
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '12px',
+                          fontWeight: 'bold',
+                          flexShrink: 0
                         }}
                       >
-                        {getRolIcon(usuario.rol)}
-                      </Box>
-                      <Typography 
-                        variant="subtitle2" 
-                        fontWeight="bold"
-                        sx={{ color: getRolColor(usuario.rol) }}
-                      >
-                        {usuario.rol.charAt(0).toUpperCase() + usuario.rol.slice(1)}
-                      </Typography>
-                    </Box>
-                    
-                    <ListItemText
-                      primary={
-                        <Typography variant="body2" color="text.primary" fontWeight="500">
-                          {usuario.email} / {usuario.password.split('123')[0]}123
-                        </Typography>
-                      }
-                      secondary={
-                        <Typography variant="caption" color="text.secondary">
-                          {usuario.descripcion}
-                        </Typography>
-                      }
-                      sx={{ m: 0 }}
-                    />
-                  </ListItem>
+                        {usuario.iniciales}
+                      </div>
+                      <span style={{ 
+                        color: 'rgba(255, 255, 255, 0.95)', 
+                        fontWeight: 500, 
+                        fontSize: '13px',
+                        textAlign: 'left'
+                      }}>
+                        {usuario.nombre}
+                      </span>
+                    </div>
+                  </div>
                 ))}
-              </List>
+              </div>
 
-              <Divider sx={{ my: 2 }} />
-              
-              <Typography variant="caption" color="text.secondary" display="block" textAlign="center">
+              <p style={{ 
+                color: 'rgba(255, 255, 255, 0.6)', 
+                fontSize: '12px', 
+                textAlign: 'center',
+                margin: '8px 0 0 0',
+                maxWidth: '300px',
+                lineHeight: '1.4'
+              }}>
                 Haz clic en cualquier usuario para autocompletar el formulario
-              </Typography>
-            </Paper>
+              </p>
+            </div>
+          </div>
 
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+
+      {/* CSS global para placeholder y animaciones */}
+      <style jsx global>{`
+        input::placeholder {
+          color: rgba(255, 255, 255, 0.7) !important;
+        }
+        
+        input:focus {
+          border-bottom: 1px solid rgba(255, 255, 255, 0.8) !important;
+        }
+
+        /* Animaciones personalizadas */
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes cardGlow {
+          from {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          }
+          to {
+            box-shadow: 0 12px 40px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.3);
+          }
+        }
+
+        @keyframes iconPulse {
+          0%, 100% {
+            opacity: 0.8;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.05);
+          }
+        }
+
+        @keyframes titleSlideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes textGlow {
+          from {
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+          }
+          to {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 30px rgba(255, 255, 255, 0.4);
+          }
+        }
+
+        @keyframes subtitleFade {
+          from {
+            opacity: 0;
+            transform: translateY(15px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Animación suave para los inputs cuando se enfocan */
+        input {
+          transition: all 0.3s ease !important;
+        }
+
+        input:focus {
+          transform: translateY(-2px) !important;
+        }
+
+        /* Animación para las tarjetas de usuario */
+        .user-glass {
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .user-glass:hover {
+          transform: translateY(-4px) scale(1.02) !important;
+          box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2) !important;
+        }
+      `}</style>
+    </>
   );
 };
 

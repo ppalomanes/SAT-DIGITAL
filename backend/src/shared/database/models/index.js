@@ -20,6 +20,9 @@ const UmbralTecnico = require('../../../domains/auditorias/models/UmbralTecnico'
 // Importar modelos del dominio documentos
 const VersionDocumento = require('../../../domains/documentos/models/VersionDocumento');
 
+// Importar modelos del dominio IA-Análisis
+const AnalisisIA = require('./AnalisisIA');
+
 // =============================================================================
 // MODELO: PROVEEDORES
 // =============================================================================
@@ -713,6 +716,20 @@ VersionDocumento.belongsTo(Usuario, {
   as: 'usuario_carga'
 });
 
+// =============================================================================
+// RELACIONES MÓDULO IA-ANÁLISIS
+// =============================================================================
+
+// Documento - Análisis IA
+Documento.hasMany(AnalisisIA, {
+  foreignKey: 'documento_id',
+  as: 'analisis'
+});
+AnalisisIA.belongsTo(Documento, {
+  foreignKey: 'documento_id',
+  as: 'documento'
+});
+
 module.exports = {
   sequelize,
   Op,
@@ -734,5 +751,7 @@ module.exports = {
   Evaluacion,
   UmbralTecnico,
   // Modelos de documentos
-  VersionDocumento
+  VersionDocumento,
+  // Modelos de IA-Análisis
+  AnalisisIA
 };

@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { Theme } from '@radix-ui/themes';
+import '@radix-ui/themes/styles.css';
 import { useAuthStore } from './domains/auth/store/authStore';
 
 // Layouts
@@ -156,9 +158,16 @@ function App() {
   const { isAuthenticated, usuario } = useAuthStore();
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
+    <Theme
+      accentColor="teal"
+      grayColor="slate"
+      panelBackground="solid"
+      scaling="100%"
+      radius="medium"
+    >
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
         <div className="app">
           <Routes>
             {/* Ruta de login */}
@@ -359,8 +368,9 @@ function App() {
             />
           </Routes>
         </div>
-      </Router>
-    </ThemeProvider>
+        </Router>
+      </ThemeProvider>
+    </Theme>
   );
 }
 
