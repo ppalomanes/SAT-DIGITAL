@@ -59,11 +59,15 @@ const LoginPage = () => {
       <div 
         style={{ 
           minHeight: '100vh',
+          height: '100vh',
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           justifyContent: 'center',
-          padding: '20px'
+          padding: '20px',
+          paddingTop: '40px',
+          overflow: 'auto',
+          boxSizing: 'border-box'
         }}
       >
         <div style={{ 
@@ -75,7 +79,7 @@ const LoginPage = () => {
           {/* Card principal con efecto glassmorphism */}
           <div 
             style={{ 
-              padding: '40px',
+              padding: '32px 24px',
               backgroundColor: 'rgba(0, 0, 0, 0.3)',
               backdropFilter: 'blur(20px)',
               border: '1px solid rgba(255, 255, 255, 0.2)',
@@ -85,7 +89,7 @@ const LoginPage = () => {
               animation: 'cardGlow 3s ease-in-out infinite alternate'
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center' }}>
               
               {/* Avatar usuario */}
               <div
@@ -142,7 +146,7 @@ const LoginPage = () => {
 
               {/* Formulario */}
               <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   
                   {error && (
                     <div 
@@ -332,8 +336,8 @@ const LoginPage = () => {
           </div>
 
           {/* Panel de usuarios discreto */}
-          <div style={{ marginTop: '32px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+          <div style={{ marginTop: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
               
               <span style={{ 
                 color: 'rgba(255, 255, 255, 0.8)', 
@@ -347,7 +351,7 @@ const LoginPage = () => {
               <div style={{ 
                 display: 'grid', 
                 gridTemplateColumns: 'repeat(2, 1fr)', 
-                gap: '12px', 
+                gap: '8px', 
                 width: '100%',
                 maxWidth: '350px'
               }}>
@@ -428,7 +432,7 @@ const LoginPage = () => {
       </div>
 
       {/* CSS global para placeholder y animaciones */}
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{__html: `
         input::placeholder {
           color: rgba(255, 255, 255, 0.7) !important;
         }
@@ -518,7 +522,7 @@ const LoginPage = () => {
           transform: translateY(-4px) scale(1.02) !important;
           box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2) !important;
         }
-      `}</style>
+      `}} />
     </>
   );
 };

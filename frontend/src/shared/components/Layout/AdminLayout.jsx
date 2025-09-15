@@ -40,7 +40,8 @@ import {
   ChatOutlined as ChatIcon,
   Person as PersonIcon,
   Analytics as AnalyticsIcon,
-  Search
+  Search,
+  Tune as DiagnosticsIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../domains/auth/store/authStore';
 import { useWebSocket } from '../../../domains/comunicacion/hooks/useWebSocket';
@@ -133,6 +134,13 @@ const menuItems = {
       title: 'Panel Auditor',
       icon: <SecurityIcon />,
       path: '/panel-auditor',
+      badge: null
+    },
+    {
+      id: 'diagnosticos',
+      title: 'Diagnósticos',
+      icon: <DiagnosticsIcon />,
+      path: '/diagnosticos',
       badge: null
     },
     {

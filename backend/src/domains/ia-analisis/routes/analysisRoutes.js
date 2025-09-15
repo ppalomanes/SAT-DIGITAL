@@ -2,15 +2,24 @@ const express = require('express');
 const router = express.Router();
 const { verificarToken } = require('../../../shared/middleware/authMiddleware');
 const { AnalisisIA, Documento } = require('../../../shared/database/models');
+const OllamaService = require('../services/OllamaService');
 
 // Health check de Ollama (público)
 router.get('/health', async (req, res) => {
     try {
-        res.json({ 
-            success: true, 
-            status: 'connected',
+        const ollama = new OllamaService();
+        const isHealthy = await ollama.checkHealth();
+        const models = await ollama.listModels();
+
+        res.json({
+            success: true,
+            status: isHealthy ? 'connected' : 'disconnected',
             message: 'IA Analysis service is running',
-            ollama: 'http://localhost:11434',
+            ollama: {
+                url: 'http://localhost:11434',
+                healthy: isHealthy,
+                models: models.success ? models.models : []
+            },
             timestamp: new Date()
         });
     } catch (error) {
@@ -165,10 +174,10 @@ router.post('/document/:documento_id/analyze', async (req, res) => {
     }
 });
 
-// Test de análisis (implementación simple)
+// Test de análisis con IA real
 router.post('/test', async (req, res) => {
     try {
-        const { text, type = 'text' } = req.body;
+        const { text, type = 'text', seccionTecnica = 'General' } = req.body;
 
         if (!text) {
             return res.status(400).json({
@@ -177,24 +186,55 @@ router.post('/test', async (req, res) => {
             });
         }
 
-        // Mock analysis result
-        const mockResult = {
-            score_cumplimiento: Math.floor(Math.random() * 40) + 60, // 60-100
-            nivel_riesgo: 'MEDIO',
-            recomendaciones: [
-                'Verificar configuración de servidor',
-                'Actualizar documentación técnica',
-                'Revisar procedimientos de respaldo'
-            ],
-            elementos_detectados: [
-                { tipo: 'servidor', cantidad: 2 },
-                { tipo: 'servicio', cantidad: 5 }
-            ]
-        };
+        const ollama = new OllamaService();
+
+        // Verificar que Ollama esté disponible
+        const isHealthy = await ollama.checkHealth();
+        if (!isHealthy) {
+            return res.status(503).json({
+                success: false,
+                error: 'Servicio de IA no disponible',
+                message: 'Ollama no está ejecutándose o no responde'
+            });
+        }
+
+        // Realizar análisis con IA real
+        const analysis = await ollama.analyzeDocumentText(text, seccionTecnica);
+
+        if (!analysis.success) {
+            // Fallback a mock si falla la IA
+            const mockResult = {
+                score_cumplimiento: Math.floor(Math.random() * 40) + 60,
+                nivel_riesgo: 'MEDIO',
+                recomendaciones: [
+                    'Verificar configuración de servidor',
+                    'Actualizar documentación técnica',
+                    'Revisar procedimientos de respaldo'
+                ],
+                elementos_detectados: [
+                    { tipo: 'servidor', cantidad: 2 },
+                    { tipo: 'servicio', cantidad: 5 }
+                ],
+                note: 'Análisis generado con fallback (IA no disponible)'
+            };
+
+            return res.json({
+                success: true,
+                result: mockResult,
+                type: 'fallback',
+                timestamp: new Date()
+            });
+        }
 
         res.json({
             success: true,
-            result: mockResult,
+            result: {
+                ia_response: analysis.response,
+                model: analysis.model,
+                tokens: analysis.tokens,
+                seccionTecnica
+            },
+            type: 'ia_real',
             timestamp: new Date()
         });
 

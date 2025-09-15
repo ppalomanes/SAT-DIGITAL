@@ -1,3 +1,4 @@
+// Clear cache fix
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Card,
@@ -32,6 +33,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { dragAndDrop } from '@formkit/drag-and-drop';
 import useDocumentosStore from '../store/documentosStore';
 import documentosService from '../services/documentosService';
+import iaAnalisisService from '../services/iaAnalisisService';
+import IaAnalysisDisplay from './IaAnalysisDisplay';
 import './CargaDocumental.css';
 
 const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
@@ -40,7 +43,6 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [seccionesExpandidas, setSeccionesExpandidas] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-
   const dropZoneRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -175,6 +177,26 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
           'success'
         );
         setArchivosSeleccionados([]);
+        
+        // Disparar análisis IA automáticamente para secciones relevantes
+        console.log('=== DEBUGGING ANÁLISIS IA ===');
+        console.log('Sección seleccionada:', seccionSeleccionada?.codigo);
+        console.log('Secciones que activan IA:', ['SERVIDORES', 'topologia_red', 'documentacion_controles_infraestructura', 'parque_informatico']);
+        console.log('¿Debería activar análisis?', ['SERVIDORES', 'topologia_red', 'documentacion_controles_infraestructura', 'parque_informatico'].includes(seccionSeleccionada.codigo));
+        console.log('Documentos en respuesta:', response.documentos);
+        
+        if (['SERVIDORES', 'topologia_red', 'documentacion_controles_infraestructura', 'parque_informatico'].includes(seccionSeleccionada.codigo)) {
+          // Mostrar mensaje informativo sobre análisis automático
+          console.log('⚡ INICIANDO FLUJO DE ANÁLISIS IA');
+          setTimeout(() => {
+            mostrarSnackbar('Iniciando análisis IA automático...', 'info');
+            console.log('⚡ LLAMANDO triggerAutoAnalysis con response:', response);
+            // Crear análisis automático simulado para documentos nuevos
+            triggerAutoAnalysis(response);
+          }, 1000);
+        } else {
+          console.log('❌ NO se inicia análisis IA - sección no incluida');
+        }
       }
 
     } catch (error) {
@@ -195,6 +217,109 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
 
   const cerrarSnackbar = () => {
     setSnackbar({ open: false, message: '', severity: 'info' });
+  };
+
+  // Función para crear análisis automático simulado
+  const triggerAutoAnalysis = async (uploadResponse) => {
+    try {
+      console.log('🔥 triggerAutoAnalysis ejecutado con:', uploadResponse);
+      
+      // Obtener el primer documento del response
+      if (uploadResponse.documentos && uploadResponse.documentos.length > 0) {
+        const documento = uploadResponse.documentos[0];
+        console.log('📄 Documento a analizar:', documento);
+        
+        // Simular análisis IA creando un registro en la base de datos
+        const mockAnalysis = {
+          documento_id: documento.id,
+          modelo_ia: 'llama3.2:1b',
+          tipo_analisis: seccionSeleccionada.codigo === 'topologia_red' ? 'vision' : 'text',
+          score_completitud: Math.floor(Math.random() * 20) + 75, // 75-95
+          score_calidad: Math.floor(Math.random() * 25) + 70, // 70-95
+          score_cumplimiento: Math.floor(Math.random() * 30) + 65, // 65-95
+          elementos_detectados: getRandomElements(seccionSeleccionada.codigo),
+          recomendaciones_ia: getRandomRecommendations(seccionSeleccionada.codigo),
+          estado: 'completado'
+        };
+        
+        console.log('🎯 Datos de análisis:', mockAnalysis);
+
+        // Insertar el análisis simulado
+        console.log('🚀 Llamando insertMockAnalysis...');
+        await insertMockAnalysis(documento.id, mockAnalysis);
+        
+        // Mostrar notificación de análisis completado
+        setTimeout(() => {
+          mostrarSnackbar('¡Análisis IA completado! Revisa la sección expandida.', 'success');
+          // Expandir automáticamente la sección donde se hizo el análisis
+          if (seccionSeleccionada) {
+            console.log('🔧 Expandiendo sección automáticamente:', seccionSeleccionada.nombre);
+            setSeccionesExpandidas(prev => ({
+              ...prev,
+              [seccionSeleccionada.id]: true
+            }));
+          }
+          // Recargar documentos para mostrar el nuevo análisis
+          console.log('🔄 Recargando documentos de auditoría...');
+          cargarDocumentosAuditoria(auditoriaId);
+        }, 3000);
+      } else {
+        console.log('❌ No hay documentos en uploadResponse para analizar');
+      }
+    } catch (error) {
+      console.error('💥 Error en análisis automático:', error);
+      mostrarSnackbar('Error en análisis automático', 'error');
+    }
+  };
+
+  const getRandomElements = (seccionCodigo) => {
+    const elementos = {
+      'SERVIDORES': 'servidores: 2-4, servicios: 5-12, procesos: 8-15',
+      'topologia_red': 'switches: 1-3, routers: 1-2, enlaces: 4-8, vlans: 2-5',
+      'documentacion_controles_infraestructura': 'controles: 6-12, procedimientos: 8-20, políticas: 3-8',
+      'parque_informatico': 'equipos: 10-50, software: 15-30, licencias: 10-25'
+    };
+    return elementos[seccionCodigo] || 'elementos: 5-10';
+  };
+
+  const getRandomRecommendations = (seccionCodigo) => {
+    const recomendaciones = {
+      'SERVIDORES': 'Actualizar configuración de servidores, Implementar monitoreo avanzado, Verificar capacidad de recursos',
+      'topologia_red': 'Documentar redundancias, Actualizar diagramas de red, Verificar configuración VLAN',
+      'documentacion_controles_infraestructura': 'Completar matriz de controles, Actualizar procedimientos, Revisar políticas de seguridad',
+      'parque_informatico': 'Actualizar inventario, Verificar licencias, Planificar renovaciones'
+    };
+    return recomendaciones[seccionCodigo] || 'Revisar documentación, Actualizar procedimientos, Verificar cumplimiento';
+  };
+
+  const insertMockAnalysis = async (documentoId, analysisData) => {
+    try {
+      console.log('🔧 insertMockAnalysis iniciado para documento:', documentoId);
+      console.log('🔧 analysisData recibido:', analysisData);
+      
+      // Llamar a la API para crear el análisis real en la base de datos
+      console.log('🌐 Haciendo llamada a iaAnalisisService.analyzeDocument...');
+      const response = await iaAnalisisService.analyzeDocument(documentoId);
+      console.log('🌐 Respuesta de API:', response);
+      
+      if (response.success) {
+        console.log('✅ Análisis IA completado:', response);
+        
+        // Mostrar notificación de éxito
+        mostrarSnackbar('¡Análisis IA completado exitosamente!', 'success');
+        
+        return response;
+      } else {
+        console.log('❌ API response.success es false:', response);
+        throw new Error(response.message || 'Error en análisis IA');
+      }
+    } catch (error) {
+      console.error('💥 Error creando análisis IA:', error);
+      console.error('💥 Error stack:', error.stack);
+      console.error('💥 Error response:', error.response);
+      mostrarSnackbar('Error al procesar análisis IA: ' + error.message, 'error');
+      throw error;
+    }
   };
 
   return (
@@ -307,38 +432,66 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
                         {tieneDocumentos && (
                           <Box sx={{ pl: 2, pr: 2, pb: 1 }}>
                             {tieneDocumentos.documentos.map(doc => (
-                              <Box 
-                                key={doc.id} 
-                                sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
-                                  justifyContent: 'space-between',
-                                  py: 0.5,
-                                  px: 1,
-                                  backgroundColor: 'background.default',
-                                  borderRadius: 1,
-                                  mb: 0.5
-                                }}
-                              >
-                                <Typography variant="caption">
-                                  {doc.nombre_original}
-                                </Typography>
-                                <Box>
-                                  <Tooltip title="Ver documento">
-                                    <IconButton size="small">
-                                      <VisibilityIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Eliminar">
-                                    <IconButton 
-                                      size="small"
-                                      color="error"
-                                      onClick={() => eliminarDocumento(doc.id, auditoriaId)}
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  </Tooltip>
+                              <Box key={doc.id} sx={{ mb: 1 }}>
+                                <Box 
+                                  sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'space-between',
+                                    py: 0.5,
+                                    px: 1,
+                                    backgroundColor: 'background.default',
+                                    borderRadius: 1,
+                                    mb: 0.5
+                                  }}
+                                >
+                                  <Typography variant="caption">
+                                    {doc.nombre_original}
+                                  </Typography>
+                                  <Box>
+                                    <Tooltip title="Ver documento">
+                                      <IconButton size="small">
+                                        <VisibilityIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Eliminar">
+                                      <IconButton 
+                                        size="small"
+                                        color="error"
+                                        onClick={() => eliminarDocumento(doc.id, auditoriaId)}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
                                 </Box>
+                                
+                                {/* Análisis IA para documentos en secciones técnicas relevantes */}
+                                {(() => {
+                                  const shouldRender = ['SERVIDORES', 'topologia_red', 'documentacion_controles_infraestructura', 'parque_informatico', 'cuarto_tecnologia', 'energia_cuarto_tecnologia'].includes(seccion.codigo);
+                                  console.log('🔍 Verificando renderizado IaAnalysisDisplay:', {
+                                    seccionCodigo: seccion.codigo,
+                                    documentoId: doc.id,
+                                    shouldRender,
+                                    seccionExpandida: seccionesExpandidas[seccion.id]
+                                  });
+                                  
+                                  if (shouldRender) {
+                                    return (
+                                      <IaAnalysisDisplay 
+                                        documentoId={doc.id}
+                                        documento={doc}
+                                        seccionNombre={seccion.nombre}
+                                        onAnalysisComplete={(result) => {
+                                          console.log('Análisis completado:', result);
+                                          // Recargar documentos para actualizar la vista
+                                          cargarDocumentosAuditoria(auditoriaId);
+                                        }}
+                                      />
+                                    );
+                                  }
+                                  return null;
+                                })()}
                               </Box>
                             ))}
                           </Box>
@@ -444,12 +597,12 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
                                 <ListItemText
                                   primary={archivo.nombre}
                                   secondary={
-                                    <Box>
-                                      <Typography variant="caption">
+                                    <>
+                                      <Typography variant="caption" component="div">
                                         Tamaño: {archivo.tamaño}
                                       </Typography>
                                       {archivo.warnings?.length > 0 && (
-                                        <Box sx={{ mt: 0.5 }}>
+                                        <div style={{ marginTop: '4px' }}>
                                           {archivo.warnings.map((warning, idx) => (
                                             <Chip
                                               key={idx}
@@ -461,9 +614,9 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
                                               sx={{ mr: 0.5, mb: 0.5 }}
                                             />
                                           ))}
-                                        </Box>
+                                        </div>
                                       )}
-                                    </Box>
+                                    </>
                                   }
                                 />
                                 <ListItemSecondaryAction>

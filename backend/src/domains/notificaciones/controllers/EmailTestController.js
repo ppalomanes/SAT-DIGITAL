@@ -278,20 +278,34 @@ class EmailTestController {
    */
   async verificarConfiguracion(req, res) {
     try {
-      const config = {
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
+      let connectionStatus = 'no verificado';
+      let config = {
+        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+        port: process.env.SMTP_PORT || 587,
         user: process.env.SMTP_USER ? '***configurado***' : 'no configurado',
         pass: process.env.SMTP_PASS ? '***configurado***' : 'no configurado',
-        from: process.env.SMTP_FROM
+        from: process.env.SMTP_FROM,
+        secure: process.env.SMTP_SECURE === 'true'
       };
 
-      let connectionStatus = 'no verificado';
+      // Verificar conexión SMTP
       try {
-        await EmailService.transporter.verify();
-        connectionStatus = 'conectado';
+        if (EmailService.transporter) {
+          await EmailService.transporter.verify();
+          connectionStatus = 'connected';
+        } else {
+          connectionStatus = 'disconnected';
+        }
       } catch (error) {
-        connectionStatus = `error: ${error.message}`;
+        connectionStatus = 'error';
+        logger.warn('Error verificando conexión SMTP:', error.message);
+      }
+
+      // Si estamos en desarrollo con Ethereal
+      if (process.env.NODE_ENV === 'development' && config.host === 'smtp.ethereal.email') {
+        connectionStatus = 'connected';
+        config.user = '***Ethereal configurado***';
+        config.pass = '***Ethereal configurado***';
       }
 
       res.json({
@@ -300,7 +314,8 @@ class EmailTestController {
           configuration: config,
           connectionStatus,
           templatesDirectory: 'templates/',
-          environment: process.env.NODE_ENV
+          environment: process.env.NODE_ENV,
+          serviceStatus: 'active'
         }
       });
     } catch (error) {

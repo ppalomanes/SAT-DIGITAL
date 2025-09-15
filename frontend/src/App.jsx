@@ -20,6 +20,9 @@ import ComunicacionPage from './domains/comunicacion/pages/ComunicacionPage';
 import AnalyticsDashboard from './domains/reportes/components/AnalyticsDashboard';
 import PanelControlAuditores from './domains/auditores/components/PanelControlAuditores';
 import EmailTestingPage from './domains/notificaciones/pages/EmailTestingPage';
+import AuditoriasPage from './domains/auditorias/pages/AuditoriasPage';
+import TestIA from './domains/ia-analisis/pages/TestIA';
+import DiagnosticosPage from './domains/admin/pages/DiagnosticosPage';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -220,7 +223,7 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AdminLayout>
-                    <div>Módulo de Auditorías - En desarrollo</div>
+                    <AuditoriasPage />
                   </AdminLayout>
                 </ProtectedRoute>
               } 
@@ -324,15 +327,35 @@ function App() {
               } 
             />
 
-            <Route 
-              path="/notificaciones" 
+            <Route
+              path="/notificaciones"
               element={
                 <ProtectedRoute allowedRoles={['admin', 'auditor_general', 'auditor_interno']}>
                   <AdminLayout>
                     <EmailTestingPage />
                   </AdminLayout>
                 </ProtectedRoute>
-              } 
+              }
+            />
+            <Route
+              path="/diagnosticos"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <DiagnosticosPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test-ia"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'auditor_general', 'auditor_interno']}>
+                  <AdminLayout>
+                    <TestIA />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
             />
 
             {/* Ruta 404 */}

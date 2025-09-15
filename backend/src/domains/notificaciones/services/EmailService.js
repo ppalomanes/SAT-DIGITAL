@@ -16,32 +16,61 @@ class EmailService {
    */
   async initialize() {
     try {
-      this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 587,
-        secure: false,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      });
+      // Si estamos en desarrollo y no hay configuración SMTP real, usar Ethereal
+      if (process.env.NODE_ENV === 'development' && (!process.env.SMTP_USER || process.env.SMTP_HOST === 'smtp.ethereal.email')) {
+        logger.info('🧪 Modo desarrollo: Creando cuenta Ethereal para testing...');
+        const testAccount = await nodemailer.createTestAccount();
 
-      await this.transporter.verify();
-      logger.info('✅ EmailService inicializado correctamente');
-    } catch (error) {
-      logger.error('❌ Error inicializando EmailService:', error);
-      // En desarrollo, usar transporter de prueba
-      this.transporter = nodemailer.createTestAccount().then(account => {
-        return nodemailer.createTransport({
+        this.transporter = nodemailer.createTransport({
           host: 'smtp.ethereal.email',
           port: 587,
           secure: false,
           auth: {
-            user: account.user,
-            pass: account.pass
+            user: testAccount.user,
+            pass: testAccount.pass
           }
         });
-      });
+
+        logger.info(`✅ EmailService inicializado con Ethereal: ${testAccount.user}`);
+        logger.info(`🔗 Preview emails en: https://ethereal.email/login`);
+        logger.info(`📧 Usuario: ${testAccount.user} | Password: ${testAccount.pass}`);
+      } else {
+        // Configuración SMTP real
+        this.transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST || 'smtp.gmail.com',
+          port: process.env.SMTP_PORT || 587,
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+          }
+        });
+
+        await this.transporter.verify();
+        logger.info('✅ EmailService inicializado correctamente con SMTP real');
+      }
+    } catch (error) {
+      logger.error('❌ Error inicializando EmailService:', error);
+
+      // Fallback a Ethereal en caso de error
+      try {
+        logger.info('🔄 Fallback: Configurando Ethereal...');
+        const testAccount = await nodemailer.createTestAccount();
+
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass
+          }
+        });
+
+        logger.info(`✅ Fallback exitoso con Ethereal: ${testAccount.user}`);
+      } catch (fallbackError) {
+        logger.error('❌ Error en fallback a Ethereal:', fallbackError);
+      }
     }
   }
 

@@ -4,7 +4,7 @@ const logger = require('../../../shared/utils/logger');
 class OllamaService {
     constructor() {
         this.baseURL = process.env.OLLAMA_URL || 'http://localhost:11434';
-        this.textModel = process.env.OLLAMA_TEXT_MODEL || 'llama3.1:8b';
+        this.textModel = process.env.OLLAMA_TEXT_MODEL || 'llama3.2:1b';
         this.visionModel = process.env.OLLAMA_VISION_MODEL || 'llava:7b';
         this.timeout = 300000; // 5 minutes timeout for AI requests
     }
