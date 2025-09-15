@@ -1,6 +1,0 @@
-Este es un documento de prueba para el sistema SAT-Digital
-Auditoría de infraestructura técnica
-Sección: Topología de Red
-Fecha: 2025-09-03
-
-Contenido de prueba para validar la carga de documentos.
