@@ -40,6 +40,110 @@ import {
 } from '@mui/icons-material';
 
 const CuartoTecnologiaForm = ({ onSave, onCancel, initialData = {} }) => {
+  // Header con descripción completa basada en auditoria.html
+  const renderHeader = () => (
+    <Box sx={{ mb: 4 }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: '#1e293b', mb: 2 }}>
+        Cuarto de Tecnología (*)
+      </Typography>
+
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: '#374151', mb: 2 }}>
+        Descripción
+      </Typography>
+
+      <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: '#6b7280', lineHeight: 1.6, mb: 2 }}>
+        Fotografías e inventario del Data Center y Racks IDFs.
+      </Typography>
+
+      <Alert severity="warning" sx={{ mb: 3, background: 'rgba(255, 152, 0, 0.05)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
+        <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          Requerimiento específico (2.1)
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
+          Enviar un documento PDF con fotos del Data Center de los racks y los IDF con switches en caso de estar descentralizados (abiertos, donde se pueda visualizar el cableado), de los aires acondicionados con sus respectivos nombres, fotos de los sistemas de sensores de humo, matafuegos (donde se pueda visualizar su vencimiento) y fotos del sistema de control de acceso al cuarto.
+        </Typography>
+      </Alert>
+
+      <Alert severity="info" sx={{ mb: 3, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+        <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          Criterio de aceptación
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
+          Adjuntar fotografías (formato JPG, PNG) y documento (PDF o Excel) con detalle de Marca, Modelo y Número de serie del equipamiento. El documento debe incluir explicaciones claras de cada elemento y llevar el membrete del sitio auditado.
+        </Typography>
+      </Alert>
+    </Box>
+  );
+
+  // Componente para archivos requeridos
+  const renderArchivosRequeridos = () => (
+    <Grid item xs={12}>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+            Archivos Requeridos (*)
+          </Typography>
+          <Alert severity="error" sx={{ mb: 2, background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+              📝 DOCUMENTOS OBLIGATORIOS
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
+              • <strong>Fotografías (JPG/PNG):</strong> Data Center, racks abiertos, aires acondicionados, sensores de humo, matafuegos con fechas de vencimiento, control de acceso<br/>
+              • <strong>Documento (PDF/Excel):</strong> Inventario con Marca, Modelo y Número de serie<br/>
+              • Debe incluir membrete del sitio auditado<br/>
+              • Explicaciones claras de cada elemento
+            </Typography>
+          </Alert>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<PhotoIcon />}
+                sx={{
+                  mr: 2, mb: 2,
+                  background: '#dc2626',
+                  '&:hover': {
+                    background: '#b91c1c'
+                  }
+                }}
+              >
+                Subir Fotografías (OBLIGATORIO)
+                <input
+                  type="file"
+                  hidden
+                  accept=".jpg,.jpeg,.png,.pdf,.xls,.xlsx"
+                  multiple
+                  required
+                />
+              </Button>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="date"
+                label="Fecha de última revisión"
+                InputLabelProps={{ shrink: true }}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Observaciones sobre archivos adjuntos"
+                multiline
+                rows={3}
+                placeholder="Describa el contenido de los archivos adjuntos, estado de equipos fotografiados, etc..."
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Grid>
+  );
   const [formData, setFormData] = useState({
     // Acceso y Seguridad
     acceso: {
@@ -257,6 +361,9 @@ const CuartoTecnologiaForm = ({ onSave, onCancel, initialData = {} }) => {
 
   return (
     <Box sx={{ p: 2 }}>
+      {/* Header con descripción */}
+      {renderHeader()}
+
       <Grid container spacing={3}>
         
         {/* Header con Puntuación */}
@@ -739,6 +846,9 @@ const CuartoTecnologiaForm = ({ onSave, onCancel, initialData = {} }) => {
             </CardContent>
           </Card>
         </Grid>
+
+        {/* Archivos Requeridos */}
+        {renderArchivosRequeridos()}
       </Grid>
 
       {/* Botones de Acción */}

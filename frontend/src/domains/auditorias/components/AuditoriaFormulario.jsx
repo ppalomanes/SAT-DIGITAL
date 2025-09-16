@@ -50,6 +50,15 @@ import TopologiaForm from './sections/TopologiaForm';
 import DocumentacionForm from './sections/DocumentacionForm';
 import HardwareSoftwareForm from './sections/HardwareSoftwareForm';
 import CuartoTecnologiaForm from './sections/CuartoTecnologiaForm';
+import EnergiaForm from './sections/EnergiaForm';
+import TemperaturaForm from './sections/TemperaturaForm';
+import ServidoresForm from './sections/ServidoresForm';
+import InternetForm from './sections/InternetForm';
+import PersonalCapacitadoForm from './sections/PersonalCapacitadoForm';
+import EscalamientoForm from './sections/EscalamientoForm';
+import ConectividadForm from './sections/ConectividadForm';
+import SeguridadInformacionForm from './sections/SeguridadInformacionForm';
+import EntornoInformacionForm from './sections/EntornoInformacionForm';
 
 // Componente para cada tarjeta de sección
 const SectionCard = ({ section, onClick, status = 'pending' }) => {
@@ -337,6 +346,78 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
       case 'cuarto-tecnologia':
         return (
           <CuartoTecnologiaForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'energia':
+        return (
+          <EnergiaForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'temperatura':
+        return (
+          <TemperaturaForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'servidores':
+        return (
+          <ServidoresForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'internet':
+        return (
+          <InternetForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'personal':
+        return (
+          <PersonalCapacitadoForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'escalamiento':
+        return (
+          <EscalamientoForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'conectividad':
+        return (
+          <ConectividadForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'seguridad':
+        return (
+          <SeguridadInformacionForm
+            onSave={handleSectionSave}
+            onCancel={handleCloseModal}
+            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+          />
+        );
+      case 'ambiente':
+        return (
+          <EntornoInformacionForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
             initialData={{}} // Aquí se pueden pasar datos guardados previamente

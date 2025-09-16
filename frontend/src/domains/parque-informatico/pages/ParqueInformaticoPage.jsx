@@ -157,90 +157,73 @@ const ParqueInformaticoPage = () => {
   ];
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Computer sx={{ mr: 2, fontSize: 40, color: 'primary.main' }} />
-          <Box>
-            <Typography variant="h3" component="h1" fontWeight="bold">
-              Parque Informático
-            </Typography>
-            <Typography variant="h6" color="text.secondary">
-              Sistema de análisis y normalización de inventario de hardware con IA integrada
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Stats Cards de resumen rápido */}
-        {stats && (
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="h4" fontWeight="bold">
-                        {stats.overview.totalRecords}
-                      </Typography>
-                      <Typography variant="body2">Total de Equipos</Typography>
-                    </Box>
-                    <Memory sx={{ fontSize: 40, opacity: 0.8 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="h4" fontWeight="bold">
-                        {stats.overview.complianceRate}%
-                      </Typography>
-                      <Typography variant="body2">Cumplimiento</Typography>
-                    </Box>
-                    <Assessment sx={{ fontSize: 40, opacity: 0.8 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', color: 'white' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="h4" fontWeight="bold">
-                        {stats.hardware?.storage?.ssdPercentage}%
-                      </Typography>
-                      <Typography variant="body2">Equipos con SSD</Typography>
-                    </Box>
-                    <Storage sx={{ fontSize: 40, opacity: 0.8 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', color: 'white' }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="h4" fontWeight="bold">
-                        {stats.network?.averageDownloadSpeed}
-                      </Typography>
-                      <Typography variant="body2">Velocidad Promedio (Mbps)</Typography>
-                    </Box>
-                    <NetworkCheck sx={{ fontSize: 40, opacity: 0.8 }} />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        )}
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <div>
+          <Typography variant="h4" gutterBottom>
+            Parque Informático
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Sistema de análisis y normalización de inventario de hardware
+          </Typography>
+        </div>
       </Box>
+
+      {stats && (
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" color="primary" gutterBottom>
+                  {stats.overview.totalRecords}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total de Equipos
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" color="success.main" gutterBottom>
+                  {stats.overview.complianceRate}%
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Cumplimiento
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" color="info.main" gutterBottom>
+                  {stats.hardware?.storage?.ssdPercentage}%
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Equipos con SSD
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" color="warning.main" gutterBottom>
+                  {stats.network?.averageDownloadSpeed}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Velocidad Promedio (Mbps)
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
 
       {/* Mensaje de bienvenida si no hay datos */}
       {!file && !isProcessing && !normalizedData && (

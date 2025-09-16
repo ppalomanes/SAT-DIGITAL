@@ -38,6 +38,90 @@ import {
 import { processExcelFile } from '../../../../utils/excelProcessor';
 
 const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
+  // Header con descripción basada en auditoria.html
+  const renderHeader = () => (
+    <Box sx={{ mb: 4 }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: '#1e293b', mb: 2 }}>
+        Estado del Hardware, Software, Headset (*)
+      </Typography>
+
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: '#374151', mb: 2 }}>
+        Descripción
+      </Typography>
+
+      <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: '#6b7280', lineHeight: 1.6, mb: 3 }}>
+        Relevamiento del parque informático del sitio.
+      </Typography>
+
+      <Alert severity="info" sx={{ mb: 3, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+        <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          Criterio de aceptación
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
+          Adjuntar planilla Excel (.xlsx o .xls) con los siguientes campos: Hostname, Procesador, RAM, Disco, SO, Navegador, Headset.
+        </Typography>
+      </Alert>
+    </Box>
+  );
+
+  // Componente para archivos requeridos
+  const renderArchivosRequeridos = () => (
+    <Grid item xs={12}>
+      <Card>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+            Archivo Excel Requerido (*)
+          </Typography>
+          <Alert severity="error" sx={{ mb: 2, background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+              📊 PLANILLA EXCEL OBLIGATORIA
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
+              • <strong>Formato:</strong> .xlsx o .xls<br/>
+              • <strong>Campos obligatorios:</strong> Hostname, Procesador, RAM, Disco, SO, Navegador, Headset<br/>
+              • <strong>Para Home Office agregar:</strong> Usuario TECO, Nombre ISP, Tipo de conexión, Velocidad Down/Up<br/>
+              • Debe incluir membrete del sitio auditado
+            </Typography>
+          </Alert>
+
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<UploadIcon />}
+                sx={{
+                  mr: 2, mb: 2,
+                  background: '#dc2626',
+                  '&:hover': {
+                    background: '#b91c1c'
+                  }
+                }}
+              >
+                Subir Planilla Excel (OBLIGATORIO)
+                <input
+                  type="file"
+                  hidden
+                  accept=".xls,.xlsx"
+                  required
+                />
+              </Button>
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Observaciones sobre el archivo Excel"
+                multiline
+                rows={3}
+                placeholder="Describa el contenido del archivo, metodología de recolección de datos, etc..."
+              />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Grid>
+  );
   const [formData, setFormData] = useState({
     // Datos básicos
     inventarioCompleto: initialData.inventarioCompleto || false,
@@ -227,6 +311,9 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
 
   return (
     <Box sx={{ p: 2 }}>
+      {/* Header con descripción */}
+      {renderHeader()}
+
       <Grid container spacing={3}>
         
         {/* Header con controles principales */}
@@ -622,6 +709,9 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
             </Card>
           </Grid>
         )}
+
+        {/* Archivos Requeridos */}
+        {renderArchivosRequeridos()}
       </Grid>
 
       {/* Botones de Acción */}

@@ -19,8 +19,7 @@ import {
   ListItemSecondaryAction,
   IconButton,
   Button,
-  CircularProgress,
-  Paper
+  CircularProgress
 } from '@mui/material';
 import {
   Assignment as AssignmentIcon,
@@ -155,39 +154,38 @@ const DashboardAuditores = () => {
   }
 
   return (
-    <div className="dashboard-auditores">
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h4" component="h1" gutterBottom>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <div>
+          <Typography variant="h4" gutterBottom>
             Panel de Control - Auditorías
           </Typography>
-          
-          <Box display="flex" gap={2}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={handleRefresh}
-              disabled={loading}
-            >
-              Actualizar
-            </Button>
-            
-            <Button
-              variant={autoRefresh ? 'contained' : 'outlined'}
-              color={autoRefresh ? 'success' : 'primary'}
-              onClick={() => setAutoRefresh(!autoRefresh)}
-            >
-              Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
-            </Button>
-          </Box>
-        </Box>
+          {dashboardData.auditor && (
+            <Typography variant="body2" color="text.secondary">
+              Bienvenido, <strong>{dashboardData.auditor.nombre}</strong>
+            </Typography>
+          )}
+        </div>
 
-        {dashboardData.auditor && (
-          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-            Bienvenido, <strong>{dashboardData.auditor.nombre}</strong>
-          </Typography>
-        )}
-      </Paper>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<RefreshIcon />}
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            Actualizar
+          </Button>
+
+          <Button
+            variant={autoRefresh ? 'contained' : 'outlined'}
+            color={autoRefresh ? 'success' : 'primary'}
+            onClick={() => setAutoRefresh(!autoRefresh)}
+          >
+            Auto-refresh {autoRefresh ? 'ON' : 'OFF'}
+          </Button>
+        </Box>
+      </Box>
 
       {error && (
         <Alert 
@@ -413,7 +411,7 @@ const DashboardAuditores = () => {
           </Grid>
         </Box>
       </Card>
-    </div>
+    </Box>
   );
 };
 

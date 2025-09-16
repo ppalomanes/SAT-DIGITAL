@@ -150,21 +150,25 @@ const DiagnosticosPage = () => {
     };
 
     return (
-        <Box sx={{ maxWidth: 1400, mx: 'auto', p: 3 }}>
-            <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                <Security color="primary" />
-                Panel de Diagnósticos del Sistema
+        <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <div>
+                    <Typography variant="h4" gutterBottom>
+                        Diagnósticos del Sistema
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Panel de monitoreo y diagnóstico de componentes críticos
+                    </Typography>
+                </div>
                 <Button
                     onClick={runSystemDiagnostics}
                     disabled={loading}
                     variant="outlined"
-                    size="small"
                     startIcon={loading ? <CircularProgress size={16} /> : <Refresh />}
-                    sx={{ ml: 'auto' }}
                 >
                     {loading ? 'Ejecutando...' : 'Actualizar Todo'}
                 </Button>
-            </Typography>
+            </Box>
 
             <Grid container spacing={3}>
                 {/* Estado General del Sistema */}

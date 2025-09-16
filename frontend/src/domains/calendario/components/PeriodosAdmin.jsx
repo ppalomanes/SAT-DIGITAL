@@ -35,7 +35,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper
+  Paper,
+  Container
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -48,6 +49,19 @@ import {
 import { useTheme, alpha } from '@mui/material/styles';
 import dayjs from 'dayjs';
 import { periodoService } from '../services/periodoService';
+
+// Paleta de colores moderna (consistente con otras páginas)
+const COLORS = {
+  primary: '#206bc4',
+  secondary: '#6c757d',
+  success: '#2fb344',
+  danger: '#d63384',
+  warning: '#fd7e14',
+  info: '#17a2b8',
+  light: '#f8f9fa',
+  dark: '#1e293b',
+  muted: '#868e96'
+};
 
 const PeriodosAdmin = () => {
   const [periodos, setPeriodos] = useState([]);
@@ -180,30 +194,26 @@ const PeriodosAdmin = () => {
 
   return (
     <Box>
-      {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h4" component="h1" fontWeight="bold">
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <div>
+          <Typography variant="h4" gutterBottom>
             Gestión de Períodos
           </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Administra los períodos de auditoría semestrales
-          </Typography>
-        </Box>
-        <Box display="flex" gap={2}>
-          <Tooltip title="Actualizar datos">
-            <IconButton onClick={cargarDatos} color="primary">
-              <RefreshIcon />
-            </IconButton>
-          </Tooltip>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpenDialog(true)}
-          >
-            Nuevo Período
-          </Button>
-        </Box>
+          <Chip
+            icon={<ScheduleIcon />}
+            label="Administración de Períodos"
+            color="primary"
+            size="small"
+          />
+        </div>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          color="primary"
+          onClick={() => setOpenDialog(true)}
+        >
+          Nuevo Período
+        </Button>
       </Box>
 
       {error && (
@@ -212,62 +222,50 @@ const PeriodosAdmin = () => {
         </Alert>
       )}
 
-      {/* Período Activo */}
       {periodoActivo && (
-        <Card sx={{ mb: 3, border: `2px solid ${theme.palette.success.main}` }}>
+        <Card sx={{ mb: 3 }}>
           <CardContent>
-            <Box display="flex" alignItems="center" gap={2}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <CheckIcon color="success" />
-              <Box flex={1}>
+              <Box sx={{ flex: 1 }}>
                 <Typography variant="h6" color="success.main">
                   Período Activo: {periodoActivo.nombre}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Código: {periodoActivo.codigo} | 
-                  Desde: {dayjs(periodoActivo.fecha_inicio).format('DD/MM/YYYY')} | 
+                  Código: {periodoActivo.codigo} |
+                  Desde: {dayjs(periodoActivo.fecha_inicio).format('DD/MM/YYYY')} |
                   Hasta: {dayjs(periodoActivo.fecha_fin_visitas).format('DD/MM/YYYY')}
                 </Typography>
               </Box>
-              <Chip
-                label="ACTIVO"
-                color="success"
-                variant="filled"
-                sx={{ fontWeight: 'bold' }}
-              />
+              <Chip label="ACTIVO" color="success" />
             </Box>
           </CardContent>
         </Card>
       )}
 
-      {/* Lista de Períodos */}
       <Card>
         <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6" component="h2">
-              Todos los Períodos
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {periodos.length} períodos registrados
-            </Typography>
-          </Box>
+          <Typography variant="h6" gutterBottom>
+            Lista de Períodos
+          </Typography>
 
           <TableContainer component={Paper} variant="outlined">
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell><strong>Período</strong></TableCell>
-                  <TableCell><strong>Código</strong></TableCell>
-                  <TableCell><strong>Estado</strong></TableCell>
-                  <TableCell><strong>Fechas</strong></TableCell>
-                  <TableCell align="center"><strong>Acciones</strong></TableCell>
+                  <TableCell>Período</TableCell>
+                  <TableCell>Código</TableCell>
+                  <TableCell>Estado</TableCell>
+                  <TableCell>Fechas</TableCell>
+                  <TableCell align="center">Acciones</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {periodos.map((periodo) => {
                   const estadoStyle = getEstadoColor(periodo.estado);
-                  
+
                   return (
-                    <TableRow key={periodo.id} hover>
+                    <TableRow key={periodo.id}>
                       <TableCell>
                         <Typography variant="subtitle2" fontWeight="bold">
                           {periodo.nombre}

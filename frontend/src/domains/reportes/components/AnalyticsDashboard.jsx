@@ -19,8 +19,7 @@ import {
   Alert,
   Divider,
   IconButton,
-  Tooltip,
-  Paper
+  Tooltip
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -175,14 +174,17 @@ const AnalyticsDashboard = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box sx={{ p: 3 }}>
-        {/* Header */}
-        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h4" component="h1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AssessmentIcon color="primary" />
-            Analytics y Reportes
-          </Typography>
-          
+      <Box>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <div>
+            <Typography variant="h4" gutterBottom>
+              Analytics y Reportes
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Dashboard de métricas y análisis del sistema
+            </Typography>
+          </div>
+
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Tooltip title={autoRefresh ? 'Deshabilitar auto-refresh' : 'Habilitar auto-refresh'}>
               <Button
@@ -194,7 +196,7 @@ const AnalyticsDashboard = () => {
                 Auto-refresh
               </Button>
             </Tooltip>
-            
+
             <Button
               variant="outlined"
               onClick={refrescarDatos}
@@ -203,7 +205,7 @@ const AnalyticsDashboard = () => {
             >
               Refrescar
             </Button>
-            
+
             <Button
               variant="contained"
               onClick={() => setExportDialogOpen(true)}
@@ -214,19 +216,19 @@ const AnalyticsDashboard = () => {
           </Box>
         </Box>
 
-        {/* Filtros */}
-        <Paper sx={{ p: 2, mb: 3 }}>
-          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FilterIcon />
-            Filtros
-            {hayFiltrosActivos && (
-              <Chip
-                label={`${Object.values(filtrosActivos).filter(v => v).length} activos`}
-                size="small"
-                color="primary"
-              />
-            )}
-          </Typography>
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <FilterIcon />
+              Filtros
+              {hayFiltrosActivos && (
+                <Chip
+                  label={`${Object.values(filtrosActivos).filter(v => v).length} activos`}
+                  size="small"
+                  color="primary"
+                />
+              )}
+            </Typography>
           
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} sm={6} md={2}>
@@ -306,7 +308,8 @@ const AnalyticsDashboard = () => {
               </Box>
             </Grid>
           </Grid>
-        </Paper>
+          </CardContent>
+        </Card>
 
         {/* Errores */}
         {(errorResumen || errorRendimiento || errorMetricas) && (

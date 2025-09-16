@@ -128,16 +128,16 @@ const EmailTestingPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          <Email sx={{ mr: 2, verticalAlign: 'middle' }} />
-          Testing de Email Templates
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Sistema de pruebas y validación para templates de email de SAT-Digital
-        </Typography>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <div>
+          <Typography variant="h4" gutterBottom>
+            Testing de Email
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Sistema de pruebas y validación para templates de email
+          </Typography>
+        </div>
       </Box>
 
       {/* Stats Cards */}

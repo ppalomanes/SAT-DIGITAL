@@ -476,22 +476,22 @@ const DashboardEjecutivo = () => {
       {/* Tarjeta de Bienvenida SAT-Digital */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} lg={8}>
-          <Card sx={{ 
-            height: 200,
+          <Card sx={{
+            height: { xs: 'auto', md: 200 },
+            minHeight: 200,
             background: COLORS.gradient.primary,
             color: 'white',
             borderRadius: 3,
             overflow: 'hidden',
-            position: 'relative'
+            position: 'relative',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <CardContent sx={{ p: 3, height: '100%' }}>
+            <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, fontFamily: 'var(--font-primary)' }}>
                 Bienvenido al Dashboard Ejecutivo
               </Typography>
-              <Typography variant="body1" sx={{ opacity: 0.9, mb: 2, fontFamily: 'var(--font-primary)' }}>
-                Sistema de Auditorías Técnicas - SAT Digital v1.0
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, mb: 3 }}>
+              <Typography variant="body2" sx={{ opacity: 0.8, mb: 2 }}>
                 Análisis avanzado y métricas estratégicas para auditorías técnicas
               </Typography>
               <Box sx={{ display: 'flex', gap: 4, mt: 2 }}>
@@ -539,84 +539,291 @@ const DashboardEjecutivo = () => {
 
         {/* KPI Circular - Eficiencia */}
         <Grid item xs={12} lg={4}>
-          <CircularProgressCard 
-            title="EFICIENCIA OPERATIVA"
-            value={datosAnalytics.metricas_globales?.eficiencia_operativa || 91.2}
-            icon={Speed}
-          />
+          <Card sx={{
+            height: { xs: 'auto', md: 200 },
+            minHeight: 200,
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <CardContent sx={{ p: 3, textAlign: 'center', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Speed sx={{ color: COLORS.info, fontSize: 32, mb: 1 }} />
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: '0.75rem', fontWeight: 500 }}>
+                EFICIENCIA OPERATIVA
+              </Typography>
+              <Box sx={{ position: 'relative', display: 'inline-flex', alignSelf: 'center' }}>
+                <CircularProgress
+                  variant="determinate"
+                  value={datosAnalytics.metricas_globales?.eficiencia_operativa || 91.2}
+                  size={100}
+                  thickness={3}
+                  sx={{
+                    color: COLORS.info,
+                    '& .MuiCircularProgress-circle': {
+                      strokeLinecap: 'round',
+                    }
+                  }}
+                />
+                <CircularProgress
+                  variant="determinate"
+                  value={100}
+                  size={100}
+                  thickness={3}
+                  sx={{
+                    color: `${COLORS.info}15`,
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                  }}
+                />
+                <Box sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column'
+                }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                    {Math.round(datosAnalytics.metricas_globales?.eficiencia_operativa || 91.2)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                    %
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
 
       {/* KPIs Principales SAT-Digital */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={6} md={3}>
-          <KPICard 
-            title="AUDITORÍAS ASIGNADAS"
-            value={datosAnalytics.metricas_globales?.auditorias_asignadas || '156'}
-            icon={Assignment}
-            color={COLORS.primary}
-            trend={datosAnalytics.metricas_globales?.tendencia_cumplimiento || 5.2}
-            subtitle="Total en el sistema"
-          />
+          <Card sx={{
+            height: 140,
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+            transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
+            '&:hover': {
+              boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+              transform: 'translateY(-2px)'
+            }
+          }}>
+            <CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
+                    AUDITORÍAS ASIGNADAS
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                    {datosAnalytics.metricas_globales?.auditorias_asignadas || '156'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    Total en el sistema
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  backgroundColor: `${COLORS.primary}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Assignment sx={{ color: COLORS.primary, fontSize: 20 }} />
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TrendingUp sx={{ color: COLORS.success, fontSize: 16 }} />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: COLORS.success,
+                    fontWeight: 600
+                  }}
+                >
+                  {Math.abs(datosAnalytics.metricas_globales?.tendencia_cumplimiento || 5.2)}%
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  desde el mes anterior
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
-          <KPICard 
-            title="PENDIENTES REVISIÓN"
-            value={datosAnalytics.metricas_globales?.pendientes_revision || '87'}
-            icon={Schedule}
-            color={COLORS.warning}
-            percentage={Math.round((datosAnalytics.metricas_globales?.pendientes_revision || 87) / (datosAnalytics.metricas_globales?.total_auditorias || 156) * 100)}
-            subtitle="Requieren atención"
-          />
+          <Card sx={{
+            height: 140,
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+            transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
+            '&:hover': {
+              boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+              transform: 'translateY(-2px)'
+            }
+          }}>
+            <CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
+                    PENDIENTES REVISIÓN
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                    {datosAnalytics.metricas_globales?.pendientes_revision || '87'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    Requieren atención
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  backgroundColor: `${COLORS.warning}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Schedule sx={{ color: COLORS.warning, fontSize: 20 }} />
+                </Box>
+              </Box>
+              <Box sx={{ mt: 1 }}>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.round((datosAnalytics.metricas_globales?.pendientes_revision || 87) / (datosAnalytics.metricas_globales?.total_auditorias || 156) * 100)}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: `${COLORS.warning}20`,
+                    '& .MuiLinearProgress-bar': {
+                      backgroundColor: COLORS.warning,
+                      borderRadius: 3
+                    }
+                  }}
+                />
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
-          <KPICard 
-            title="PRÓXIMAS VISITAS"
-            value={datosAnalytics.metricas_globales?.proximas_visitas || '12'}
-            icon={Schedule}
-            color={COLORS.info}
-            trend={0}
-            subtitle="Programadas este mes"
-          />
+          <Card sx={{
+            height: 140,
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+            transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
+            '&:hover': {
+              boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+              transform: 'translateY(-2px)'
+            }
+          }}>
+            <CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
+                    PRÓXIMAS VISITAS
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                    {datosAnalytics.metricas_globales?.proximas_visitas || '12'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    Programadas este mes
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  backgroundColor: `${COLORS.info}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Schedule sx={{ color: COLORS.info, fontSize: 20 }} />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
-          <KPICard 
-            title="ALERTAS ACTIVAS"
-            value={datosAnalytics.metricas_globales?.alertas_activas || '3'}
-            icon={Warning}
-            color={COLORS.danger}
-            subtitle="Requieren acción inmediata"
-          />
+          <Card sx={{
+            height: 140,
+            borderRadius: 3,
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+            transition: 'all 0.3s cubic-bezier(.25,.8,.25,1)',
+            '&:hover': {
+              boxShadow: '0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22)',
+              transform: 'translateY(-2px)'
+            }
+          }}>
+            <CardContent sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
+                    ALERTAS ACTIVAS
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
+                    {datosAnalytics.metricas_globales?.alertas_activas || '3'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                    Requieren acción inmediata
+                  </Typography>
+                </Box>
+                <Box sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 2,
+                  backgroundColor: `${COLORS.danger}15`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Warning sx={{ color: COLORS.danger, fontSize: 20 }} />
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
 
       {/* Tarjetas de acciones rápidas */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={6} md={3}>
-          <Card sx={{ 
+          <Card sx={{
+            height: 100,
             borderRadius: 3,
             boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
             transition: 'all 0.3s ease',
             '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: 2, 
+            <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
                   backgroundColor: `${COLORS.primary}15`,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 0
                 }}>
-                  <Assignment sx={{ color: COLORS.primary, fontSize: 24 }} />
+                  <Assignment sx={{ color: COLORS.primary, fontSize: 20 }} />
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
                     132 Ventas
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -627,29 +834,31 @@ const DashboardEjecutivo = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
-          <Card sx={{ 
+          <Card sx={{
+            height: 100,
             borderRadius: 3,
             boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
             transition: 'all 0.3s ease',
             '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: 2, 
+            <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
                   backgroundColor: `${COLORS.success}15`,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 0
                 }}>
-                  <CheckCircle sx={{ color: COLORS.success, fontSize: 24 }} />
+                  <CheckCircle sx={{ color: COLORS.success, fontSize: 20 }} />
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
                     78 Órdenes
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -660,29 +869,31 @@ const DashboardEjecutivo = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
-          <Card sx={{ 
+          <Card sx={{
+            height: 100,
             borderRadius: 3,
             boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
             transition: 'all 0.3s ease',
             '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: 2, 
+            <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
                   backgroundColor: `${COLORS.dark}15`,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 0
                 }}>
-                  <Description sx={{ color: COLORS.dark, fontSize: 24 }} />
+                  <Description sx={{ color: COLORS.dark, fontSize: 20 }} />
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
                     623 Compartidos
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -693,29 +904,31 @@ const DashboardEjecutivo = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={6} md={3}>
-          <Card sx={{ 
+          <Card sx={{
+            height: 100,
             borderRadius: 3,
             boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
             transition: 'all 0.3s ease',
             '&:hover': { transform: 'translateY(-2px)' }
           }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{ 
-                  width: 48, 
-                  height: 48, 
-                  borderRadius: 2, 
+            <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 2,
                   backgroundColor: `${COLORS.info}15`,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  flexShrink: 0
                 }}>
-                  <TrendingUp sx={{ color: COLORS.info, fontSize: 24 }} />
+                  <TrendingUp sx={{ color: COLORS.info, fontSize: 20 }} />
                 </Box>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
                     132 Me Gusta
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -798,42 +1011,78 @@ const DashboardEjecutivo = () => {
 
         {/* Estados de Auditorías */}
         <Grid item xs={12} lg={4}>
-          <Card sx={{ 
+          <Card sx={{
             borderRadius: 3,
             boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
             height: '450px'
           }}>
-            <CardContent sx={{ p: 3, height: '100%' }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b', fontFamily: 'var(--font-primary)' }}>
+            <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b', fontFamily: 'var(--font-primary)', mb: 2 }}>
                 Distribución por Estados
               </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    data={datosAnalytics.distribucion_estados_recharts}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="valor"
-                    label={({ nombre, valor }) => `${nombre}: ${valor}`}
-                  >
-                    {datosAnalytics.distribucion_estados_recharts?.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </RechartsPieChart>
-              </ResponsiveContainer>
-              <Box sx={{ mt: 2 }}>
-                {datosAnalytics.distribucion_estados_recharts?.map((estado, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Box sx={{ width: 12, height: 12, backgroundColor: estado.color, borderRadius: '50%' }} />
-                    <Typography variant="body2" sx={{ fontFamily: 'var(--font-primary)' }}>
-                      {estado.nombre}: {estado.valor}
-                    </Typography>
-                  </Box>
-                ))}
+
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <RechartsPieChart>
+                    <Pie
+                      data={datosAnalytics.distribucion_estados_recharts}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={70}
+                      fill="#8884d8"
+                      dataKey="valor"
+                    >
+                      {datosAnalytics.distribucion_estados_recharts?.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value, name) => [value, name]}
+                      contentStyle={{
+                        backgroundColor: '#fff',
+                        border: '1px solid #e9ecef',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </Box>
+
+              <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #f1f3f4' }}>
+                <Grid container spacing={1}>
+                  {datosAnalytics.distribucion_estados_recharts?.map((estado, index) => (
+                    <Grid item xs={12} key={index}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
+                          <Box sx={{
+                            width: 8,
+                            height: 8,
+                            backgroundColor: estado.color,
+                            borderRadius: '50%',
+                            flexShrink: 0
+                          }} />
+                          <Typography variant="caption" sx={{
+                            fontFamily: 'var(--font-primary)',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            color: 'text.secondary'
+                          }}>
+                            {estado.nombre}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{
+                          fontWeight: 600,
+                          color: 'text.primary',
+                          fontSize: '0.8rem'
+                        }}>
+                          {estado.valor}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
               </Box>
             </CardContent>
           </Card>
@@ -1044,18 +1293,6 @@ const DashboardEjecutivo = () => {
           </Card>
         </Grid>
       </Grid>
-      
-      {/* Footer */}
-      <Box sx={{ 
-        mt: 4, 
-        pt: 3, 
-        borderTop: '1px solid #e9ecef',
-        textAlign: 'center'
-      }}>
-        <Typography variant="body2" color="text.secondary">
-          SAT-Digital v1.0 © 2025 Sistema de Auditorías Técnicas
-        </Typography>
-      </Box>
     </Box>
   );
 };

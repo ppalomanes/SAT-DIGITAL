@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
+import {
+  Container,
+  Typography,
   Box,
   Alert,
   CircularProgress,
   FormControl,
   InputLabel,
   Select,
-  MenuItem 
+  MenuItem,
+  Card,
+  CardContent
 } from '@mui/material';
 import CargaDocumental from '../components/CargaDocumental';
 import { useAuthStore } from '../../auth/store/authStore';
@@ -110,43 +112,32 @@ const DocumentosPage = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h4" 
-          component="h1" 
-          sx={{ 
-            mb: 2,
-            fontWeight: 700,
-            color: 'primary.main'
-          }}
-        >
-          Carga de Documentos
-        </Typography>
-        <Typography 
-          variant="body1" 
-          color="text.secondary"
-          sx={{ mb: 3 }}
-        >
-          Sistema de carga documental por secciones técnicas para auditorías
-        </Typography>
-
-        {error && (
-          <Alert 
-            severity="error" 
-            sx={{ mb: 3 }}
-            onClose={() => setError(null)}
-          >
-            {error}
-          </Alert>
-        )}
-
-        {/* Información del usuario actual */}
-        <Box sx={{ mb: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <div>
+          <Typography variant="h4" gutterBottom>
+            Carga de Documentos
+          </Typography>
           <Typography variant="body2" color="text.secondary">
-            <strong>Usuario:</strong> {usuario?.nombre} {usuario?.apellido} 
-            {' | '}
-            <strong>Rol:</strong> {usuario?.rol}
+            Sistema de carga documental por secciones técnicas para auditorías
+          </Typography>
+        </div>
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Información del Usuario
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            <strong>Usuario:</strong> {usuario?.nombre} {usuario?.apellido} |
+            <strong> Rol:</strong> {usuario?.rol}
             {usuario?.proveedor_id && (
               <>
                 {' | '}
@@ -154,17 +145,19 @@ const DocumentosPage = () => {
               </>
             )}
           </Typography>
-        </Box>
+        </CardContent>
+      </Card>
 
-        {/* Selector de Auditoría */}
-        <Box sx={{ mb: 4 }}>
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Seleccionar Auditoría
+          </Typography>
           <FormControl fullWidth>
-            <InputLabel id="auditoria-select-label">Seleccionar Auditoría</InputLabel>
+            <InputLabel>Auditoría</InputLabel>
             <Select
-              labelId="auditoria-select-label"
-              id="auditoria-select"
               value={auditoriaSeleccionada}
-              label="Seleccionar Auditoría"
+              label="Auditoría"
               onChange={(e) => setAuditoriaSeleccionada(e.target.value)}
             >
               {auditorias.map((auditoria) => (
@@ -174,19 +167,18 @@ const DocumentosPage = () => {
               ))}
             </Select>
           </FormControl>
-        </Box>
-      </Box>
+        </CardContent>
+      </Card>
 
-      {/* Componente principal de carga */}
       {auditoriaSeleccionada && (
-        <CargaDocumental 
+        <CargaDocumental
           auditoriaId={auditoriaSeleccionada}
           seccionesDisponibles={seccionesTecnicas}
           onSuccess={handleSuccess}
           onError={handleError}
         />
       )}
-    </Container>
+    </Box>
   );
 };
 
