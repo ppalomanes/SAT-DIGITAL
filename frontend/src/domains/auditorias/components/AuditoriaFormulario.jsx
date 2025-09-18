@@ -251,7 +251,7 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
     },
     {
       id: 'hardware-software',
-      title: 'Hardware/Software/Auriculares e Internet Domiciliario',
+      title: 'Parque Informático - Hardware/Software',
       description: 'Inventario completo con normalización IA',
       icon: <ComputerIcon />,
       badge: 'IA + Por Lotes',

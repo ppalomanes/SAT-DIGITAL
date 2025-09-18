@@ -33,7 +33,7 @@ const secciones = [
   },
   {
     codigo: 'parque_informatico',
-    nombre: 'Estado del Hardware, Software, Headset e Internet en el Hogar',
+    nombre: 'Parque Informático - Hardware/Software (Presencial y Teletrabajo)',
     descripcion: 'Inventario completo del parque informático',
     tipo_analisis: 'lotes',
     obligatoria: true,

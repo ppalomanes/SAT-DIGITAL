@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { useAuthStore } from '../../../auth/store/authStore';
 import {
   Box,
   Grid,
@@ -11,6 +12,10 @@ import {
   Chip,
   Switch,
   FormControlLabel,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Divider,
   Paper,
   LinearProgress,
@@ -31,18 +36,26 @@ import {
   Storage as StorageIcon,
   Visibility as ViewIcon,
   Analytics as AnalyticsIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  GetApp as DownloadIcon,
+  FileDownload as ExportIcon
 } from '@mui/icons-material';
 
 // Importar componentes del normalizador
 import { processExcelFile } from '../../../../utils/excelProcessor';
+import { exportToExcel, exportToCSV, exportToJSON, generateComplianceReport } from '../../../../utils/dataExporter';
+import { HEADSETS_HOMOLOGADOS, MARCAS_HEADSETS_HOMOLOGADAS } from '../../../../utils/headsetsHomologados';
 
 const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
+  // Verificar rol de usuario
+  const { usuario } = useAuthStore();
+  const isAdmin = usuario?.rol === 'admin';
+
   // Header con descripción basada en auditoria.html
   const renderHeader = () => (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: '#1e293b', mb: 2 }}>
-        Estado del Hardware, Software, Headset (*)
+        Parque Informático - Hardware/Software (Presencial y Teletrabajo)
       </Typography>
 
       <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: '#374151', mb: 2 }}>
@@ -64,64 +77,487 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
     </Box>
   );
 
-  // Componente para archivos requeridos
-  const renderArchivosRequeridos = () => (
-    <Grid item xs={12}>
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
-            Archivo Excel Requerido (*)
-          </Typography>
-          <Alert severity="error" sx={{ mb: 2, background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
-              📊 PLANILLA EXCEL OBLIGATORIA
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
-              • <strong>Formato:</strong> .xlsx o .xls<br/>
-              • <strong>Campos obligatorios:</strong> Hostname, Procesador, RAM, Disco, SO, Navegador, Headset<br/>
-              • <strong>Para Home Office agregar:</strong> Usuario TECO, Nombre ISP, Tipo de conexión, Velocidad Down/Up<br/>
-              • Debe incluir membrete del sitio auditado
-            </Typography>
-          </Alert>
 
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                component="label"
-                startIcon={<UploadIcon />}
-                sx={{
-                  mr: 2, mb: 2,
-                  background: '#dc2626',
-                  '&:hover': {
-                    background: '#b91c1c'
-                  }
-                }}
-              >
-                Subir Planilla Excel (OBLIGATORIO)
-                <input
-                  type="file"
-                  hidden
-                  accept=".xls,.xlsx"
-                  required
-                />
-              </Button>
-            </Grid>
+  // Componente para configuración de requisitos mínimos (solo administrador)
+  const renderRequisitosMinimoConfig = () => {
+    if (!isAdmin && formData.configuracionBloqueada) {
+      return (
+        <Grid item xs={12}>
+          <Card sx={{ opacity: 0.6, background: '#f8f9fa' }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom sx={{ color: '#6c757d' }}>
+                ⚙️ Configuración de Requisitos Mínimos (Solo Administrador)
+              </Typography>
+              <Alert severity="info" sx={{ background: 'rgba(108, 117, 125, 0.1)' }}>
+                <Typography variant="body2">
+                  Los requisitos mínimos han sido configurados por el administrador y están bloqueados para modificación.
+                </Typography>
+              </Alert>
+            </CardContent>
+          </Card>
+        </Grid>
+      );
+    }
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Observaciones sobre el archivo Excel"
-                multiline
-                rows={3}
-                placeholder="Describa el contenido del archivo, metodología de recolección de datos, etc..."
+    if (!isAdmin) return null;
+
+    return (
+      <Grid item xs={12}>
+        <Card sx={{ border: '2px solid #ffc107', background: '#fffbf0' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: '#d68910', fontWeight: 600 }}>
+                🛠️ Configuración de Requisitos Mínimos (Solo Administrador)
+              </Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.mostrarConfiguracion}
+                    onChange={(e) => handleInputChange('mostrarConfiguracion', e.target.checked)}
+                    color="warning"
+                  />
+                }
+                label="Mostrar Configuración"
               />
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-    </Grid>
-  );
+            </Box>
+
+            {formData.mostrarConfiguracion && (
+              <Box>
+                <Alert severity="warning" sx={{ mb: 3 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    ⚠️ CONFIGURACIÓN EXCLUSIVA DE ADMINISTRADOR
+                  </Typography>
+                  <Typography variant="body2">
+                    Una vez definidos, estos requisitos quedarán bloqueados para otros usuarios hasta nueva modificación.
+                  </Typography>
+                </Alert>
+
+                {/* Configuración de Procesadores */}
+                <Typography variant="h6" sx={{ mb: 2, color: '#495057' }}>
+                  🖥️ Procesadores - Criterios de Rendimiento
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Marcas Aceptadas
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Fabricantes Permitidos</InputLabel>
+                        <Select
+                          multiple
+                          value={formData.requisitosMinimos.procesador.marcasAceptadas}
+                          onChange={(e) => handleRequirementChange('procesador', 'marcasAceptadas', e.target.value)}
+                          label="Fabricantes Permitidos"
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} size="small" />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          <MenuItem value="Intel">Intel</MenuItem>
+                          <MenuItem value="AMD">AMD</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Modelos Mínimos
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Líneas de Procesador</InputLabel>
+                        <Select
+                          multiple
+                          value={formData.requisitosMinimos.procesador.modelosMinimos}
+                          onChange={(e) => handleRequirementChange('procesador', 'modelosMinimos', e.target.value)}
+                          label="Líneas de Procesador"
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} size="small" />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          <MenuItem value="i3">Intel Core i3</MenuItem>
+                          <MenuItem value="i5">Intel Core i5</MenuItem>
+                          <MenuItem value="i7">Intel Core i7</MenuItem>
+                          <MenuItem value="i9">Intel Core i9</MenuItem>
+                          <MenuItem value="Ryzen 3">AMD Ryzen 3</MenuItem>
+                          <MenuItem value="Ryzen 5">AMD Ryzen 5</MenuItem>
+                          <MenuItem value="Ryzen 7">AMD Ryzen 7</MenuItem>
+                          <MenuItem value="Ryzen 9">AMD Ryzen 9</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Rendimiento Mínimo
+                      </Typography>
+                      <Grid container spacing={1}>
+                        <Grid item xs={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Velocidad (GHz)"
+                            type="number"
+                            step="0.1"
+                            value={formData.requisitosMinimos.procesador.velocidadMinima}
+                            onChange={(e) => handleRequirementChange('procesador', 'velocidadMinima', parseFloat(e.target.value))}
+                          />
+                        </Grid>
+                        <Grid item xs={6}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            label="Núcleos"
+                            type="number"
+                            value={formData.requisitosMinimos.procesador.nucleosMinimos}
+                            onChange={(e) => handleRequirementChange('procesador', 'nucleosMinimos', parseInt(e.target.value))}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 2, border: '1px solid #e3f2fd', background: '#f8f9fa' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#1976d2', display: 'block', mb: 1 }}>
+                        💡 Guía de Rendimiento
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                        <strong>Intel:</strong> i3 &lt; i5 &lt; i7 &lt; i9 (mayor rendimiento)
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                        <strong>AMD:</strong> Ryzen 3 &lt; Ryzen 5 &lt; Ryzen 7 &lt; Ryzen 9
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block' }}>
+                        <strong>Velocidad:</strong> Mayor GHz = Mejor rendimiento
+                      </Typography>
+                    </Card>
+                  </Grid>
+                </Grid>
+
+                {/* Configuración de Memoria */}
+                <Typography variant="h6" sx={{ mb: 2, color: '#495057' }}>
+                  🧠 Memoria RAM - Capacidad y Tipo
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={4}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Capacidad Mínima
+                      </Typography>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        label="Memoria RAM (GB)"
+                        type="number"
+                        value={formData.requisitosMinimos.memoria.capacidadMinima}
+                        onChange={(e) => handleRequirementChange('memoria', 'capacidadMinima', parseInt(e.target.value))}
+                      />
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Tipos Aceptados
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Tecnología de Memoria</InputLabel>
+                        <Select
+                          multiple
+                          value={formData.requisitosMinimos.memoria.tiposAceptados}
+                          onChange={(e) => handleRequirementChange('memoria', 'tiposAceptados', e.target.value)}
+                          label="Tecnología de Memoria"
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} size="small" />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          <MenuItem value="DDR3">DDR3</MenuItem>
+                          <MenuItem value="DDR4">DDR4</MenuItem>
+                          <MenuItem value="DDR5">DDR5</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={4}>
+                    <Card sx={{ p: 2, border: '1px solid #e3f2fd', background: '#f8f9fa' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: '#1976d2', display: 'block', mb: 1 }}>
+                        💡 Recomendaciones
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                        <strong>Mínimo:</strong> 8GB para uso básico
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
+                        <strong>Recomendado:</strong> 16GB para multitarea
+                      </Typography>
+                      <Typography variant="caption" sx={{ display: 'block' }}>
+                        <strong>Tipo:</strong> DDR4/DDR5 para mejor rendimiento
+                      </Typography>
+                    </Card>
+                  </Grid>
+                </Grid>
+
+                {/* Configuración de Almacenamiento */}
+                <Typography variant="h6" sx={{ mb: 2, color: '#495057' }}>
+                  💾 Almacenamiento - Múltiples Opciones Válidas
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  {formData.requisitosMinimos.almacenamiento.opcionesValidas.map((opcion, index) => (
+                    <Grid item xs={12} md={4} key={index}>
+                      <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                          {opcion.tipo}
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Capacidad Mínima (GB)"
+                          type="number"
+                          value={opcion.capacidadMinima}
+                          onChange={(e) => {
+                            const newOpciones = [...formData.requisitosMinimos.almacenamiento.opcionesValidas];
+                            newOpciones[index].capacidadMinima = parseInt(e.target.value);
+                            handleRequirementChange('almacenamiento', 'opcionesValidas', newOpciones);
+                          }}
+                        />
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* Configuración de Conectividad */}
+                <Typography variant="h6" sx={{ mb: 2, color: '#495057' }}>
+                  🌐 Conectividad - Umbrales por Tecnología
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  {formData.requisitosMinimos.conectividad.tecnologias.map((tech, index) => (
+                    <Grid item xs={12} md={6} key={index}>
+                      <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                          {tech.tipo}
+                        </Typography>
+                        <Grid container spacing={1}>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              label="Down (Mbps)"
+                              type="number"
+                              value={tech.velocidadMinimaDown}
+                              onChange={(e) => {
+                                const newTechs = [...formData.requisitosMinimos.conectividad.tecnologias];
+                                newTechs[index].velocidadMinimaDown = parseInt(e.target.value);
+                                handleRequirementChange('conectividad', 'tecnologias', newTechs);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              size="small"
+                              label="Up (Mbps)"
+                              type="number"
+                              value={tech.velocidadMinimaUp}
+                              onChange={(e) => {
+                                const newTechs = [...formData.requisitosMinimos.conectividad.tecnologias];
+                                newTechs[index].velocidadMinimaUp = parseInt(e.target.value);
+                                handleRequirementChange('conectividad', 'tecnologias', newTechs);
+                              }}
+                            />
+                          </Grid>
+                        </Grid>
+                        <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
+                          Formas: {tech.formasConexion.join(', ')}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* Configuración de Sistema Operativo */}
+                <Typography variant="h6" sx={{ mb: 2, color: '#495057' }}>
+                  🖥️ Sistema Operativo Aceptado
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Versiones Aceptadas</InputLabel>
+                      <Select
+                        multiple
+                        value={formData.requisitosMinimos.sistemaOperativo.versionesAceptadas}
+                        onChange={(e) => handleRequirementChange('sistemaOperativo', 'versionesAceptadas', e.target.value)}
+                        label="Versiones Aceptadas"
+                        renderValue={(selected) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {selected.map((value) => (
+                              <Chip key={value} label={value} size="small" />
+                            ))}
+                          </Box>
+                        )}
+                      >
+                        <MenuItem value="Windows 10">Windows 10</MenuItem>
+                        <MenuItem value="Windows 11">Windows 11</MenuItem>
+                        <MenuItem value="Windows Server 2019">Windows Server 2019</MenuItem>
+                        <MenuItem value="Windows Server 2022">Windows Server 2022</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Ediciones Aceptadas</InputLabel>
+                      <Select
+                        multiple
+                        value={formData.requisitosMinimos.sistemaOperativo.edicionesAceptadas}
+                        onChange={(e) => handleRequirementChange('sistemaOperativo', 'edicionesAceptadas', e.target.value)}
+                        label="Ediciones Aceptadas"
+                        renderValue={(selected) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {selected.map((value) => (
+                              <Chip key={value} label={value} size="small" />
+                            ))}
+                          </Box>
+                        )}
+                      >
+                        <MenuItem value="Home">Home</MenuItem>
+                        <MenuItem value="Pro">Pro</MenuItem>
+                        <MenuItem value="Enterprise">Enterprise</MenuItem>
+                        <MenuItem value="Education">Education</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+
+                {/* Configuración de Headsets Homologados */}
+                <Typography variant="h6" sx={{ mb: 2, color: '#495057' }}>
+                  🎧 Headsets Homologados (Según Pliego Técnico)
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Validación Estricta
+                      </Typography>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={formData.requisitosMinimos.headset.validacionEstricta}
+                            onChange={(e) => handleRequirementChange('headset', 'validacionEstricta', e.target.checked)}
+                          />
+                        }
+                        label="Solo headsets homologados"
+                      />
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#6c757d' }}>
+                        Si está activado, solo acepta los {HEADSETS_HOMOLOGADOS.length} modelos homologados oficiales
+                      </Typography>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <Card sx={{ p: 2, border: '1px solid #dee2e6' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        Tipos de Conexión Aceptados
+                      </Typography>
+                      <FormControl fullWidth size="small">
+                        <InputLabel>Conectores Permitidos</InputLabel>
+                        <Select
+                          multiple
+                          value={formData.requisitosMinimos.headset.tiposConexion}
+                          onChange={(e) => handleRequirementChange('headset', 'tiposConexion', e.target.value)}
+                          label="Conectores Permitidos"
+                          renderValue={(selected) => (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {selected.map((value) => (
+                                <Chip key={value} label={value} size="small" />
+                              ))}
+                            </Box>
+                          )}
+                        >
+                          <MenuItem value="USB">USB</MenuItem>
+                          <MenuItem value="Bluetooth">Bluetooth</MenuItem>
+                          <MenuItem value="3.5mm">3.5mm</MenuItem>
+                          <MenuItem value="Plug">Plug</MenuItem>
+                          <MenuItem value="QD">QD (Quick Disconnect)</MenuItem>
+                          <MenuItem value="Base Inalámbrica">Base Inalámbrica</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Card>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Card sx={{ p: 2, border: '1px solid #e3f2fd', background: '#f8f9fa' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 2, color: '#1976d2' }}>
+                        📋 Headsets Homologados Oficiales ({HEADSETS_HOMOLOGADOS.length} modelos)
+                      </Typography>
+                      <Box sx={{ maxHeight: 200, overflow: 'auto' }}>
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow>
+                                <TableCell><strong>Marca</strong></TableCell>
+                                <TableCell><strong>Modelo</strong></TableCell>
+                                <TableCell><strong>Conector</strong></TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {HEADSETS_HOMOLOGADOS.map((headset, index) => (
+                                <TableRow key={index}>
+                                  <TableCell>{headset.marca}</TableCell>
+                                  <TableCell>{headset.modelo}</TableCell>
+                                  <TableCell>{headset.conector}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </Box>
+                      <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#6c757d' }}>
+                        Lista extraída del archivo oficial "Headset Homologados.xlsx" del pliego técnico
+                      </Typography>
+                    </Card>
+                  </Grid>
+                </Grid>
+
+                <Box sx={{ mt: 3, p: 2, background: '#fff3cd', borderRadius: 1 }}>
+                  <Button
+                    variant="contained"
+                    color="warning"
+                    size="small"
+                    onClick={() => {
+                      handleInputChange('configuracionBloqueada', true);
+                      handleInputChange('mostrarConfiguracion', false);
+                    }}
+                    sx={{ mr: 2 }}
+                  >
+                    🔒 Bloquear Configuración
+                  </Button>
+                  <Typography variant="caption" sx={{ color: '#856404' }}>
+                    Al bloquear, otros usuarios no podrán modificar estos requisitos.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Grid>
+    );
+  };
+
   const [formData, setFormData] = useState({
     // Datos básicos
     inventarioCompleto: initialData.inventarioCompleto || false,
@@ -137,21 +573,76 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
     datosNormalizados: initialData.datosNormalizados || null,
     estadisticas: initialData.estadisticas || null,
     
-    // Configuraciones de validación (heredadas del normalizador)
+    // Configuraciones de validación flexibles con múltiples opciones
     requisitosMinimos: initialData.requisitosMinimos || {
       procesador: {
-        marca: '',
-        modelo: '',
-        velocidadMinima: 2.0,
-        nucleosMinimos: 4
+        marcasAceptadas: ['Intel', 'AMD'], // Marcas permitidas
+        modelosMinimos: ['i5', 'i7', 'Ryzen 5', 'Ryzen 7'], // Modelos mínimos
+        velocidadMinima: 2.0, // GHz mínimos
+        nucleosMinimos: 4 // Núcleos mínimos
       },
       memoria: {
-        capacidadMinima: 8,
-        tipoMinimo: 'DDR4'
+        capacidadMinima: 8, // GB mínimos
+        tiposAceptados: ['DDR4', 'DDR5'] // Tipos permitidos
       },
       almacenamiento: {
-        capacidadMinima: 256,
-        tipoMinimo: 'SSD'
+        // Múltiples opciones de almacenamiento válidas
+        opcionesValidas: [
+          { tipo: 'HDD', capacidadMinima: 512 }, // HDD mínimo 512GB
+          { tipo: 'SSD', capacidadMinima: 256 }, // SSD mínimo 256GB
+          { tipo: 'NVMe', capacidadMinima: 256 } // NVMe mínimo 256GB
+        ],
+        preferenciaTipos: ['SSD', 'NVMe', 'HDD'] // Orden de preferencia
+      },
+      sistemaOperativo: {
+        versionesAceptadas: ['Windows 10', 'Windows 11'], // SO permitidos
+        actualizacionesRequeridas: true,
+        edicionesAceptadas: ['Pro', 'Enterprise', 'Home'] // Ediciones válidas
+      },
+      navegador: {
+        navegadoresAceptados: [
+          { nombre: 'Chrome', versionMinima: 100 },
+          { nombre: 'Firefox', versionMinima: 90 },
+          { nombre: 'Edge', versionMinima: 100 }
+        ],
+        actualizacionesRequeridas: true
+      },
+      conectividad: { // Solo para teletrabajo - múltiples umbrales
+        tecnologias: [
+          {
+            tipo: '4G',
+            velocidadMinimaDown: 25,
+            velocidadMinimaUp: 5,
+            formasConexion: ['WiFi', 'USB Modem']
+          },
+          {
+            tipo: 'Cablemodem',
+            velocidadMinimaDown: 50,
+            velocidadMinimaUp: 10,
+            formasConexion: ['WiFi', 'Ethernet']
+          },
+          {
+            tipo: 'Fibra',
+            velocidadMinimaDown: 100,
+            velocidadMinimaUp: 50,
+            formasConexion: ['WiFi', 'Ethernet']
+          },
+          {
+            tipo: 'Satelital',
+            velocidadMinimaDown: 15,
+            velocidadMinimaUp: 3,
+            formasConexion: ['WiFi', 'Ethernet']
+          }
+        ],
+        latenciaMaxima: 150, // ms máximos
+        estabilidadRequerida: 95 // % de uptime mínimo
+      },
+      headset: {
+        marcasHomologadas: MARCAS_HEADSETS_HOMOLOGADAS,
+        modelosHomologados: HEADSETS_HOMOLOGADOS,
+        validacionEstricta: true, // Si debe validar contra lista oficial
+        tiposConexion: ['USB', 'Bluetooth', '3.5mm', 'Plug', 'QD', 'Base Inalámbrica'],
+        conCancelacionRuido: false // Opcional
       }
     },
     
@@ -160,7 +651,11 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
     
     // Estado del procesamiento
     procesando: false,
-    error: null
+    error: null,
+
+    // Control de configuración de administrador
+    mostrarConfiguracion: false,
+    configuracionBloqueada: false // Se bloquea una vez definida por admin
   });
 
   const [previewData, setPreviewData] = useState([]);
@@ -257,9 +752,79 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
   // Reprocesar datos con nuevos requisitos
   const reprocessData = async () => {
     if (!formData.archivoInventario) return;
-    
+
     setFormData(prev => ({ ...prev, procesando: true }));
     await handleFileUpload(formData.archivoInventario);
+  };
+
+  // Funciones de exportación
+  const handleExportExcel = () => {
+    if (!formData.datosNormalizados || formData.datosNormalizados.length === 0) {
+      alert('No hay datos normalizados para exportar');
+      return;
+    }
+
+    const filename = `Parque_Informatico_${new Date().toISOString().split('T')[0]}`;
+    const success = exportToExcel(
+      formData.datosNormalizados,
+      formData.estadisticas,
+      filename,
+      { requisitosMinimos: formData.requisitosMinimos }
+    );
+
+    if (success) {
+      alert('Archivo Excel exportado exitosamente');
+    } else {
+      alert('Error al exportar archivo Excel');
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (!formData.datosNormalizados || formData.datosNormalizados.length === 0) {
+      alert('No hay datos normalizados para exportar');
+      return;
+    }
+
+    const filename = `Parque_Informatico_${new Date().toISOString().split('T')[0]}`;
+    const success = exportToCSV(formData.datosNormalizados, filename);
+
+    if (success) {
+      alert('Archivo CSV exportado exitosamente');
+    } else {
+      alert('Error al exportar archivo CSV');
+    }
+  };
+
+  const handleExportJSON = () => {
+    if (!formData.datosNormalizados || formData.datosNormalizados.length === 0) {
+      alert('No hay datos normalizados para exportar');
+      return;
+    }
+
+    const filename = `Parque_Informatico_${new Date().toISOString().split('T')[0]}`;
+    const success = exportToJSON(formData.datosNormalizados, formData.estadisticas, filename);
+
+    if (success) {
+      alert('Archivo JSON exportado exitosamente');
+    } else {
+      alert('Error al exportar archivo JSON');
+    }
+  };
+
+  const handleExportComplianceReport = () => {
+    if (!formData.datosNormalizados || formData.datosNormalizados.length === 0) {
+      alert('No hay datos normalizados para exportar');
+      return;
+    }
+
+    const filename = `Reporte_Cumplimiento_${new Date().toISOString().split('T')[0]}`;
+    const success = generateComplianceReport(formData.datosNormalizados, formData.estadisticas, filename);
+
+    if (success) {
+      alert('Reporte de cumplimiento generado exitosamente');
+    } else {
+      alert('Error al generar reporte de cumplimiento');
+    }
   };
 
   // Validar formulario
@@ -286,14 +851,12 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
     let completionPercentage = 100;
     
     if (formData.estadisticas) {
-      const failedItems = formData.estadisticas.procesadorStats?.failed + 
-                          formData.estadisticas.memoriaStats?.failed + 
-                          formData.estadisticas.almacenamientoStats?.failed;
+      const equiposNoCumplen = formData.estadisticas.equiposNoCumplen || 0;
       const totalItems = formData.estadisticas.totalRecords;
-      
-      if (failedItems > 0) {
+
+      if (equiposNoCumplen > 0) {
         status = 'warning';
-        completionPercentage = Math.max(70, ((totalItems - failedItems) / totalItems) * 100);
+        completionPercentage = Math.max(70, ((totalItems - equiposNoCumplen) / totalItems) * 100);
       }
     }
 
@@ -311,11 +874,12 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
 
   return (
     <Box sx={{ p: 2 }}>
-      {/* Header con descripción */}
-      {renderHeader()}
 
       <Grid container spacing={3}>
-        
+
+        {/* Configuración de Requisitos Mínimos (Solo Administrador) */}
+        {renderRequisitosMinimoConfig()}
+
         {/* Header con controles principales */}
         <Grid item xs={12}>
           <Card>
@@ -324,30 +888,32 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
                 <Typography variant="h6" color="primary">
                   Inventario de Hardware y Software
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={formData.normalizacionActivada}
-                        onChange={(e) => handleInputChange('normalizacionActivada', e.target.checked)}
-                        color="primary"
-                      />
-                    }
-                    label="Normalización IA"
-                  />
-                  {formData.normalizacionActivada && (
+                {isAdmin && (
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                     <FormControlLabel
                       control={
                         <Switch
-                          checked={showNormalizationGraphics}
-                          onChange={toggleNormalizationGraphics}
-                          color="secondary"
+                          checked={formData.normalizacionActivada}
+                          onChange={(e) => handleInputChange('normalizacionActivada', e.target.checked)}
+                          color="primary"
                         />
                       }
-                      label="Gráficos"
+                      label="Normalización IA"
                     />
-                  )}
-                </Box>
+                    {formData.normalizacionActivada && (
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={showNormalizationGraphics}
+                            onChange={toggleNormalizationGraphics}
+                            color="secondary"
+                          />
+                        }
+                        label="Gráficos"
+                      />
+                    )}
+                  </Box>
+                )}
               </Box>
               
               <Alert severity="info" sx={{ mb: 2 }}>
@@ -403,109 +969,25 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
           </Card>
         </Grid>
 
-        {/* Requisitos mínimos configurables */}
-        <Grid item xs={12} md={6}>
-          <Card>
+
+        {/* Información de la Planilla Excel */}
+        <Grid item xs={12}>
+          <Card sx={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Requisitos Mínimos
+              <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+                📊 PLANILLA EXCEL OBLIGATORIA
               </Typography>
-              <Grid container spacing={2}>
-                {/* Procesador */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <ComputerIcon fontSize="small" /> Procesador
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Velocidad mínima (GHz)"
-                    type="number"
-                    step="0.1"
-                    value={formData.requisitosMinimos.procesador.velocidadMinima}
-                    onChange={(e) => handleRequirementChange('procesador', 'velocidadMinima', parseFloat(e.target.value))}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Núcleos mínimos"
-                    type="number"
-                    value={formData.requisitosMinimos.procesador.nucleosMinimos}
-                    onChange={(e) => handleRequirementChange('procesador', 'nucleosMinimos', parseInt(e.target.value))}
-                  />
-                </Grid>
-
-                {/* Memoria */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                    <MemoryIcon fontSize="small" /> Memoria RAM
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Capacidad mínima (GB)"
-                    type="number"
-                    value={formData.requisitosMinimos.memoria.capacidadMinima}
-                    onChange={(e) => handleRequirementChange('memoria', 'capacidadMinima', parseInt(e.target.value))}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Tipo mínimo"
-                    value={formData.requisitosMinimos.memoria.tipoMinimo}
-                    onChange={(e) => handleRequirementChange('memoria', 'tipoMinimo', e.target.value)}
-                    placeholder="DDR4"
-                  />
-                </Grid>
-
-                {/* Almacenamiento */}
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                    <StorageIcon fontSize="small" /> Almacenamiento
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Capacidad mínima (GB)"
-                    type="number"
-                    value={formData.requisitosMinimos.almacenamiento.capacidadMinima}
-                    onChange={(e) => handleRequirementChange('almacenamiento', 'capacidadMinima', parseInt(e.target.value))}
-                  />
-                </Grid>
-                <Grid item xs={6}>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    label="Tipo preferido"
-                    value={formData.requisitosMinimos.almacenamiento.tipoMinimo}
-                    onChange={(e) => handleRequirementChange('almacenamiento', 'tipoMinimo', e.target.value)}
-                    placeholder="SSD"
-                  />
-                </Grid>
-              </Grid>
-
-              {formData.datosNormalizados && (
-                <Box sx={{ mt: 2 }}>
-                  <Button
-                    size="small"
-                    startIcon={<RefreshIcon />}
-                    onClick={reprocessData}
-                    disabled={formData.procesando}
-                  >
-                    Reprocesar con nuevos requisitos
-                  </Button>
-                </Box>
-              )}
+              <Alert severity="error" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, mb: 1 }}>
+                  Especificaciones técnicas del archivo requerido:
+                </Typography>
+                <Typography component="div" variant="body2">
+                  • <strong>Formato:</strong> .xlsx o .xls<br/>
+                  • <strong>Campos obligatorios:</strong> Hostname, Procesador, RAM, Disco, SO, Navegador, Headset<br/>
+                  • <strong>Para Home Office agregar:</strong> Usuario TECO, Nombre ISP, Tipo de conexión, Velocidad Down/Up<br/>
+                  • Debe incluir membrete del sitio auditado
+                </Typography>
+              </Alert>
             </CardContent>
           </Card>
         </Grid>
@@ -576,7 +1058,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
                   <Grid item xs={12} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'primary.50' }}>
                       <Typography variant="h4" color="primary">
-                        {formData.estadisticas.totalRecords}
+                        {formData.estadisticas.totalRecords || formData.datosNormalizados.length}
                       </Typography>
                       <Typography variant="body2">Total de Equipos</Typography>
                     </Paper>
@@ -584,30 +1066,70 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
                   <Grid item xs={12} md={3}>
                     <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
                       <Typography variant="h4" color="success.main">
-                        {formData.estadisticas.procesadorStats?.passed || 0}
+                        {formData.estadisticas.equiposCumplen || 0}
                       </Typography>
-                      <Typography variant="body2">Procesadores OK</Typography>
+                      <Typography variant="body2">Equipos Conformes</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={12} md={3}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.50' }}>
-                      <Typography variant="h4" color="success.main">
-                        {formData.estadisticas.memoriaStats?.passed || 0}
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.50' }}>
+                      <Typography variant="h4" color="error.main">
+                        {formData.estadisticas.equiposNoCumplen || 0}
                       </Typography>
-                      <Typography variant="body2">Memoria OK</Typography>
+                      <Typography variant="body2">Equipos No Conformes</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={12} md={3}>
-                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.50' }}>
-                      <Typography variant="h4" color="warning.main">
-                        {(formData.estadisticas.procesadorStats?.failed || 0) + 
-                         (formData.estadisticas.memoriaStats?.failed || 0) + 
-                         (formData.estadisticas.almacenamientoStats?.failed || 0)}
+                    <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'info.50' }}>
+                      <Typography variant="h4" color="info.main">
+                        {formData.estadisticas.porcentajeCumplimiento || 0}%
                       </Typography>
-                      <Typography variant="body2">No Conformes</Typography>
+                      <Typography variant="body2">% Cumplimiento</Typography>
                     </Paper>
                   </Grid>
                 </Grid>
+
+                {/* Estadísticas detalladas por componente */}
+                <Box sx={{ mt: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: '#666' }}>
+                    Análisis por Componente
+                  </Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                      <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          💻 Procesadores
+                        </Typography>
+                        <Typography variant="body2">
+                          <span style={{ color: 'green' }}>✓ Conformes: {formData.estadisticas.procesadorStats?.passed || 0}</span><br/>
+                          <span style={{ color: 'red' }}>✗ No conformes: {formData.estadisticas.procesadorStats?.failed || 0}</span>
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          🧠 Memoria RAM
+                        </Typography>
+                        <Typography variant="body2">
+                          <span style={{ color: 'green' }}>✓ Conformes: {formData.estadisticas.memoriaStats?.passed || 0}</span><br/>
+                          <span style={{ color: 'red' }}>✗ No conformes: {formData.estadisticas.memoriaStats?.failed || 0}</span>
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          💾 Almacenamiento
+                        </Typography>
+                        <Typography variant="body2">
+                          <span style={{ color: 'green' }}>✓ Conformes: {formData.estadisticas.almacenamientoStats?.passed || 0}</span><br/>
+                          <span style={{ color: 'red' }}>✗ No conformes: {formData.estadisticas.almacenamientoStats?.failed || 0}</span>
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </Box>
               </CardContent>
             </Card>
           </Grid>
@@ -670,6 +1192,117 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
           </Grid>
         )}
 
+        {/* Botones de Exportación */}
+        {formData.datosNormalizados && formData.datosNormalizados.length > 0 && (
+          <Grid item xs={12}>
+            <Card sx={{ background: 'linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%)', border: '1px solid #bbdefb' }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ExportIcon />
+                  Exportar Datos Normalizados
+                </Typography>
+
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  Los datos han sido procesados y normalizados según los requisitos mínimos configurados.
+                  Puede exportar los resultados en diferentes formatos para su análisis.
+                </Alert>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
+                      onClick={handleExportExcel}
+                      sx={{
+                        background: 'linear-gradient(45deg, #4caf50 30%, #81c784 90%)',
+                        '&:hover': { background: 'linear-gradient(45deg, #388e3c 30%, #66bb6a 90%)' }
+                      }}
+                    >
+                      Excel (.xlsx)
+                    </Button>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
+                      onClick={handleExportCSV}
+                      sx={{
+                        background: 'linear-gradient(45deg, #ff9800 30%, #ffb74d 90%)',
+                        '&:hover': { background: 'linear-gradient(45deg, #f57c00 30%, #ffa726 90%)' }
+                      }}
+                    >
+                      CSV
+                    </Button>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<DownloadIcon />}
+                      onClick={handleExportJSON}
+                      sx={{
+                        background: 'linear-gradient(45deg, #9c27b0 30%, #ba68c8 90%)',
+                        '&:hover': { background: 'linear-gradient(45deg, #7b1fa2 30%, #ab47bc 90%)' }
+                      }}
+                    >
+                      JSON
+                    </Button>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6} md={3}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<AssessmentIcon />}
+                      onClick={handleExportComplianceReport}
+                      sx={{
+                        background: 'linear-gradient(45deg, #f44336 30%, #ef5350 90%)',
+                        '&:hover': { background: 'linear-gradient(45deg, #d32f2f 30%, #e53935 90%)' }
+                      }}
+                    >
+                      Reporte Cumplimiento
+                    </Button>
+                  </Grid>
+                </Grid>
+
+                <Box sx={{ mt: 2, p: 2, background: 'rgba(25, 118, 210, 0.08)', borderRadius: 1 }}>
+                  <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 500 }}>
+                    📊 Resumen del análisis:
+                  </Typography>
+                  {formData.estadisticas && (
+                    <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2">
+                          <strong>Total equipos:</strong> {formData.datosNormalizados.length}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2">
+                          <strong>Cumplen:</strong> {formData.estadisticas.equiposCumplen || 0}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2">
+                          <strong>No cumplen:</strong> {formData.estadisticas.equiposNoCumplen || 0}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2">
+                          <strong>% Cumplimiento:</strong> {formData.estadisticas.porcentajeCumplimiento || 0}%
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  )}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         {/* Observaciones */}
         <Grid item xs={12}>
           <Card>
@@ -710,8 +1343,6 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
           </Grid>
         )}
 
-        {/* Archivos Requeridos */}
-        {renderArchivosRequeridos()}
       </Grid>
 
       {/* Botones de Acción */}
