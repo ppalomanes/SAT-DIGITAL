@@ -84,7 +84,11 @@
       "Bash(./backend/kill-port-3001.bat)",
       "Bash(./prompt-continuidad-fase2.txt:*)",
       "Bash(./test_documento.txt )",
-      "Bash(./token.tmp)"
+      "Bash(./token.tmp)",
+      "Bash(del frontendtest-decimal-parsing.js)",
+      "Bash(del frontendtest-commercial-rounding.js)",
+      "Bash(del analyze-excel-files.js)",
+      "Bash(del detailed-analysis.js)"
     ],
     "deny": [],
     "ask": []
