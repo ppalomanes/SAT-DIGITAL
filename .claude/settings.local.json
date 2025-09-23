@@ -88,7 +88,8 @@
       "Bash(del frontendtest-decimal-parsing.js)",
       "Bash(del frontendtest-commercial-rounding.js)",
       "Bash(del analyze-excel-files.js)",
-      "Bash(del detailed-analysis.js)"
+      "Bash(del detailed-analysis.js)",
+      "Bash(git clean:*)"
     ],
     "deny": [],
     "ask": []
