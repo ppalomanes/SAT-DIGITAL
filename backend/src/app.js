@@ -7,6 +7,8 @@
  */
 
 require('dotenv').config();
+require('dotenv').config({ path: '.env.local' });  // Load local overrides for DB switching
+
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -30,6 +32,7 @@ const NotificacionesScheduler = require('./domains/notificaciones/services/Notif
 const authRoutes = require('./domains/auth/routes');
 // const userRoutes = require('./domains/users/routes'); // TEMP: Comentado para debug
 const providerRoutes = require('./domains/providers/routes');
+const proveedoresRoutes = require('./domains/proveedores/routes/proveedoresRoutes');
 const auditRoutes = require('./domains/audits/routes');
 const calendarioRoutes = require('./domains/calendario/routes');
 const documentosRoutes = require('./domains/documentos/routes');
@@ -171,7 +174,8 @@ const API_PREFIX = '/api';
 
 app.use(`${API_PREFIX}/auth`, authRoutes);
 // app.use(`${API_PREFIX}/usuarios`, userRoutes); // TEMP: Comentado
-app.use(`${API_PREFIX}/proveedores`, providerRoutes);
+app.use(`${API_PREFIX}/proveedores`, proveedoresRoutes);
+app.use(`${API_PREFIX}/providers`, providerRoutes);
 app.use(`${API_PREFIX}/auditorias`, auditRoutes);
 app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
 app.use(`${API_PREFIX}/documentos`, documentosRoutes);
