@@ -33,6 +33,7 @@ const authRoutes = require('./domains/auth/routes');
 // const userRoutes = require('./domains/users/routes'); // TEMP: Comentado para debug
 const providerRoutes = require('./domains/providers/routes');
 const proveedoresRoutes = require('./domains/proveedores/routes/proveedoresRoutes');
+const sitiosRoutes = require('./domains/proveedores/routes/sitiosRoutes');
 const auditRoutes = require('./domains/audits/routes');
 const calendarioRoutes = require('./domains/calendario/routes');
 const documentosRoutes = require('./domains/documentos/routes');
@@ -41,6 +42,7 @@ const notificacionesRoutes = require('./domains/notificaciones/routes');
 const auditoresRoutes = require('./domains/auditores/routes');
 const { parqueInformaticoRoutes } = require('./domains/parque-informatico/routes');
 const iaAnalisisRoutes = require('./domains/ia-analisis/routes/analysisRoutes');
+const diagnosticsRoutes = require('./domains/diagnosticos/routes/diagnosticsRoutes');
 
 // Inicializar Express y HTTP Server
 const app = express();
@@ -175,6 +177,7 @@ const API_PREFIX = '/api';
 app.use(`${API_PREFIX}/auth`, authRoutes);
 // app.use(`${API_PREFIX}/usuarios`, userRoutes); // TEMP: Comentado
 app.use(`${API_PREFIX}/proveedores`, proveedoresRoutes);
+app.use(`${API_PREFIX}/sitios`, sitiosRoutes);
 app.use(`${API_PREFIX}/providers`, providerRoutes);
 app.use(`${API_PREFIX}/auditorias`, auditRoutes);
 app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
@@ -184,6 +187,7 @@ app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes);
 app.use(`${API_PREFIX}/auditores`, auditoresRoutes);
 app.use(`${API_PREFIX}/parque-informatico`, parqueInformaticoRoutes);
 app.use(`${API_PREFIX}/ia-analisis`, iaAnalisisRoutes);
+app.use(`${API_PREFIX}/diagnosticos`, diagnosticsRoutes);
 
 // Documentación API (Swagger) - solo en desarrollo
 if (process.env.NODE_ENV === 'development') {
@@ -275,3 +279,4 @@ if (require.main === module) {
 }
 
 module.exports = { app, server, io };
+// Force restart for diagnostics

@@ -91,14 +91,18 @@ router.get('/:id/sitios', async (req, res) => {
       SELECT
         s.id,
         s.proveedor_id,
-        s.nombre,
+        s.nombre as nombre_sitio,
         s.localidad,
         s.domicilio,
         s.estado,
         s.created_at,
-        s.updated_at
+        s.updated_at,
+        p.nombre_comercial as proveedor_nombre,
+        p.razon_social as proveedor_razon_social,
+        p.nombre_comercial as proveedor_nombre_comercial
       FROM [sitios] s
-      WHERE s.proveedor_id = :proveedorId AND s.estado != 'eliminado'
+      INNER JOIN [proveedores] p ON s.proveedor_id = p.id
+      WHERE s.proveedor_id = :proveedorId AND s.estado != 'eliminado' AND p.estado != 'eliminado'
       ORDER BY s.nombre
     `, {
       replacements: { proveedorId: id }
@@ -151,6 +155,43 @@ router.get('/:id/auditorias', async (req, res) => {
     });
   } catch (error) {
     logger.error('Error obteniendo auditorías del proveedor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
+/**
+ * GET /api/proveedores/sitios/all - Obtener todos los sitios
+ */
+router.get('/sitios/all', async (req, res) => {
+  try {
+    const [sitios] = await sequelize.query(`
+      SELECT
+        s.id,
+        s.proveedor_id,
+        s.nombre as nombre_sitio,
+        s.localidad,
+        s.domicilio,
+        s.estado,
+        s.created_at,
+        s.updated_at,
+        p.nombre_comercial as proveedor_nombre,
+        p.razon_social as proveedor_razon_social,
+        p.nombre_comercial as proveedor_nombre_comercial
+      FROM [sitios] s
+      INNER JOIN [proveedores] p ON s.proveedor_id = p.id
+      WHERE s.estado != 'eliminado' AND p.estado != 'eliminado'
+      ORDER BY p.nombre_comercial, s.nombre
+    `);
+
+    res.json({
+      success: true,
+      data: sitios
+    });
+  } catch (error) {
+    logger.error('Error obteniendo todos los sitios:', error);
     res.status(500).json({
       success: false,
       message: 'Error interno del servidor'

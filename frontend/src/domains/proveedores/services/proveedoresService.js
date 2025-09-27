@@ -36,6 +36,11 @@ export const proveedoresService = {
   },
 
   // Gestión de sitios
+  async getAllSitios() {
+    const response = await httpClient.get(`${PROVEEDORES_ENDPOINT}/sitios/all`);
+    return response.data.data || response.data;
+  },
+
   async getSitiosByProveedor(proveedorId) {
     const response = await httpClient.get(`${PROVEEDORES_ENDPOINT}/${proveedorId}/sitios`);
     return response.data.data || response.data;

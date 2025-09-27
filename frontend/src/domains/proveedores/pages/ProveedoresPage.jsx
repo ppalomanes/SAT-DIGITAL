@@ -14,6 +14,10 @@ import {
 } from '@mui/material';
 import { Add, Business, Search, FilterList } from '@mui/icons-material';
 import ProveedoresTable from '../components/ProveedoresTable';
+import EditProveedorModal from '../components/EditProveedorModal';
+import CreateProveedorModal from '../components/CreateProveedorModal';
+import SitiosManagementModal from '../components/SitiosManagementModal';
+import DeleteProveedorDialog from '../components/DeleteProveedorDialog';
 import { useProveedoresStore } from '../store/proveedoresStore';
 
 /**
@@ -23,36 +27,49 @@ const ProveedoresPage = () => {
   const { filters, setFilters, error } = useProveedoresStore();
   const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
 
+  // Estado para modales
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [sitiosModalOpen, setSitiosModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedProveedor, setSelectedProveedor] = useState(null);
+
   const handleEdit = (proveedor) => {
-    setNotification({
-      open: true,
-      message: `Editando ${proveedor.razon_social}`,
-      type: 'info'
-    });
+    setSelectedProveedor(proveedor);
+    setEditModalOpen(true);
   };
 
   const handleDelete = (proveedor) => {
-    setNotification({
-      open: true,
-      message: `Eliminar ${proveedor.razon_social}`,
-      type: 'warning'
-    });
+    setSelectedProveedor(proveedor);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
+    setSelectedProveedor(null);
+  };
+
+  const handleCloseCreateModal = () => {
+    setCreateModalOpen(false);
+  };
+
+  const handleCloseSitiosModal = () => {
+    setSitiosModalOpen(false);
+    setSelectedProveedor(null);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteDialogOpen(false);
+    setSelectedProveedor(null);
   };
 
   const handleViewSitios = (proveedor) => {
-    setNotification({
-      open: true,
-      message: `Gestionando sitios de ${proveedor.nombre_comercial}`,
-      type: 'info'
-    });
+    setSelectedProveedor(proveedor);
+    setSitiosModalOpen(true);
   };
 
   const handleCreateProveedor = () => {
-    setNotification({
-      open: true,
-      message: 'Crear nuevo proveedor',
-      type: 'info'
-    });
+    setCreateModalOpen(true);
   };
 
   const handleCloseNotification = () => {
@@ -167,6 +184,33 @@ const ProveedoresPage = () => {
           {notification.message}
         </Alert>
       </Snackbar>
+
+      {/* Modal de Creación */}
+      <CreateProveedorModal
+        open={createModalOpen}
+        onClose={handleCloseCreateModal}
+      />
+
+      {/* Modal de Edición */}
+      <EditProveedorModal
+        open={editModalOpen}
+        onClose={handleCloseEditModal}
+        proveedor={selectedProveedor}
+      />
+
+      {/* Modal de Gestión de Sitios */}
+      <SitiosManagementModal
+        open={sitiosModalOpen}
+        onClose={handleCloseSitiosModal}
+        proveedor={selectedProveedor}
+      />
+
+      {/* Diálogo de Eliminación */}
+      <DeleteProveedorDialog
+        open={deleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        proveedor={selectedProveedor}
+      />
     </Box>
   );
 };

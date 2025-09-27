@@ -42,21 +42,31 @@ import { useProveedoresStore } from '../store/proveedoresStore';
 
 const ProveedoresTable = ({ onEdit, onDelete, onViewSitios }) => {
   const {
-    proveedores,
+    proveedores: allProveedores,
     sitios,
     loading,
     error,
     fetchProveedores,
-    fetchSitiosByProveedor
+    fetchAllSitios,
+    fetchSitiosByProveedor,
+    getFilteredProveedores,
+    filters
   } = useProveedoresStore();
+
+  // Use filtered proveedores and re-calculate when filters change
+  const proveedores = getFilteredProveedores();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedProveedor, setSelectedProveedor] = useState(null);
   const [expandedRows, setExpandedRows] = useState(new Set());
 
   useEffect(() => {
-    fetchProveedores();
-  }, [fetchProveedores]);
+    const loadData = async () => {
+      await fetchProveedores();
+      await fetchAllSitios();
+    };
+    loadData();
+  }, [fetchProveedores, fetchAllSitios]);
 
   const handleMenuClick = (event, proveedor) => {
     setAnchorEl(event.currentTarget);
@@ -246,7 +256,7 @@ const ProveedoresTable = ({ onEdit, onDelete, onViewSitios }) => {
                                     <TableRow key={sitio.id}>
                                       <TableCell>
                                         <Typography variant="body2">
-                                          {sitio.nombre}
+                                          {sitio.nombre_sitio}
                                         </Typography>
                                       </TableCell>
                                       <TableCell>

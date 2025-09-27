@@ -88,6 +88,17 @@ export const useProveedoresStore = create()(
       },
 
       // Acciones para sitios
+      async fetchAllSitios() {
+        try {
+          const sitios = await proveedoresService.getAllSitios();
+          set({ sitios });
+          return sitios;
+        } catch (error) {
+          set({ error: error.message });
+          throw error;
+        }
+      },
+
       async fetchSitiosByProveedor(proveedorId) {
         const { sitios: currentSitios } = get();
         try {
@@ -182,9 +193,9 @@ export const useProveedoresStore = create()(
         set({ filters: { ...filters, ...newFilters } });
       },
 
-      // Getters computados
-      get filteredProveedores() {
-        const { proveedores, filters } = get();
+      // Function to get filtered proveedores (instead of getter for reactivity)
+      getFilteredProveedores: () => {
+        const { proveedores, sitios, filters } = get();
         return proveedores.filter(proveedor => {
           const matchesSearch = !filters.search ||
             proveedor.razon_social.toLowerCase().includes(filters.search.toLowerCase()) ||
@@ -194,7 +205,10 @@ export const useProveedoresStore = create()(
           const matchesEstado = filters.estado === 'todos' ||
             proveedor.estado === filters.estado;
 
-          return matchesSearch && matchesEstado;
+          const matchesLocalidad = filters.localidad === 'todas' ||
+            sitios.some(sitio => sitio.proveedor_id === proveedor.id && sitio.localidad === filters.localidad);
+
+          return matchesSearch && matchesEstado && matchesLocalidad;
         });
       },
 
