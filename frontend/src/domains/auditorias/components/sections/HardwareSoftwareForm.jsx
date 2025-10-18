@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '../../../auth/store/authStore';
 import {
   Box,
@@ -26,7 +26,8 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Tooltip
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
@@ -39,14 +40,18 @@ import {
   Refresh as RefreshIcon,
   GetApp as DownloadIcon,
   FileDownload as ExportIcon
+,
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
+import { THEME_COLORS } from '../../../../shared/constants/theme';
+import httpClient from '../../../../shared/services/httpClient';
 
 // Importar componentes del normalizador
 import { processExcelFile } from '../../../../utils/excelProcessor';
 import { exportToExcel, exportToCSV, exportToJSON, generateComplianceReport } from '../../../../utils/dataExporter';
 import { HEADSETS_HOMOLOGADOS, MARCAS_HEADSETS_HOMOLOGADAS } from '../../../../utils/headsetsHomologados';
 
-const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
+const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData }) => {
   // Verificar rol de usuario
   const { usuario } = useAuthStore();
   const isAdmin = usuario?.rol === 'admin';
@@ -54,20 +59,20 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
   // Header con descripción basada en auditoria.html
   const renderHeader = () => (
     <Box sx={{ mb: 4 }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: '#1e293b', mb: 2 }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: THEME_COLORS.grey[900], mb: 2 }}>
         Parque Informático - Hardware/Software (Presencial y Teletrabajo)
       </Typography>
 
-      <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: '#374151', mb: 2 }}>
+      <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: THEME_COLORS.grey[700], mb: 2 }}>
         Descripción
       </Typography>
 
-      <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: '#6b7280', lineHeight: 1.6, mb: 3 }}>
+      <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: THEME_COLORS.grey[600], lineHeight: 1.6, mb: 3 }}>
         Relevamiento del parque informático del sitio.
       </Typography>
 
       <Alert severity="info" sx={{ mb: 3, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-        <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+        <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: THEME_COLORS.grey[900] }}>
           Criterio de aceptación
         </Typography>
         <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
@@ -660,6 +665,99 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
 
   const [previewData, setPreviewData] = useState([]);
   const [showNormalizationGraphics, setShowNormalizationGraphics] = useState(false);
+  const [seccionId, setSeccionId] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  // Obtener ID de la sección desde el backend
+  useEffect(() => {
+    const fetchSeccionId = async () => {
+      try {
+        const response = await httpClient.get('/documentos/secciones-tecnicas');
+        const seccion = response.data.data.find(s => s.codigo === 'hardware_software');
+        if (seccion) {
+          setSeccionId(seccion.id);
+        }
+      } catch (error) {
+        console.error('Error fetching seccion ID:', error);
+      }
+    };
+    fetchSeccionId();
+  }, []);
+
+  // Cargar documentos existentes si hay auditData
+  useEffect(() => {
+    if (auditData?.id) {
+      fetchExistingDocuments();
+    }
+  }, [auditData]);
+
+  const fetchExistingDocuments = async () => {
+    try {
+      const response = await httpClient.get(`/documentos/auditoria/${auditData.id}`);
+      const seccionData = response.data.documentos_por_seccion?.[seccionId];
+      const docs = seccionData?.documentos || [];
+      setUploadedFiles(docs);
+    } catch (error) {
+      console.error('Error fetching existing documents:', error);
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    const files = Array.from(event.target.files);
+
+    if (files.length === 0) return;
+
+    if (!auditData?.id) {
+      alert('Error: No se encontró ID de auditoría');
+      return;
+    }
+
+    if (!seccionId) {
+      alert('Error: No se encontró ID de sección. Espere un momento e intente nuevamente.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('auditoria_id', auditData.id);
+      formDataToUpload.append('seccion_id', seccionId);
+      formDataToUpload.append('observaciones', formData.observaciones || '');
+
+      files.forEach((file) => {
+        formDataToUpload.append('documentos', file);
+      });
+
+      const response = await httpClient.post('/documentos/cargar', formDataToUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      if (response.data.success) {
+        alert(`✅ ${response.data.documentos_guardados} documento(s) cargado(s) exitosamente`);
+        await fetchExistingDocuments();
+        event.target.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      alert('❌ Error al cargar documentos: ' + errorMsg);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Manejar cambios simples
   const handleInputChange = (field, value) => {
@@ -974,7 +1072,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card sx={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.error.main, fontWeight: 500 }}>
                 📊 PLANILLA EXCEL OBLIGATORIA
               </Typography>
               <Alert severity="error" sx={{ mb: 2 }}>
@@ -1091,12 +1189,12 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
 
                 {/* Estadísticas detalladas por componente */}
                 <Box sx={{ mt: 3 }}>
-                  <Typography variant="h6" gutterBottom sx={{ color: '#666' }}>
+                  <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.grey[600] }}>
                     Análisis por Componente
                   </Typography>
                   <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+                      <Paper sx={{ p: 2, bgcolor: THEME_COLORS.grey[100] }}>
                         <Typography variant="subtitle2" gutterBottom>
                           💻 Procesadores
                         </Typography>
@@ -1107,7 +1205,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
                       </Paper>
                     </Grid>
                     <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+                      <Paper sx={{ p: 2, bgcolor: THEME_COLORS.grey[100] }}>
                         <Typography variant="subtitle2" gutterBottom>
                           🧠 Memoria RAM
                         </Typography>
@@ -1118,7 +1216,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
                       </Paper>
                     </Grid>
                     <Grid item xs={12} md={4}>
-                      <Paper sx={{ p: 2, bgcolor: '#f8f9fa' }}>
+                      <Paper sx={{ p: 2, bgcolor: THEME_COLORS.grey[100] }}>
                         <Typography variant="subtitle2" gutterBottom>
                           💾 Almacenamiento
                         </Typography>
@@ -1270,7 +1368,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {} }) => {
                 </Grid>
 
                 <Box sx={{ mt: 2, p: 2, background: 'rgba(25, 118, 210, 0.08)', borderRadius: 1 }}>
-                  <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 500 }}>
+                  <Typography variant="body2" sx={{ color: THEME_COLORS.primary.main, fontWeight: 500 }}>
                     📊 Resumen del análisis:
                   </Typography>
                   {formData.estadisticas && (

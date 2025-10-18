@@ -151,6 +151,7 @@ class AuthService {
         email: usuario.email,
         nombre: usuario.nombre,
         rol: usuario.rol,
+        tenant_id: usuario.tenant_id,  // ✅ Incluir tenant_id en respuesta
         proveedor: usuario.proveedor ? {
           id: usuario.proveedor.id,
           razon_social: usuario.proveedor.razon_social,
@@ -189,14 +190,15 @@ class AuthService {
         id: usuario.id,
         email: usuario.email,
         rol: usuario.rol,
-        proveedor_id: usuario.proveedor_id
+        proveedor_id: usuario.proveedor_id,
+        tenant_id: usuario.tenant_id  // ✅ Agregar tenant_id al JWT
       };
 
       // Access Token (1 hora)
       const accessToken = jwt.sign(
         payload,
         process.env.JWT_SECRET || 'sat-digital-secret-key',
-        { 
+        {
           expiresIn: process.env.JWT_EXPIRES_IN || '1h',
           issuer: 'sat-digital',
           audience: 'sat-digital-users'
@@ -297,13 +299,14 @@ class AuthService {
         id: usuario.id,
         email: usuario.email,
         rol: usuario.rol,
-        proveedor_id: usuario.proveedor_id
+        proveedor_id: usuario.proveedor_id,
+        tenant_id: usuario.tenant_id  // ✅ Agregar tenant_id al JWT
       };
 
       const nuevoAccessToken = jwt.sign(
         payload,
         process.env.JWT_SECRET || 'sat-digital-secret-key',
-        { 
+        {
           expiresIn: process.env.JWT_EXPIRES_IN || '1h',
           issuer: 'sat-digital',
           audience: 'sat-digital-users'

@@ -12,6 +12,14 @@ const NotificacionUsuario = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
+    },
     usuario_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

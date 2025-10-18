@@ -23,6 +23,8 @@ import {
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
 import apiClient from '../../../shared/services/apiClient';
+import { getEstadoStyle } from '../../../shared/utils/statusHelpers';
+import { THEME_COLORS } from '../../../shared/constants/theme';
 
 const WorkflowMetrics = () => {
   const [metricas, setMetricas] = useState(null);
@@ -58,14 +60,16 @@ const WorkflowMetrics = () => {
   }, []);
 
   const getStatusColor = (estado) => {
-    const colores = {
-      programada: '#9e9e9e',
-      en_carga: '#2196f3', 
-      pendiente_evaluacion: '#ff9800',
-      evaluada: '#4caf50',
-      cerrada: '#607d8b'
+    const { color } = getEstadoStyle(estado);
+    // Fallback para estados específicos de workflow no mapeados en getEstadoStyle
+    const coloresFallback = {
+      programada: THEME_COLORS.grey[500],
+      en_carga: THEME_COLORS.primary.main,
+      pendiente_evaluacion: THEME_COLORS.warning.main,
+      evaluada: THEME_COLORS.success.main,
+      cerrada: THEME_COLORS.grey[600]
     };
-    return colores[estado] || '#9e9e9e';
+    return color || coloresFallback[estado] || THEME_COLORS.grey[500];
   };
 
   const getStatusIcon = (estado) => {

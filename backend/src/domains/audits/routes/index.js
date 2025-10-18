@@ -5,7 +5,7 @@
  */
 
 const express = require('express');
-const { verificarToken, verificarRol } = require('../../../shared/middleware/authMiddleware');
+const { verificarToken, verificarRol, verificarSegregacionProveedor } = require('../../../shared/middleware/authMiddleware');
 const AuditorController = require('../controllers/AuditorController');
 const WorkflowController = require('../controllers/WorkflowController');
 const reportesRoutes = require('./reportes.routes');
@@ -24,6 +24,7 @@ router.use(verificarToken);
  */
 router.get('/dashboard',
   verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor'),
+  verificarSegregacionProveedor,
   AuditorController.obtenerDashboard
 );
 
@@ -33,6 +34,7 @@ router.get('/dashboard',
  */
 router.get('/mis-auditorias',
   verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor'),
+  verificarSegregacionProveedor,
   AuditorController.obtenerMisAuditorias
 );
 
@@ -51,6 +53,7 @@ router.get('/consultas-pendientes',
  */
 router.get('/:id/revision',
   verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor', 'tecnico_proveedor'),
+  verificarSegregacionProveedor,
   AuditorController.obtenerRevisionAuditoria
 );
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -14,16 +14,21 @@ import {
   MenuItem,
   Chip,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  LinearProgress,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
   Phone as PhoneIcon,
   Description as DocumentIcon,
-  ContactPhone as ContactIcon
+  ContactPhone as ContactIcon,
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
+import { THEME_COLORS } from '../../../../shared/constants/theme';
+import httpClient from '../../../../shared/services/httpClient';
 
-const EscalamientoForm = ({ onSave, onCancel, initialData = {} }) => {
+const EscalamientoForm = ({ onSave, onCancel, initialData = {}, auditData }) => {
   const [formData, setFormData] = useState({
     // Contactos primarios
     contactoPrimario: initialData.contactoPrimario || '',
@@ -52,6 +57,99 @@ const EscalamientoForm = ({ onSave, onCancel, initialData = {} }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [seccionId, setSeccionId] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  // Obtener ID de la sección desde el backend
+  useEffect(() => {
+    const fetchSeccionId = async () => {
+      try {
+        const response = await httpClient.get('/documentos/secciones-tecnicas');
+        const seccion = response.data.data.find(s => s.codigo === 'escalamiento');
+        if (seccion) {
+          setSeccionId(seccion.id);
+        }
+      } catch (error) {
+        console.error('Error fetching seccion ID:', error);
+      }
+    };
+    fetchSeccionId();
+  }, []);
+
+  // Cargar documentos existentes si hay auditData
+  useEffect(() => {
+    if (auditData?.id) {
+      fetchExistingDocuments();
+    }
+  }, [auditData]);
+
+  const fetchExistingDocuments = async () => {
+    try {
+      const response = await httpClient.get(`/documentos/auditoria/${auditData.id}`);
+      const seccionData = response.data.documentos_por_seccion?.[seccionId];
+      const docs = seccionData?.documentos || [];
+      setUploadedFiles(docs);
+    } catch (error) {
+      console.error('Error fetching existing documents:', error);
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    const files = Array.from(event.target.files);
+
+    if (files.length === 0) return;
+
+    if (!auditData?.id) {
+      alert('Error: No se encontró ID de auditoría');
+      return;
+    }
+
+    if (!seccionId) {
+      alert('Error: No se encontró ID de sección. Espere un momento e intente nuevamente.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('auditoria_id', auditData.id);
+      formDataToUpload.append('seccion_id', seccionId);
+      formDataToUpload.append('observaciones', formData.observaciones || '');
+
+      files.forEach((file) => {
+        formDataToUpload.append('documentos', file);
+      });
+
+      const response = await httpClient.post('/documentos/cargar', formDataToUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      if (response.data.success) {
+        alert(`✅ ${response.data.documentos_guardados} documento(s) cargado(s) exitosamente`);
+        await fetchExistingDocuments();
+        event.target.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      alert('❌ Error al cargar documentos: ' + errorMsg);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -87,7 +185,8 @@ const EscalamientoForm = ({ onSave, onCancel, initialData = {} }) => {
         sectionId: 'escalamiento',
         data: formData,
         completedAt: new Date().toISOString(),
-        status: 'completed'
+        status: 'completed',
+        documentCount: uploadedFiles.length
       });
     }
   };
@@ -96,20 +195,20 @@ const EscalamientoForm = ({ onSave, onCancel, initialData = {} }) => {
     <Box sx={{ p: 2 }}>
       {/* Header con descripción basada en auditoria.html */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: '#1e293b', mb: 2 }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: THEME_COLORS.grey[900], mb: 2 }}>
           Escalamiento (Números de Contacto)
         </Typography>
 
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: '#374151', mb: 2 }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: THEME_COLORS.grey[700], mb: 2 }}>
           Descripción
         </Typography>
 
-        <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: '#6b7280', lineHeight: 1.6, mb: 3 }}>
+        <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: THEME_COLORS.grey[600], lineHeight: 1.6, mb: 3 }}>
           Números de contacto y proceso de escalamiento ante incidentes.
         </Typography>
 
         <Alert severity="info" sx={{ mb: 3, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: THEME_COLORS.grey[900] }}>
             Criterio de aceptación
           </Typography>
           <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
@@ -304,7 +403,7 @@ const EscalamientoForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.error.main, fontWeight: 500 }}>
                 Listado de Contactos
               </Typography>
               <Alert severity="warning" sx={{ mb: 2, background: 'rgba(255, 152, 0, 0.05)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
@@ -327,9 +426,9 @@ const EscalamientoForm = ({ onSave, onCancel, initialData = {} }) => {
                     startIcon={<UploadIcon />}
                     sx={{
                       mr: 2,
-                      background: '#f59e0b',
+                      background: THEME_COLORS.warning.main,
                       '&:hover': {
-                        background: '#d97706'
+                        background: THEME_COLORS.warning.dark
                       }
                     }}
                   >

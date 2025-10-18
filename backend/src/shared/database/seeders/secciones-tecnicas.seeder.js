@@ -1,7 +1,11 @@
 const { SeccionTecnica } = require('../models');
 
+// ID del tenant por defecto (Telecom Argentina)
+const DEFAULT_TENANT_ID = 1;
+
 const secciones = [
   {
+    tenant_id: DEFAULT_TENANT_ID,
     codigo: 'topologia_red',
     nombre: 'Topología de Red',
     descripcion: 'Documentación de la topología de red del sitio',
@@ -12,6 +16,7 @@ const secciones = [
     tamaño_maximo_mb: 50
   },
   {
+    tenant_id: DEFAULT_TENANT_ID,
     codigo: 'documentacion_controles_infraestructura',
     nombre: 'Documentación y Controles Infraestructura',
     descripcion: 'Controles y documentación de infraestructura técnica',
@@ -22,6 +27,7 @@ const secciones = [
     tamaño_maximo_mb: 100
   },
   {
+    tenant_id: DEFAULT_TENANT_ID,
     codigo: 'energia_cuarto_tecnologia',
     nombre: 'Energía del Cuarto de Tecnología',
     descripcion: 'Documentación del sistema eléctrico y UPS',
@@ -32,6 +38,7 @@ const secciones = [
     tamaño_maximo_mb: 100
   },
   {
+    tenant_id: DEFAULT_TENANT_ID,
     codigo: 'parque_informatico',
     nombre: 'Parque Informático - Hardware/Software (Presencial y Teletrabajo)',
     descripcion: 'Inventario completo del parque informático',
@@ -42,6 +49,7 @@ const secciones = [
     tamaño_maximo_mb: 10
   },
   {
+    tenant_id: DEFAULT_TENANT_ID,
     codigo: 'cuarto_tecnologia',
     nombre: 'Cuarto de Tecnología',
     descripcion: 'Fotografías y documentación del cuarto técnico',

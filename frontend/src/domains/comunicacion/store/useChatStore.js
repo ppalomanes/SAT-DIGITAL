@@ -127,9 +127,12 @@ const useChatStore = create(
           }
 
           const data = await response.json();
-          set({ 
+          set({
             conversaciones: data.data || [],
-            loading: false 
+            loading: false,
+            // Limpiar estado anterior al cambiar de auditoría
+            mensajesActivos: new Map(),
+            conversacionActiva: null
           });
 
           return data.data;
@@ -259,25 +262,35 @@ const useChatStore = create(
       
       recibirMensaje: (mensaje, emisor) => {
         const { mensajesActivos } = get();
-        
+
         // Actualizar mensajes de la conversación
         const conversacionId = mensaje.conversacion_id;
         const mensajesConversacion = mensajesActivos.get(conversacionId) || [];
-        mensajesConversacion.push({ ...mensaje, usuario: emisor });
-        
-        set(state => {
-          const newMensajes = new Map(state.mensajesActivos);
-          newMensajes.set(conversacionId, mensajesConversacion);
-          return { mensajesActivos: newMensajes };
-        });
+
+        // Verificar si el mensaje ya existe para evitar duplicados
+        const mensajeExiste = mensajesConversacion.some(m => m.id === mensaje.id);
+        if (!mensajeExiste) {
+          mensajesConversacion.push({ ...mensaje, usuario: emisor });
+
+          set(state => {
+            const newMensajes = new Map(state.mensajesActivos);
+            newMensajes.set(conversacionId, [...mensajesConversacion]);
+            return { mensajesActivos: newMensajes };
+          });
+        }
       },
 
       agregarMensajeLocal: (conversacionId, mensaje) => {
         set(state => {
           const newMensajes = new Map(state.mensajesActivos);
           const mensajesConversacion = newMensajes.get(conversacionId) || [];
-          mensajesConversacion.push(mensaje);
-          newMensajes.set(conversacionId, mensajesConversacion);
+
+          // Verificar si el mensaje ya existe para evitar duplicados
+          const mensajeExiste = mensajesConversacion.some(m => m.id === mensaje.id);
+          if (!mensajeExiste) {
+            newMensajes.set(conversacionId, [...mensajesConversacion, mensaje]);
+          }
+
           return { mensajesActivos: newMensajes };
         });
       },
@@ -351,14 +364,26 @@ const useChatStore = create(
       // =============================================
       
       setConversacionActiva: (conversacionId) => {
-        const { socket } = get();
-        
+        const { socket, mensajesActivos, conversaciones } = get();
+
         // Unirse a la conversación via Socket
         if (socket && conversacionId) {
           socket.emit('join_conversation', conversacionId);
         }
-        
+
         set({ conversacionActiva: conversacionId });
+
+        // Si no tenemos mensajes para esta conversación, cargarlos desde los datos existentes
+        if (conversacionId && !mensajesActivos.has(conversacionId)) {
+          const conversacion = conversaciones.find(c => c.id === conversacionId);
+          if (conversacion && conversacion.mensajes) {
+            set(state => {
+              const newMensajes = new Map(state.mensajesActivos);
+              newMensajes.set(conversacionId, conversacion.mensajes || []);
+              return { mensajesActivos: newMensajes };
+            });
+          }
+        }
       },
 
       agregarUsuarioEscribiendo: (usuarioId, nombreUsuario) => {

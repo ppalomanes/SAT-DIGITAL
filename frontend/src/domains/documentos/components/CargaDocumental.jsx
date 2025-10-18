@@ -35,6 +35,7 @@ import useDocumentosStore from '../store/documentosStore';
 import documentosService from '../services/documentosService';
 import iaAnalisisService from '../services/iaAnalisisService';
 import IaAnalysisDisplay from './IaAnalysisDisplay';
+import { THEME_COLORS } from '../../../shared/constants/theme';
 import './CargaDocumental.css';
 
 const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
@@ -641,7 +642,7 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
                             disabled={cargaEnProgreso || archivosSeleccionados.length === 0}
                             style={{
                               padding: '12px 24px',
-                              backgroundColor: '#1976d2',
+                              backgroundColor: THEME_COLORS.primary.main,
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -660,8 +661,8 @@ const CargaDocumental = ({ auditoriaId, seccionesDisponibles = [] }) => {
                             style={{
                               padding: '12px 24px',
                               backgroundColor: 'transparent',
-                              color: '#666',
-                              border: '1px solid #ccc',
+                              color: THEME_COLORS.grey[600],
+                              border: `1px solid ${THEME_COLORS.grey[300]}`,
                               borderRadius: '8px',
                               cursor: 'pointer'
                             }}

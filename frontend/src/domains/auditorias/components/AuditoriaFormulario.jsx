@@ -324,7 +324,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <TopologiaForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'documentacion':
@@ -332,7 +333,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <DocumentacionForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'hardware-software':
@@ -340,7 +342,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <HardwareSoftwareForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'cuarto-tecnologia':
@@ -348,7 +351,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <CuartoTecnologiaForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'energia':
@@ -356,7 +360,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <EnergiaForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'temperatura':
@@ -364,7 +369,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <TemperaturaForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'servidores':
@@ -372,7 +378,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <ServidoresForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'internet':
@@ -380,7 +387,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <InternetForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'personal':
@@ -388,7 +396,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <PersonalCapacitadoForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'escalamiento':
@@ -396,7 +405,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <EscalamientoForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'conectividad':
@@ -404,7 +414,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <ConectividadForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'seguridad':
@@ -412,7 +423,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <SeguridadInformacionForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       case 'ambiente':
@@ -420,7 +432,8 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
           <EntornoInformacionForm
             onSave={handleSectionSave}
             onCancel={handleCloseModal}
-            initialData={{}} // Aquí se pueden pasar datos guardados previamente
+            initialData={{}}
+            auditData={auditData}
           />
         );
       default:

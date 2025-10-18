@@ -76,6 +76,28 @@ export const proveedoresService = {
   async getAuditoriasByProveedor(proveedorId) {
     const response = await httpClient.get(`${PROVEEDORES_ENDPOINT}/${proveedorId}/auditorias`);
     return response.data.data || response.data;
+  },
+
+  // =============================================
+  // ENDPOINTS MULTI-TENANT SEGREGADOS
+  // =============================================
+
+  /**
+   * Obtener sitios del proveedor autenticado (MULTI-TENANT)
+   * Solo devuelve sitios del proveedor al que pertenece el usuario logueado
+   */
+  async getMisSitios() {
+    const response = await httpClient.get(`${PROVEEDORES_ENDPOINT}/mis-sitios`);
+    return response.data.data || response.data;
+  },
+
+  /**
+   * Obtener auditorías del período activo del proveedor autenticado (MULTI-TENANT)
+   * Solo devuelve auditorías del proveedor al que pertenece el usuario logueado
+   */
+  async getMisAuditoriasPeriodoActivo() {
+    const response = await httpClient.get(`${PROVEEDORES_ENDPOINT}/mis-auditorias-periodo-activo`);
+    return response.data.data || response.data;
   }
 };
 

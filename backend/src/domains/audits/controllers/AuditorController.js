@@ -53,129 +53,68 @@ class AuditorController {
     try {
       const auditorId = req.usuario.id;
 
-      // Verificar que el usuario sea auditor
-      if (!['admin', 'auditor'].includes(req.usuario.rol)) {
+      // Verificar que el usuario sea auditor (admin tiene permisos de auditor)
+      if (!['admin', 'auditor_general', 'auditor_interno'].includes(req.usuario.rol)) {
         return res.status(403).json({
           success: false,
           message: 'Solo auditores pueden acceder a este dashboard'
         });
       }
 
-      // Obtener estadísticas generales del auditor
+      // Dashboard simplificado con datos disponibles
       const [
-        totalAsignadas,
-        auditoriasPendientes,
+        totalAuditorias,
+        auditoriasProgramadas,
         auditoriasEnCarga,
         auditoriasPendienteEvaluacion,
-        consultasPendientes,
-        auditoriasMesActual
+        conversacionesAbiertas,
+        proveedoresActivos
       ] = await Promise.all([
-        // Total de auditorías asignadas
-        AsignacionAuditor.count({
-          where: { auditor_id: auditorId }
-        }),
-        
-        // Auditorías pendientes
-        AsignacionAuditor.count({
-          where: { auditor_id: auditorId },
-          include: [{
-            model: Auditoria,
-            as: 'auditoria',
-            where: { estado: ['programada'] }
-          }]
+        // Total de auditorías en el sistema
+        Auditoria.count(),
+
+        // Auditorías programadas
+        Auditoria.count({
+          where: { estado: 'programada' }
         }),
 
         // Auditorías en proceso de carga
-        AsignacionAuditor.count({
-          where: { auditor_id: auditorId },
-          include: [{
-            model: Auditoria,
-            as: 'auditoria',
-            where: { estado: 'en_carga' }
-          }]
+        Auditoria.count({
+          where: { estado: 'en_carga' }
         }),
 
         // Auditorías pendientes de evaluación
-        AsignacionAuditor.count({
-          where: { auditor_id: auditorId },
-          include: [{
-            model: Auditoria,
-            as: 'auditoria',
-            where: { estado: 'pendiente_evaluacion' }
-          }]
+        Auditoria.count({
+          where: { estado: 'pendiente_evaluacion' }
         }),
 
-        // Consultas pendientes de respuesta
+        // Conversaciones abiertas
         Conversacion.count({
-          include: [{
-            model: Auditoria,
-            as: 'auditoria',
-            include: [{
-              model: AsignacionAuditor,
-              as: 'asignacion',
-              where: { auditor_id: auditorId }
-            }]
-          }],
           where: { estado: ['abierta', 'en_proceso'] }
         }),
 
-        // Auditorías del mes actual
-        AsignacionAuditor.count({
-          where: { auditor_id: auditorId },
-          include: [{
-            model: Auditoria,
-            as: 'auditoria',
-            where: {
-              fecha_inicio: {
-                [Op.gte]: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-              }
-            }
-          }]
+        // Proveedores activos
+        Proveedor.count({
+          where: { estado: 'activo' }
         })
       ]);
 
-      // Próximas visitas programadas
-      const proximasVisitas = await AsignacionAuditor.findAll({
-        where: { 
-          auditor_id: auditorId,
-          fecha_visita_programada: {
-            [Op.gte]: new Date(),
-            [Op.lte]: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // Próximos 30 días
-          }
-        },
-        include: [{
-          model: Auditoria,
-          as: 'auditoria',
-          include: [{
-            model: Sitio,
-            as: 'sitio',
-            include: [{
-              model: Proveedor,
-              as: 'proveedor',
-              attributes: ['razon_social', 'nombre_comercial']
-            }]
-          }]
-        }],
-        order: [['fecha_visita_programada', 'ASC']],
-        limit: 5
-      });
-
       // Alertas importantes
       const alertas = [];
-      
+
       if (auditoriasPendienteEvaluacion > 0) {
         alertas.push({
           tipo: 'warning',
-          mensaje: `Tienes ${auditoriasPendienteEvaluacion} auditoría${auditoriasPendienteEvaluacion > 1 ? 's' : ''} pendiente${auditoriasPendienteEvaluacion > 1 ? 's' : ''} de evaluación`,
+          mensaje: `Hay ${auditoriasPendienteEvaluacion} auditoría${auditoriasPendienteEvaluacion > 1 ? 's' : ''} pendiente${auditoriasPendienteEvaluacion > 1 ? 's' : ''} de evaluación`,
           count: auditoriasPendienteEvaluacion
         });
       }
 
-      if (consultasPendientes > 0) {
+      if (conversacionesAbiertas > 0) {
         alertas.push({
           tipo: 'info',
-          mensaje: `Tienes ${consultasPendientes} consulta${consultasPendientes > 1 ? 's' : ''} sin responder`,
-          count: consultasPendientes
+          mensaje: `Hay ${conversacionesAbiertas} conversación${conversacionesAbiertas > 1 ? 'es' : ''} abiertas`,
+          count: conversacionesAbiertas
         });
       }
 
@@ -183,27 +122,20 @@ class AuditorController {
         success: true,
         data: {
           estadisticas: {
-            total_asignadas: totalAsignadas,
-            pendientes: auditoriasPendientes,
+            total_auditorias: totalAuditorias,
+            programadas: auditoriasProgramadas,
             en_carga: auditoriasEnCarga,
             pendiente_evaluacion: auditoriasPendienteEvaluacion,
-            consultas_pendientes: consultasPendientes,
-            mes_actual: auditoriasMesActual
+            conversaciones_abiertas: conversacionesAbiertas,
+            proveedores_activos: proveedoresActivos
           },
-          proximas_visitas: proximasVisitas.map(asignacion => ({
-            id: asignacion.auditoria.id,
-            sitio: asignacion.auditoria.sitio.nombre,
-            proveedor: asignacion.auditoria.sitio.proveedor.razon_social,
-            fecha_programada: asignacion.fecha_visita_programada,
-            estado: asignacion.auditoria.estado,
-            localidad: asignacion.auditoria.sitio.localidad
-          })),
           alertas,
           auditor: {
             id: req.usuario.id,
             nombre: req.usuario.nombre,
             rol: req.usuario.rol
-          }
+          },
+          timestamp: new Date().toISOString()
         }
       });
 
@@ -224,21 +156,22 @@ class AuditorController {
   static async obtenerMisAuditorias(req, res) {
     try {
       const auditorId = req.usuario.id;
-      
+      const userRole = req.usuario.rol;
+
       // Validar filtros
       const filtros = FiltrosSchema.parse(req.query);
-      
+
       // Construir condiciones WHERE
       let condicionesAuditoria = {};
-      
+
       if (filtros.periodo) {
         condicionesAuditoria.periodo = filtros.periodo;
       }
-      
+
       if (filtros.estado) {
         condicionesAuditoria.estado = filtros.estado;
       }
-      
+
       if (filtros.fecha_desde || filtros.fecha_hasta) {
         condicionesAuditoria.fecha_inicio = {};
         if (filtros.fecha_desde) {
@@ -259,62 +192,72 @@ class AuditorController {
         condicionesProveedor.id = filtros.proveedor_id;
       }
 
+      // Si es proveedor, aplicar filtro de segregación multi-tenant
+      if (req.filtroProveedor) {
+        condicionesProveedor.id = req.filtroProveedor;
+      }
+
       // Obtener auditorías con paginación
       const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 20;
+      const limit = parseInt(req.query.limit) || 100;
       const offset = (page - 1) * limit;
 
-      const { count, rows } = await AsignacionAuditor.findAndCountAll({
-        where: { auditor_id: auditorId },
+      const { count, rows } = await Auditoria.findAndCountAll({
+        where: condicionesAuditoria,
         include: [{
-          model: Auditoria,
-          as: 'auditoria',
-          where: condicionesAuditoria,
+          model: Sitio,
+          as: 'sitio',
+          where: condicionesSitio,
           include: [{
-            model: Sitio,
-            as: 'sitio',
-            where: condicionesSitio,
-            include: [{
-              model: Proveedor,
-              as: 'proveedor',
-              where: condicionesProveedor,
-              attributes: ['id', 'razon_social', 'nombre_comercial']
-            }]
-          }, {
-            model: Documento,
-            as: 'documentos',
-            attributes: ['id', 'seccion_id', 'estado_analisis'],
-            required: false
-          }]
+            model: Proveedor,
+            as: 'proveedor',
+            where: condicionesProveedor,
+            attributes: ['id', 'razon_social', 'nombre_comercial']
+          }],
+          attributes: ['id', 'nombre', 'localidad', 'domicilio']
+        }, {
+          model: Documento,
+          as: 'documentos',
+          attributes: ['id', 'seccion_id', 'estado_analisis'],
+          required: false
         }],
         order: [['created_at', 'DESC']],
         limit,
-        offset
+        offset,
+        attributes: ['id', 'periodo', 'fecha_inicio', 'fecha_limite_carga', 'estado', 'puntaje_final', 'created_at']
       });
 
       // Calcular progreso de cada auditoría
-      const auditoriasConProgreso = rows.map(asignacion => {
-        const auditoria = asignacion.auditoria;
+      const auditoriasConProgreso = rows.map(auditoria => {
         const totalSecciones = 13; // Total de secciones técnicas
         const seccionesCargadas = new Set(auditoria.documentos.map(d => d.seccion_id)).size;
         const progresoPorcentaje = Math.round((seccionesCargadas / totalSecciones) * 100);
 
+        // Generar código de auditoría con nomenclatura correcta
+        const codigoPeriodo = auditoria.periodo ? auditoria.periodo.substring(0, 4) : '2025';
+        const numeroAuditoria = String(auditoria.id).padStart(3, '0');
+        const nombreProveedor = auditoria.sitio.proveedor.nombre_comercial || auditoria.sitio.proveedor.razon_social;
+        const nombreSitio = auditoria.sitio.nombre;
+
+        const codigoAuditoria = `AUD-${codigoPeriodo}-${numeroAuditoria}-${nombreProveedor}-${nombreSitio}`;
+
         return {
           id: auditoria.id,
+          codigo: codigoAuditoria,
           sitio: {
             id: auditoria.sitio.id,
-            nombre: auditoria.sitio.nombre,
+            nombre: nombreSitio,
             localidad: auditoria.sitio.localidad
           },
           proveedor: {
             id: auditoria.sitio.proveedor.id,
-            nombre: auditoria.sitio.proveedor.razon_social || auditoria.sitio.proveedor.nombre_comercial
+            nombre: nombreProveedor
           },
           periodo: auditoria.periodo,
           estado: auditoria.estado,
           fecha_inicio: auditoria.fecha_inicio,
           fecha_limite_carga: auditoria.fecha_limite_carga,
-          fecha_visita_programada: asignacion.fecha_visita_programada,
+          fecha_visita_programada: auditoria.fecha_visita_programada || null,
           fecha_visita_realizada: auditoria.fecha_visita_realizada,
           progreso: {
             secciones_cargadas: seccionesCargadas,

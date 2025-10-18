@@ -16,7 +16,7 @@ SAT-Digital es un sistema web completo para gestionar auditorías técnicas de i
 ### Problemática Actual
 
 - Auditorías semestrales (mayo/noviembre) completamente manuales
-- 5 proveedores, 12 sitios, ~520 documentos por período
+- 5 proveedores, 11 sitios, ~520 documentos por período
 - 13 secciones técnicas por auditoría
 - Gestión manual en Excel por sitio
 - Proceso fragmentado sin estandarización
@@ -38,7 +38,7 @@ Sistema multi-tenant que automatiza el proceso completo de auditorías técnicas
 
 - **Runtime:** Node.js 18
 - **Framework:** Express.js
-- **Base de datos:** MySQL 8.0 (via XAMPP)
+- **Base de datos:** SQL Server
 - **ORM:** Sequelize/Prisma
 - **Autenticación:** JWT + bcrypt
 - **API:** RESTful + GraphQL híbrido
@@ -68,7 +68,7 @@ Sistema multi-tenant que automatiza el proceso completo de auditorías técnicas
 **Infraestructura:**
 
 - **OS:** Windows 11
-- **Servidor local:** XAMPP
+- **Servidor local:**
 - **Terminal:** PowerShell
 - **Proxy:** Nginx (opcional)
 - **Logs:** Winston + rotación
@@ -391,8 +391,8 @@ Sistema multi-tenant que automatiza el proceso completo de auditorías técnicas
 
 ### **API Aternity (Inventario):**
 
-- URL: https://us3-odata.aternity.com/aternity.odata/latest/
-- Usuario: PJPalomanes@teco.com.ar
+- URL: <https://us3-odata.aternity.com/aternity.odata/latest/>
+- Usuario: <PJPalomanes@teco.com.ar>
 - Propósito: Consulta de inventario de equipos en tiempo real
 
 ---

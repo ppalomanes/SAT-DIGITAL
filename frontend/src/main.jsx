@@ -8,6 +8,8 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 // Fuentes personalizadas SAT-Digital
 import './assets/fonts/fonts.css'
+// Variables CSS globales (sistema de diseño centralizado)
+import './shared/styles/variables.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

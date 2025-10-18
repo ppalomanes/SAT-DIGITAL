@@ -12,6 +12,14 @@ const Conversacion = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
+    },
     auditoria_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

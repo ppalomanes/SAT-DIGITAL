@@ -20,7 +20,13 @@ import {
   Divider,
   Paper,
   Stack,
-  Tooltip
+  Tooltip,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import {
   Business as BusinessIcon,
@@ -41,133 +47,88 @@ import {
   BarChart,
   ShowChart,
   Group,
-  Description
+  Description,
+  Work as WorkIcon,
+  DateRange as DateRangeIcon,
+  Upload as UploadIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../../auth/store/authStore';
 import AuditoriaFormulario from '../components/AuditoriaFormulario';
+import proveedoresService from '../../proveedores/services/proveedoresService';
+import { THEME_COLORS, CHART_COLORS } from '../../../shared/constants/theme';
+import { formatDate } from '../../../shared/utils/dateHelpers';
+import { getEstadoStyle } from '../../../shared/utils/statusHelpers';
 
-// Paleta de colores moderna Tabler (copiada del Dashboard Ejecutivo)
+// Usar constantes centralizadas de tema (reemplaza COLORS hardcodeado)
 const COLORS = {
-  primary: '#206bc4',
-  secondary: '#6c757d',
-  success: '#2fb344',
-  danger: '#d63384',
-  warning: '#fd7e14',
-  info: '#17a2b8',
-  light: '#f8f9fa',
-  dark: '#1e293b',
-  muted: '#868e96',
+  primary: THEME_COLORS.primary.main,
+  secondary: THEME_COLORS.secondary.main,
+  success: THEME_COLORS.success.main,
+  danger: THEME_COLORS.error.main,
+  warning: THEME_COLORS.warning.main,
+  info: THEME_COLORS.info.main,
+  light: THEME_COLORS.grey[50],
+  dark: THEME_COLORS.grey[900],
+  muted: THEME_COLORS.grey[600],
   gradient: {
     primary: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     success: 'linear-gradient(135deg, #6be6d0 0%, #48bb78 100%)',
     warning: 'linear-gradient(135deg, #ffeaa0 0%, #ff9800 100%)',
     info: 'linear-gradient(135deg, #89ddff 0%, #21CBF3 100%)'
   },
-  chart: ['#206bc4', '#2fb344', '#fd7e14', '#d63384', '#17a2b8', '#6c757d']
+  chart: CHART_COLORS
 };
 
 const AuditoriasPage = () => {
   const { usuario } = useAuthStore();
-  const [selectedProvider, setSelectedProvider] = useState('');
-  const [selectedSite, setSelectedSite] = useState('');
-  const [providers, setProviders] = useState([]);
-  const [sites, setSites] = useState([]);
+  const [auditorias, setAuditorias] = useState([]);
+  const [periodoActivo, setPeriodoActivo] = useState(null);
+  const [misSitios, setMisSitios] = useState([]);
   const [currentAudit, setCurrentAudit] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showFormulario, setShowFormulario] = useState(false);
 
-  // Mock data - reemplazar con llamadas a API reales
-  const mockProviders = [
-    { id: 1, razon_social: 'CITYTECH SOCIEDAD ANONIMA', nombre_comercial: 'TELEPERFORMANCE' },
-    { id: 2, razon_social: 'GRUPO ACTIVO SRL', nombre_comercial: 'ACTIVO' },
-    { id: 3, razon_social: 'CENTRO DE INTERACCIÓN MULTIMEDIA S.A.', nombre_comercial: 'APEX' },
-  ];
-
-  const mockSites = [
-    { id: 1, nombre: 'TELEPERFORMANCE CHACO', localidad: 'CHACO', proveedor_id: 1, domicilio: 'Av. 9 de Julio 4175, Barranqueras' },
-    { id: 2, nombre: 'ACTIVO CABA', localidad: 'CABA', proveedor_id: 2, domicilio: 'Florida 141, CABA' },
-    { id: 3, nombre: 'APEX MENDOZA', localidad: 'MENDOZA', proveedor_id: 3, domicilio: 'San Martín 1234, Mendoza' },
-  ];
+  const isProviderUser = usuario?.rol === 'jefe_proveedor' || usuario?.rol === 'tecnico_proveedor';
 
   useEffect(() => {
-    loadProviders();
-  }, []);
-
-  useEffect(() => {
-    if (selectedProvider) {
-      loadSites(selectedProvider);
+    if (isProviderUser) {
+      loadMisAuditorias();
     } else {
-      setSites([]);
-      setSelectedSite('');
+      setError('Esta página está disponible solo para usuarios de proveedores');
     }
-  }, [selectedProvider]);
+  }, [isProviderUser]);
 
-  const loadProviders = async () => {
+  const loadMisAuditorias = async () => {
     try {
       setLoading(true);
-      // TODO: Reemplazar con llamada real a la API
-      setTimeout(() => {
-        setProviders(mockProviders);
-        setLoading(false);
-      }, 500);
+      setError(null);
+
+      const data = await proveedoresService.getMisAuditoriasPeriodoActivo();
+
+      setAuditorias(data.auditorias || []);
+      setPeriodoActivo(data.periodo_activo);
+
+      setLoading(false);
     } catch (error) {
-      setError('Error cargando proveedores');
+      console.error('Error cargando auditorías:', error);
+      setError('Error cargando auditorías del período activo');
       setLoading(false);
     }
   };
 
-  const loadSites = async (providerId) => {
+  const loadMisSitios = async () => {
     try {
-      setLoading(true);
-      // TODO: Reemplazar con llamada real a la API
-      setTimeout(() => {
-        const filteredSites = mockSites.filter(site => site.proveedor_id === parseInt(providerId));
-        setSites(filteredSites);
-        setLoading(false);
-      }, 300);
+      const data = await proveedoresService.getMisSitios();
+      setMisSitios(data.sitios || []);
     } catch (error) {
-      setError('Error cargando sitios');
-      setLoading(false);
+      console.error('Error cargando sitios:', error);
     }
   };
 
-  const handleStartAudit = async () => {
-    if (!selectedProvider || !selectedSite) {
-      setError('Debe seleccionar un proveedor y un sitio');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      
-      // Buscar información del proveedor y sitio seleccionados
-      const provider = providers.find(p => p.id === parseInt(selectedProvider));
-      const site = sites.find(s => s.id === parseInt(selectedSite));
-
-      if (!provider || !site) {
-        setError('Error obteniendo información del proveedor o sitio');
-        return;
-      }
-
-      // Crear objeto de auditoría actual
-      const auditData = {
-        proveedor: provider,
-        sitio: site,
-        auditores: usuario?.nombre || 'Usuario Actual',
-        fecha_limite: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días desde hoy
-        fecha_visita: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 días desde hoy
-        estado: 'Activo'
-      };
-
-      setCurrentAudit(auditData);
-      setShowFormulario(true);
-      setLoading(false);
-      
-    } catch (error) {
-      setError('Error iniciando auditoría');
-      setLoading(false);
-    }
+  const handleStartAuditoria = (auditoria) => {
+    setCurrentAudit(auditoria);
+    setShowFormulario(true);
   };
 
   const handleCloseFormulario = () => {
@@ -175,12 +136,26 @@ const AuditoriasPage = () => {
     setCurrentAudit(null);
   };
 
-  const getSelectedProvider = () => {
-    return providers.find(p => p.id === parseInt(selectedProvider));
-  };
+  // Funciones helper ya importadas desde utilidades centralizadas
+  // getEstadoStyle() - para colores de estados
+  // formatDate() - para formateo de fechas
 
-  const getSelectedSite = () => {
-    return sites.find(s => s.id === parseInt(selectedSite));
+  const getEstadoColorMUI = (estado) => {
+    // Mapear a colores de MUI Chip
+    switch (estado?.toLowerCase()) {
+      case 'iniciada':
+      case 'en_proceso':
+        return 'info';
+      case 'carga_documental':
+        return 'warning';
+      case 'revision':
+        return 'secondary';
+      case 'completada':
+      case 'finalizada':
+        return 'success';
+      default:
+        return 'default';
+    }
   };
 
   return (
@@ -188,15 +163,33 @@ const AuditoriasPage = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <div>
           <Typography variant="h4" gutterBottom>
-            Sistema de Auditorías
+            Mis Auditorías
           </Typography>
-          <Chip
-            icon={<AssessmentIcon />}
-            label="Gestión de Auditorías Técnicas"
-            color="primary"
-            size="small"
-          />
+          <Stack direction="row" spacing={1}>
+            <Chip
+              icon={<WorkIcon />}
+              label={`${usuario?.proveedor_nombre || 'Mi Proveedor'}`}
+              color="primary"
+              size="small"
+            />
+            {periodoActivo && (
+              <Chip
+                icon={<DateRangeIcon />}
+                label={`Período: ${periodoActivo.nombre}`}
+                color="success"
+                size="small"
+              />
+            )}
+          </Stack>
         </div>
+        <Button
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={loadMisAuditorias}
+          disabled={loading}
+        >
+          Actualizar
+        </Button>
       </Box>
 
       {error && (
@@ -211,128 +204,136 @@ const AuditoriasPage = () => {
         </Box>
       )}
 
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Iniciar Nueva Auditoría
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Seleccione el proveedor y sitio para comenzar la auditoría técnica
-          </Typography>
+      {!periodoActivo && !loading && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          No hay período de auditoría activo definido. Contacte al administrador.
+        </Alert>
+      )}
 
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Proveedor</InputLabel>
-                <Select
-                  value={selectedProvider}
-                  label="Proveedor"
-                  onChange={(e) => setSelectedProvider(e.target.value)}
-                >
-                  {providers.map((provider) => (
-                    <MenuItem key={provider.id} value={provider.id}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <BusinessIcon fontSize="small" />
-                        <Box>
-                          <Typography variant="body2" fontWeight="600">
-                            {provider.nombre_comercial}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {provider.razon_social}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth disabled={!selectedProvider}>
-                <InputLabel>Sitio</InputLabel>
-                <Select
-                  value={selectedSite}
-                  label="Sitio"
-                  onChange={(e) => setSelectedSite(e.target.value)}
-                >
-                  {sites.map((site) => (
-                    <MenuItem key={site.id} value={site.id}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocationIcon fontSize="small" />
-                        <Box>
-                          <Typography variant="body2" fontWeight="600">
-                            {site.nombre}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {site.localidad}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<PlayArrowIcon />}
-                onClick={handleStartAudit}
-                disabled={!selectedProvider || !selectedSite || loading}
-                fullWidth
-              >
-                Iniciar Auditoría
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {selectedProvider && selectedSite && (
+      {periodoActivo && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              Vista Previa de la Auditoría
+              Información del Período Activo
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Información del Proveedor
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Razón Social:</strong> {getSelectedProvider()?.razon_social}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Nombre Comercial:</strong> {getSelectedProvider()?.nombre_comercial}
-                </Typography>
+              <Grid item xs={12} md={4}>
+                <Typography variant="body2" color="text.secondary">Período</Typography>
+                <Typography variant="h6">{periodoActivo.nombre}</Typography>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Información del Sitio
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Sitio:</strong> {getSelectedSite()?.nombre}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Localidad:</strong> {getSelectedSite()?.localidad}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Domicilio:</strong> {getSelectedSite()?.domicilio}
-                </Typography>
+              <Grid item xs={12} md={4}>
+                <Typography variant="body2" color="text.secondary">Fecha Inicio</Typography>
+                <Typography variant="body1">{formatDate(periodoActivo.fecha_inicio)}</Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <Typography variant="body2" color="text.secondary">Fecha Fin</Typography>
+                <Typography variant="body1">{formatDate(periodoActivo.fecha_fin)}</Typography>
               </Grid>
             </Grid>
           </CardContent>
         </Card>
       )}
 
-      {showFormulario && currentAudit && (
+      {auditorias.length > 0 ? (
         <Card>
           <CardHeader
-            title="Formulario de Auditoría Técnica"
-            subheader="Complete las secciones técnicas para procesar por lotes"
+            title="Auditorías Asignadas"
+            subheader={`${auditorias.length} auditorías del período activo`}
+          />
+          <CardContent>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Código</TableCell>
+                    <TableCell>Sitio</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Progreso</TableCell>
+                    <TableCell>Fecha Límite</TableCell>
+                    <TableCell>Documentos</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {auditorias.map((auditoria) => (
+                    <TableRow key={auditoria.id} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="600">
+                          {auditoria.codigo_auditoria}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight="600">
+                            {auditoria.sitio_nombre}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {auditoria.sitio_localidad}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={auditoria.estado}
+                          color={getEstadoColorMUI(auditoria.estado)}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ width: '100%', mr: 1 }}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={auditoria.progreso_porcentaje || 0}
+                            sx={{ height: 8, borderRadius: 1 }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            {auditoria.progreso_porcentaje || 0}%
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {formatDate(auditoria.fecha_limite_carga)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          icon={<Description />}
+                          label={`${auditoria.documentos_cargados || 0}`}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<UploadIcon />}
+                          onClick={() => handleStartAuditoria(auditoria)}
+                        >
+                          Trabajar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      ) : (
+        !loading && periodoActivo && (
+          <Alert severity="info">
+            No tienes auditorías asignadas para el período activo.
+          </Alert>
+        )
+      )}
+
+      {showFormulario && currentAudit && (
+        <Card sx={{ mt: 3 }}>
+          <CardHeader
+            title={`Auditoría: ${currentAudit.codigo_auditoria}`}
+            subheader={`${currentAudit.sitio_nombre} - ${currentAudit.sitio_localidad}`}
             action={
               <IconButton onClick={handleCloseFormulario}>
                 <CloseIcon />
@@ -346,6 +347,7 @@ const AuditoriasPage = () => {
               onSave={(data) => {
                 console.log('Auditoría guardada:', data);
                 handleCloseFormulario();
+                loadMisAuditorias(); // Reload to update progress
               }}
             />
           </CardContent>

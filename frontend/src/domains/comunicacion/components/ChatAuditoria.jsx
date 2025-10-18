@@ -56,6 +56,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../auth/store/authStore';
 import useChatStore from '../store/useChatStore';
 import dayjs from 'dayjs';
+import { formatDate, formatTime } from '../../../shared/utils/dateHelpers';
+import { THEME_COLORS } from '../../../shared/constants/theme';
 
 const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
   const [mensaje, setMensaje] = useState('');
@@ -394,12 +396,12 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
 
   const getRoleColor = (rol) => {
     const colores = {
-      admin: '#f44336',
-      auditor: '#2196f3',
-      proveedor: '#4caf50',
-      visualizador: '#ff9800'
+      admin: THEME_COLORS.error.main,
+      auditor: THEME_COLORS.primary.main,
+      proveedor: THEME_COLORS.success.main,
+      visualizador: THEME_COLORS.warning.main
     };
-    return colores[rol] || '#757575';
+    return colores[rol] || THEME_COLORS.grey[600];
   };
 
   // Función para obtener estado de lectura del mensaje
@@ -697,7 +699,7 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                           {conversacion.titulo}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {dayjs(conversacion.updated_at).format('HH:mm')}
+                          {formatTime(conversacion.updated_at)}
                         </Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -755,17 +757,19 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                 }}
                 className="chat-auditoria__messages"
               >
-                <AnimatePresence>
-                  {mensajesPrincipales.map((mensaje) => {
+                <AnimatePresence mode="popLayout">
+                  {mensajesPrincipales.map((mensaje, index) => {
                     const respuestas = obtenerRespuestasDeMensaje(mensaje.id);
                     const tieneRespuestas = respuestas.length > 0;
                     const mostrandoHilo = mostrarHilos.has(mensaje.id);
-                    
+
                     return (
                     <motion.div
-                      key={mensaje.id}
+                      key={`conv-${conversacionActiva}-msg-${mensaje.id}-${index}-${mensaje.created_at}`}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      layout
                       className={`chat-auditoria__message ${
                         mensaje.usuario_id === usuario.id ? 'chat-auditoria__message--own' : ''
                       }`}
@@ -801,7 +805,7 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                         >
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
                             <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                              {mensaje.usuario?.nombre || 'Usuario'} • {dayjs(mensaje.created_at).format('HH:mm')}
+                              {mensaje.usuario?.nombre || 'Usuario'} • {formatTime(mensaje.created_at)}
                             </Typography>
                             {renderIndicadorLectura(mensaje)}
                           </Box>
@@ -895,11 +899,12 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                       {/* Hilo de respuestas */}
                       {tieneRespuestas && mostrandoHilo && (
                         <Box sx={{ ml: 6, mt: 1 }}>
-                          {respuestas.map((respuesta) => (
+                          {respuestas.map((respuesta, respuestaIndex) => (
                             <motion.div
-                              key={`respuesta-${respuesta.id}`}
+                              key={`conv-${conversacionActiva}-reply-${respuesta.id}-parent-${mensaje.id}-${respuestaIndex}-${respuesta.created_at}`}
                               initial={{ opacity: 0, x: 20 }}
                               animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: -20 }}
                               style={{ marginBottom: '8px' }}
                             >
                               <Box
@@ -932,7 +937,7 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                                   }}
                                 >
                                   <Typography variant="caption" display="block" sx={{ opacity: 0.8, mb: 0.5 }}>
-                                    {respuesta.usuario?.nombre || 'Usuario'} • {dayjs(respuesta.created_at).format('HH:mm')}
+                                    {respuesta.usuario?.nombre || 'Usuario'} • {formatTime(respuesta.created_at)}
                                     {renderIndicadorLectura(respuesta)}
                                   </Typography>
                                   
@@ -946,7 +951,8 @@ const ChatAuditoria = ({ auditoriaId, seccionId = null, onClose }) => {
                         </Box>
                       )}
                     </motion.div>
-                  );})}
+                  );
+                })}
                 </AnimatePresence>
                 
                 {mensajesConversacionActiva.length === 0 && conversacionActiva && (

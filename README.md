@@ -13,6 +13,7 @@ SAT-Digital digitaliza el proceso manual de auditorías técnicas para **5 prove
 ## 🚀 **Estado Actual del Proyecto**
 
 ### ✅ **Fase 1: Infraestructura Base - COMPLETADA**
+
 - ✅ Entorno de desarrollo con XAMPP (Windows 11)
 - ✅ Base de datos MySQL completa con todos los modelos
 - ✅ Autenticación JWT + RBAC (6 roles)
@@ -20,6 +21,7 @@ SAT-Digital digitaliza el proceso manual de auditorías técnicas para **5 prove
 - ✅ Frontend React con componentes base Material-UI
 
 ### ✅ **Fase 2: Gestión de Auditorías - EN PROGRESO**
+
 - ✅ **Calendario programable de períodos**: Sistema completo de gestión de períodos de auditoría
 - ✅ **Sistema de autenticación real**: Login con JWT válidos y base de datos
 - ✅ **Dashboard ejecutivo**: Panel principal con métricas y período activo
@@ -29,12 +31,14 @@ SAT-Digital digitaliza el proceso manual de auditorías técnicas para **5 prove
 - 🚧 **Workflow de estados**: Estados de auditoría
 
 ### 🔜 **Fase 3: IA & Análisis - PLANIFICADA**
+
 - 🔜 Integración con Ollama local
-- 🔜 Análisis automático de PDF/Excel/imágenes  
+- 🔜 Análisis automático de PDF/Excel/imágenes
 - 🔜 Scoring automático
 - 🔜 Recomendaciones inteligentes
 
 ### 🔜 **Fase 4: Visitas & Reportes - PLANIFICADA**
+
 - 🔜 Workflow móvil para visitas
 - 🔜 Comparación IA vs realidad
 - 🔜 Dashboards personalizables
@@ -43,6 +47,7 @@ SAT-Digital digitaliza el proceso manual de auditorías técnicas para **5 prove
 ## 🏗️ **Arquitectura Técnica**
 
 ### **Backend**
+
 - **Node.js 18** + **Express.js** + **MySQL 8.0** (XAMPP)
 - **ORM**: Sequelize con migraciones
 - **Autenticación**: JWT + bcrypt + refresh tokens
@@ -52,6 +57,7 @@ SAT-Digital digitaliza el proceso manual de auditorías técnicas para **5 prove
 - **Logging**: Winston con rotación
 
 ### **Frontend**
+
 - **React 18** + **Vite** (puerto 5173)
 - **UI**: Material-UI (@mui/material) con tema personalizado
 - **Estado**: Zustand con persistencia
@@ -64,7 +70,8 @@ SAT-Digital digitaliza el proceso manual de auditorías técnicas para **5 prove
 - **HTTP**: Axios con interceptores
 
 ### **Base de Datos**
-```
+
+```text
 sat_digital_v2 (MySQL)
 ├── usuarios (RBAC: 6 roles)
 ├── proveedores (5 principales con segregación estricta)
@@ -79,24 +86,28 @@ sat_digital_v2 (MySQL)
 ## 👥 **Sistema de Roles y Permisos**
 
 ### **Roles Implementados:**
+
 1. **admin**: Gestión completa del sistema
 2. **auditor_general**: Evaluaciones y asignaciones completas
-3. **auditor_interno**: Evaluaciones técnicas específicas  
+3. **auditor_interno**: Evaluaciones técnicas específicas
 4. **jefe_proveedor**: Gestión de sitios del proveedor (segregación crítica)
 5. **tecnico_proveedor**: Soporte técnico limitado al proveedor
 6. **visualizador**: Solo dashboards ejecutivos
 
-### **Segregación por Proveedor**: 
+### **Segregación por Proveedor**
+
 Los usuarios de proveedor **SOLO** pueden acceder a datos de su propio proveedor (segregación crítica implementada).
 
 ## 🔧 **Instalación y Configuración**
 
 ### **Prerrequisitos**
+
 - **Windows 11** + **XAMPP** (Apache, MySQL, PHP)
 - **Node.js 18+**
 - **Git**
 
 ### **Instalación Backend**
+
 ```bash
 cd backend
 npm install
@@ -108,6 +119,7 @@ npm run dev        # Desarrollo con nodemon
 ```
 
 ### **Instalación Frontend**
+
 ```bash
 cd frontend
 npm install
@@ -115,6 +127,7 @@ npm run dev        # Desarrollo con Vite (puerto 5173)
 ```
 
 ### **Scripts del Sistema (Windows .bat)**
+
 ```bash
 start-full-system.bat    # Inicia backend + frontend
 start-backend.bat        # Solo backend
@@ -124,9 +137,10 @@ start-frontend.bat       # Solo frontend
 ## 🔑 **Credenciales de Acceso**
 
 ### **Usuarios de Prueba Disponibles:**
-```
+
+```text
 🔴 Admin: admin@satdigital.com / admin123
-🔵 Auditor General: auditor@satdigital.com / auditor123  
+🔵 Auditor General: auditor@satdigital.com / auditor123
 🟡 Auditor Interno: auditoria@satdigital.com / auditor123
 🟢 Jefe Proveedor: proveedor@activo.com / proveedor123
 🟢 Técnico Proveedor: tecnico@activo.com / tecnico123
@@ -136,17 +150,19 @@ start-frontend.bat       # Solo frontend
 ## 📊 **Información de Proveedores**
 
 ### **5 Proveedores Principales:**
+
 1. **Grupo Activo SRL** - CUIT: 30-71044895-3 (Florida 141, CABA)
 2. **Centro de Interacción Multimedia S.A. (APEX)** - CUIT: 30-70827680-0 (3 sitios)
-3. **CityTech S.A. (Teleperformance)** - CUIT: 30-70908678-9 (3 sitios)  
+3. **CityTech S.A. (Teleperformance)** - CUIT: 30-70908678-9 (3 sitios)
 4. **CAT Technologies Argentina S.A** - CUIT: 30-70949292-2 (Mitre 853, CABA)
 5. **Stratton Argentina SA (Konecta)** - CUIT: 30698477411 (3 sitios)
 
 ## 📋 **Secciones Técnicas (13 Total)**
 
 ### **Análisis en Tiempo Real:**
+
 1. Topología de Red
-2. Documentación y Controles Infraestructura  
+2. Documentación y Controles Infraestructura
 3. Energía del Cuarto de Tecnología
 4. Temperatura CT
 5. Servidores
@@ -155,6 +171,7 @@ start-frontend.bat       # Solo frontend
 8. Escalamiento (Números de Contacto)
 
 ### **Análisis por Lotes:**
+
 9. Cuarto de Tecnología
 10. Conectividad (Certificación de Cableado)
 11. Hardware/Software/Headset e Internet en el Hogar
@@ -163,15 +180,16 @@ start-frontend.bat       # Solo frontend
 
 ## 🌐 **URLs y Puertos**
 
-- **Backend API**: http://localhost:3001/api
-- **Frontend**: http://localhost:3003 (configurado) / http://localhost:5173 (Vite)
-- **Health Check**: http://localhost:3001/health
-- **phpMyAdmin**: http://localhost/phpmyadmin
+- **Backend API**: <http://localhost:3001/api>
+- **Frontend**: <http://localhost:3003> (configurado) / <http://localhost:5173> (Vite)
+- **Health Check**: <http://localhost:3001/health>
+- **phpMyAdmin**: <http://localhost/phpmyadmin>
 - **Base de Datos**: `sat_digital_v2` (MySQL)
 
 ## 📚 **Comandos de Desarrollo**
 
 ### **Backend**
+
 ```bash
 npm run dev          # Desarrollo con nodemon
 npm start            # Producción
@@ -184,6 +202,7 @@ npm run health-check # Verificación del sistema
 ```
 
 ### **Frontend**
+
 ```bash
 npm run dev          # Desarrollo con Vite
 npm run build        # Build de producción
@@ -194,8 +213,9 @@ npm run preview      # Preview del build
 ## 🔗 **Integraciones Externas**
 
 ### **API Aternity (Inventario):**
-- **URL**: https://us3-odata.aternity.com/aternity.odata/latest/
-- **Usuario**: PJPalomanes@teco.com.ar
+
+- **URL**: <https://us3-odata.aternity.com/aternity.odata/latest/>
+- **Usuario**: <PJPalomanes@teco.com.ar>
 - **Propósito**: Consultas de inventario de equipos en tiempo real
 
 ## 🧪 **Testing**
@@ -233,6 +253,6 @@ Proyecto propietario - SAT-Digital Team
 
 ---
 
-**Última actualización**: Enero 2025  
-**Versión**: 1.0.0  
+**Última actualización**: Enero 2025
+**Versión**: 1.0.0
 **Estado**: Fase 2 - Gestión de Auditorías (En progreso)

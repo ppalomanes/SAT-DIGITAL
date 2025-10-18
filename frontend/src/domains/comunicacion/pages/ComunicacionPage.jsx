@@ -15,6 +15,7 @@ import {
 import ChatAuditoria from '../components/ChatAuditoria';
 import { useAuthStore } from '../../auth/store/authStore';
 import apiClient from '../../../shared/services/apiClient';
+import { formatDate } from '../../../shared/utils/dateHelpers';
 
 const ComunicacionPage = () => {
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,7 @@ const ComunicacionPage = () => {
         if (response.data.success && response.data.data && response.data.data.auditorias) {
           const auditoriasList = response.data.data.auditorias.map(auditoria => ({
             id: auditoria.id,
-            codigo: `AUD-2025-${String(auditoria.id).padStart(3, '0')}`,
+            codigo: auditoria.codigo, // Usar el código generado por el backend
             sitio: `${auditoria.sitio?.nombre || 'Sitio'} - ${auditoria.proveedor?.nombre || 'Proveedor'}`,
             estado: auditoria.estado,
             fecha_limite: auditoria.fecha_limite_carga

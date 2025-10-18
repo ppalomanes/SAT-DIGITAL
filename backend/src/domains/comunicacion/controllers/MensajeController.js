@@ -304,6 +304,61 @@ class MensajeController {
     }
   }
 
+  static async obtenerMensajes(req, res) {
+    try {
+      const { conversacionId } = req.params;
+      const { page = 1, limit = 50 } = req.query;
+
+      // Verificar permisos de acceso a la conversación
+      const [conversacionCheck] = await require('../../../shared/database/connection').sequelize.query(`
+        SELECT id, auditoria_id FROM conversaciones WHERE id = :conversacionId
+      `, {
+        replacements: { conversacionId }
+      });
+
+      if (!conversacionCheck || conversacionCheck.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Conversación no encontrada'
+        });
+      }
+
+      // Obtener mensajes con paginación
+      const offset = (page - 1) * limit;
+      const [mensajes] = await require('../../../shared/database/connection').sequelize.query(`
+        SELECT
+          m.*,
+          u.nombre as usuario_nombre,
+          u.email as usuario_email,
+          u.rol as usuario_rol
+        FROM mensajes m
+        LEFT JOIN usuarios u ON m.usuario_id = u.id
+        WHERE m.conversacion_id = :conversacionId
+        ORDER BY m.created_at ASC
+        OFFSET :offset ROWS
+        FETCH NEXT :limit ROWS ONLY
+      `, {
+        replacements: { conversacionId, offset, limit: parseInt(limit) }
+      });
+
+      res.json({
+        success: true,
+        data: mensajes,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: mensajes.length
+        }
+      });
+    } catch (error) {
+      console.error('❌ Error obteniendo mensajes:', error);
+      res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+  }
+
   // Método middleware para upload
   static getUploadMiddleware() {
     return upload.single('archivo');

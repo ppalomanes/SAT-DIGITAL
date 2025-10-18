@@ -10,6 +10,14 @@ const PeriodoAuditoria = sequelize.define('PeriodoAuditoria', {
     primaryKey: true,
     autoIncrement: true
   },
+  tenant_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'tenants',
+      key: 'id'
+    }
+  },
   nombre: {
     type: DataTypes.STRING(50),
     allowNull: false

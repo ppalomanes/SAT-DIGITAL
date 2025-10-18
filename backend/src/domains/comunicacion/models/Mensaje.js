@@ -12,6 +12,14 @@ const Mensaje = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
+    },
     conversacion_id: {
       type: DataTypes.INTEGER,
       allowNull: false,

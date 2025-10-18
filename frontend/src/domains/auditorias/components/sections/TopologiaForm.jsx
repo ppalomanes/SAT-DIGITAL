@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -15,14 +15,19 @@ import {
   CardContent,
   Divider,
   Alert,
-  Chip
+  Chip,
+  LinearProgress,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
-  Description as DocumentIcon
+  Description as DocumentIcon,
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
+import { THEME_COLORS } from '../../../../shared/constants/theme';
+import httpClient from '../../../../shared/services/httpClient';
 
-const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
+const TopologiaForm = ({ onSave, onCancel, initialData = {}, auditData }) => {
   const [formData, setFormData] = useState({
     // Información de Red
     tipoRed: initialData.tipoRed || '',
@@ -57,6 +62,48 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [seccionId, setSeccionId] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Obtener ID de la sección desde el backend
+  useEffect(() => {
+    const fetchSeccionId = async () => {
+      try {
+        const response = await httpClient.get('/documentos/secciones-tecnicas');
+        const seccion = response.data.data.find(s => s.codigo === 'topologia');
+        if (seccion) {
+          setSeccionId(seccion.id);
+        }
+      } catch (error) {
+        console.error('Error fetching seccion ID:', error);
+      }
+    };
+
+    fetchSeccionId();
+  }, []);
+
+  // Cargar documentos existentes si hay auditData
+  useEffect(() => {
+    if (auditData?.id) {
+      fetchExistingDocuments();
+    }
+  }, [auditData]);
+
+  const fetchExistingDocuments = async () => {
+    try {
+      const response = await httpClient.get(`/documentos/auditoria/${auditData.id}`);
+
+      // La estructura es: { documentos_por_seccion: { [seccionId]: { seccion, documentos: [...] } } }
+      const seccionData = response.data.documentos_por_seccion?.[seccionId];
+      const topologiaDocs = seccionData?.documentos || [];
+
+      setUploadedFiles(topologiaDocs);
+    } catch (error) {
+      console.error('Error fetching existing documents:', error);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -97,13 +144,74 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleFileChange = async (event) => {
+    const files = Array.from(event.target.files);
+
+    if (files.length === 0) return;
+
+    if (!auditData?.id) {
+      alert('Error: No se encontró ID de auditoría');
+      return;
+    }
+
+    if (!seccionId) {
+      alert('Error: No se encontró ID de sección. Espere un momento e intente nuevamente.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('auditoria_id', auditData.id);
+      formDataToUpload.append('seccion_id', seccionId);
+      formDataToUpload.append('observaciones', formData.observaciones || '');
+
+      files.forEach((file) => {
+        formDataToUpload.append('documentos', file);
+      });
+
+      const response = await httpClient.post('/documentos/cargar', formDataToUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      if (response.data.success) {
+        // Notificar éxito
+        alert(`✅ ${response.data.documentos_guardados} documento(s) cargado(s) exitosamente`);
+
+        // Recargar todos los documentos
+        await fetchExistingDocuments();
+
+        // Limpiar input
+        event.target.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      alert('❌ Error al cargar documentos: ' + errorMsg);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
   const handleSave = () => {
     if (validateForm()) {
       onSave({
         sectionId: 'topologia',
         data: formData,
         completedAt: new Date().toISOString(),
-        status: 'completed'
+        status: uploadedFiles.length > 0 ? 'completed' : 'warning',
+        documentCount: uploadedFiles.length
       });
     }
   };
@@ -112,39 +220,39 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
     <Box sx={{ p: 3 }}>
       {/* Header con descripción */}
       <Box sx={{ mb: 4 }}>
-        <Typography 
-          variant="h5" 
-          gutterBottom 
-          sx={{ 
+        <Typography
+          variant="h5"
+          gutterBottom
+          sx={{
             fontFamily: '"Playfair Display", serif',
-            fontWeight: 500, 
-            color: '#1e293b',
+            fontWeight: 500,
+            color: THEME_COLORS.grey[900],
             mb: 2
           }}
         >
           Topología de Red
         </Typography>
-        
-        <Typography 
-          variant="h6" 
+
+        <Typography
+          variant="h6"
           gutterBottom
           sx={{
             fontFamily: '"Inter", sans-serif',
             fontWeight: 400,
-            color: '#374151',
+            color: THEME_COLORS.grey[700],
             mb: 2
           }}
         >
           Descripción
         </Typography>
-        
-        <Typography 
-          variant="body1" 
+
+        <Typography
+          variant="body1"
           paragraph
-          sx={{ 
+          sx={{
             fontFamily: '"Inter", sans-serif',
             fontWeight: 300,
-            color: '#6b7280',
+            color: THEME_COLORS.grey[600],
             lineHeight: 1.6,
             mb: 3
           }}
@@ -154,7 +262,7 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
         </Typography>
         
         <Alert severity="warning" sx={{ mb: 3, background: 'rgba(255, 152, 0, 0.05)', border: '1px solid rgba(255, 152, 0, 0.2)' }}>
-          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: THEME_COLORS.grey[900] }}>
             Requerimiento específico (1.2)
           </Typography>
           <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
@@ -163,7 +271,7 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
         </Alert>
         
         <Alert severity="info" sx={{ mb: 3, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: THEME_COLORS.grey[900] }}>
             Criterio de aceptación
           </Typography>
           <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
@@ -179,7 +287,7 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#2563eb', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.primary.main, fontWeight: 500 }}>
                 Información General de Red
               </Typography>
               <Grid container spacing={2}>
@@ -230,12 +338,12 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
                     variant="outlined"
                     fullWidth
                     startIcon={<UploadIcon />}
-                    sx={{ 
+                    sx={{
                       height: 56,
-                      borderColor: '#2563eb',
-                      color: '#2563eb',
+                      borderColor: THEME_COLORS.primary.main,
+                      color: THEME_COLORS.primary.main,
                       '&:hover': {
-                        borderColor: '#1d4ed8',
+                        borderColor: THEME_COLORS.primary.dark,
                         backgroundColor: 'rgba(37, 99, 235, 0.04)'
                       }
                     }}
@@ -252,7 +360,7 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#059669', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.success.main, fontWeight: 500 }}>
                 Configuración de Red IP
               </Typography>
               <Grid container spacing={2}>
@@ -310,7 +418,7 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.error.main, fontWeight: 500 }}>
                 Equipos de Red
               </Typography>
               <Grid container spacing={2}>
@@ -448,7 +556,7 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.error.main, fontWeight: 500 }}>
                 Documento PDF Requerido (*)
               </Typography>
               <Alert severity="error" sx={{ mb: 2, background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
@@ -468,24 +576,64 @@ const TopologiaForm = ({ onSave, onCancel, initialData = {} }) => {
                   <Button
                     variant="contained"
                     component="label"
-                    startIcon={<UploadIcon />}
+                    startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
+                    disabled={uploading || !seccionId}
                     sx={{
                       mr: 2,
-                      background: '#dc2626',
+                      background: THEME_COLORS.error.main,
                       '&:hover': {
-                        background: '#b91c1c'
+                        background: THEME_COLORS.error.dark
                       }
                     }}
                   >
-                    Subir PDF de Topología (OBLIGATORIO)
+                    {uploading ? 'Subiendo...' : 'Subir PDF de Topología (OBLIGATORIO)'}
                     <input
                       type="file"
                       hidden
                       accept=".pdf"
                       required
+                      onChange={handleFileChange}
+                      disabled={uploading}
                     />
                   </Button>
+                  {!seccionId && (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                      Cargando configuración...
+                    </Typography>
+                  )}
                 </Grid>
+
+                {uploading && (
+                  <Grid item xs={12}>
+                    <Box sx={{ width: '100%' }}>
+                      <LinearProgress variant="determinate" value={uploadProgress} />
+                      <Typography variant="caption" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+                        Subiendo... {uploadProgress}%
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+
+                {uploadedFiles.length > 0 && (
+                  <Grid item xs={12}>
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        ✅ Documentos cargados ({uploadedFiles.length}):
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                        {uploadedFiles.map((file, index) => (
+                          <Chip
+                            key={file.id || index}
+                            icon={<CheckIcon />}
+                            label={`${file.nombre_original} (${(file.tamaño_bytes / 1024).toFixed(1)} KB)`}
+                            color="success"
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                    </Alert>
+                  </Grid>
+                )}
 
                 <Grid item xs={12} md={6}>
                   <TextField

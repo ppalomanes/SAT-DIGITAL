@@ -33,121 +33,19 @@ import {
   Refresh as RefreshIcon,
   FilterList as FilterIcon
 } from '@mui/icons-material';
+import dayjs from 'dayjs';
 import { useAuthStore } from '../../auth/store/authStore';
 import { periodoService } from '../../calendario/services/periodoService';
 import WorkflowMetrics from '../components/WorkflowMetrics';
 import ProgressIndicator from '../../../shared/components/Progress/ProgressIndicator';
 import { useWorkflow } from '../../../shared/hooks/useWorkflow';
 import DashboardProveedores from '../../proveedores/components/DashboardProveedores';
-import dayjs from 'dayjs';
+import { formatDate, formatRelative } from '../../../shared/utils/dateHelpers';
+import { getEstadoStyle } from '../../../shared/utils/statusHelpers';
+import { MOCK_DASHBOARD_DATA } from '../mocks/dashboardData';
 
-const MOCK_DATA = {
-  metricas_principales: {
-    total_auditorias: { valor: 12, cambio: +12, tendencia: 'up' },
-    proveedores_activos: { valor: 5, cambio: +2.5, tendencia: 'up' },
-    completadas: { valor: 8, cambio: +18, tendencia: 'up' },
-    pendientes: { valor: 4, cambio: -5, tendencia: 'down' }
-  },
-  
-  auditorias_recientes: [
-    {
-      id: 1,
-      proveedor: 'Grupo Activo SRL',
-      sitio: 'ACTIVO - Florida 141',
-      estado: 'Completada',
-      progreso: 100,
-      auditor: 'JP',
-      auditor_nombre: 'Juan Pérez',
-      fecha: '2025-01-14',
-      puntaje: 95
-    },
-    {
-      id: 2,
-      proveedor: 'APEX America',
-      sitio: 'APEX CBA',
-      estado: 'En progreso',
-      progreso: 75,
-      auditor: 'MG',
-      auditor_nombre: 'María González',
-      fecha: '2025-01-17',
-      puntaje: null
-    },
-    {
-      id: 3,
-      proveedor: 'Teleperformance',
-      sitio: 'TELEPERFORMANCE RES',
-      estado: 'Pendiente',
-      progreso: 30,
-      auditor: 'CL',
-      auditor_nombre: 'Carlos López',
-      fecha: '2025-01-19',
-      puntaje: null
-    },
-    {
-      id: 4,
-      proveedor: 'CAT Technologies',
-      sitio: 'CAT-TECHNOLOGIES',
-      estado: 'Revisión',
-      progreso: 90,
-      auditor: 'AM',
-      auditor_nombre: 'Ana Martín',
-      fecha: '2025-01-21',
-      puntaje: 88
-    }
-  ],
-
-  acciones_rapidas: [
-    {
-      id: 'programar',
-      titulo: 'Programar auditoría',
-      descripcion: 'Crear nueva auditoría para el período',
-      icono: <AssignmentIcon />,
-      accion: '/auditorias/nueva'
-    },
-    {
-      id: 'proveedores',
-      titulo: 'Gestionar proveedores',
-      descripcion: 'Administrar proveedores y sitios',
-      icono: <BusinessIcon />,
-      accion: '/proveedores'
-    },
-    {
-      id: 'reportes',
-      titulo: 'Ver reportes',
-      descripcion: 'Generar informes y estadísticas',
-      icono: <TrendingUpIcon />,
-      accion: '/reportes'
-    },
-    {
-      id: 'configuracion',
-      titulo: 'Configurar sistema',
-      descripcion: 'Ajustar parámetros del sistema',
-      icono: <FilterIcon />,
-      accion: '/configuracion'
-    }
-  ],
-
-  alertas_criticas: [
-    {
-      id: 1,
-      tipo: 'warning',
-      mensaje: 'APEX CBA - Documentos vencen en 2 días',
-      fecha: dayjs().subtract(2, 'hours').format('HH:mm')
-    },
-    {
-      id: 2,
-      tipo: 'error',
-      mensaje: 'Konecta ROS - Sin respuesta del proveedor',
-      fecha: dayjs().subtract(1, 'day').format('DD/MM')
-    },
-    {
-      id: 3,
-      tipo: 'info',
-      mensaje: 'Grupo Activo - Auditoría completada',
-      fecha: dayjs().subtract(3, 'hours').format('HH:mm')
-    }
-  ]
-};
+// Usar mock data separado (importado desde archivo dedicado)
+const MOCK_DATA = MOCK_DASHBOARD_DATA;
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -188,19 +86,10 @@ const Dashboard = () => {
     }
   };
 
-  const getEstadoColor = (estado) => {
-    switch (estado.toLowerCase()) {
-      case 'completada':
-        return { color: theme.palette.success.main, bg: alpha(theme.palette.success.main, 0.1) };
-      case 'en progreso':
-        return { color: theme.palette.primary.main, bg: alpha(theme.palette.primary.main, 0.1) };
-      case 'pendiente':
-        return { color: theme.palette.warning.main, bg: alpha(theme.palette.warning.main, 0.1) };
-      case 'revisión':
-        return { color: theme.palette.info.main, bg: alpha(theme.palette.info.main, 0.1) };
-      default:
-        return { color: theme.palette.text.secondary, bg: alpha(theme.palette.text.secondary, 0.1) };
-    }
+  // Usar helper centralizado de estados (reemplaza lógica duplicada)
+  const getEstadoColorLocal = (estado) => {
+    const { color, backgroundColor } = getEstadoStyle(estado);
+    return { color, bg: backgroundColor };
   };
 
   const getTendenciaIcon = (tendencia) => {
@@ -369,7 +258,7 @@ const Dashboard = () => {
               
               <Box display="flex" flexDirection="column" gap={1.5}>
                 {MOCK_DATA.auditorias_recientes.slice(0, 3).map((auditoria) => {
-                  const estadoStyle = getEstadoColor(auditoria.estado);
+                  const estadoStyle = getEstadoColorLocal(auditoria.estado);
                   return (
                     <Box 
                       key={auditoria.id}

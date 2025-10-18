@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -21,7 +21,9 @@ import {
   ListItemIcon,
   ListItemSecondaryAction,
   IconButton,
-  Paper
+  Paper,
+  LinearProgress,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
@@ -32,8 +34,10 @@ import {
   Delete as DeleteIcon,
   Add as AddIcon
 } from '@mui/icons-material';
+import { THEME_COLORS } from '../../../../shared/constants/theme';
+import httpClient from '../../../../shared/services/httpClient';
 
-const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
+const DocumentacionForm = ({ onSave, onCancel, initialData = {}, auditData }) => {
   const [formData, setFormData] = useState({
     // Documentos requeridos
     manuales: {
@@ -86,6 +90,10 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [seccionId, setSeccionId] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [nuevoDocumento, setNuevoDocumento] = useState({
     nombre: '',
     tipo: '',
@@ -101,6 +109,95 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
     'Contrato de servicio',
     'Otro'
   ];
+
+  // Obtener ID de la sección desde el backend
+  useEffect(() => {
+    const fetchSeccionId = async () => {
+      try {
+        const response = await httpClient.get('/documentos/secciones-tecnicas');
+        const seccion = response.data.data.find(s => s.codigo === 'documentacion');
+        if (seccion) {
+          setSeccionId(seccion.id);
+        }
+      } catch (error) {
+        console.error('Error fetching seccion ID:', error);
+      }
+    };
+    fetchSeccionId();
+  }, []);
+
+  // Cargar documentos existentes si hay auditData
+  useEffect(() => {
+    if (auditData?.id) {
+      fetchExistingDocuments();
+    }
+  }, [auditData]);
+
+  const fetchExistingDocuments = async () => {
+    try {
+      const response = await httpClient.get(`/documentos/auditoria/${auditData.id}`);
+      const seccionData = response.data.documentos_por_seccion?.[seccionId];
+      const docs = seccionData?.documentos || [];
+      setUploadedFiles(docs);
+    } catch (error) {
+      console.error('Error fetching existing documents:', error);
+    }
+  };
+
+  const handleFileChange = async (event) => {
+    const files = Array.from(event.target.files);
+
+    if (files.length === 0) return;
+
+    if (!auditData?.id) {
+      alert('Error: No se encontró ID de auditoría');
+      return;
+    }
+
+    if (!seccionId) {
+      alert('Error: No se encontró ID de sección. Espere un momento e intente nuevamente.');
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const formDataToUpload = new FormData();
+      formDataToUpload.append('auditoria_id', auditData.id);
+      formDataToUpload.append('seccion_id', seccionId);
+      formDataToUpload.append('observaciones', formData.observaciones || '');
+
+      files.forEach((file) => {
+        formDataToUpload.append('documentos', file);
+      });
+
+      const response = await httpClient.post('/documentos/cargar', formDataToUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(percentCompleted);
+        },
+      });
+
+      if (response.data.success) {
+        alert(`✅ ${response.data.documentos_guardados} documento(s) cargado(s) exitosamente`);
+        await fetchExistingDocuments();
+        event.target.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading files:', error);
+      const errorMsg = error.response?.data?.error || error.message;
+      alert('❌ Error al cargar documentos: ' + errorMsg);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
 
   const handleInputChange = (section, field, value) => {
     setFormData(prev => ({
@@ -147,13 +244,13 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
   const getEstadoIcon = (estado) => {
     switch (estado) {
       case 'completo':
-        return <CheckIcon sx={{ color: '#4caf50' }} />;
+        return <CheckIcon sx={{ color: THEME_COLORS.success.main }} />;
       case 'parcial':
-        return <WarningIcon sx={{ color: '#ff9800' }} />;
+        return <WarningIcon sx={{ color: THEME_COLORS.warning.main }} />;
       case 'faltante':
-        return <ErrorIcon sx={{ color: '#f44336' }} />;
+        return <ErrorIcon sx={{ color: THEME_COLORS.error.main }} />;
       default:
-        return <WarningIcon sx={{ color: '#9e9e9e' }} />;
+        return <WarningIcon sx={{ color: THEME_COLORS.grey[500] }} />;
     }
   };
 
@@ -199,8 +296,9 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
         sectionId: 'documentacion',
         data: formData,
         completedAt: new Date().toISOString(),
-        status: completionStatus.status,
-        completionPercentage: completionStatus.percentage
+        status: uploadedFiles.length > 0 ? 'completed' : 'warning',
+        completionPercentage: completionStatus.percentage,
+        documentCount: uploadedFiles.length
       });
     }
   };
@@ -209,20 +307,20 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
     <Box sx={{ p: 2 }}>
       {/* Header con descripción */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: '#1e293b', mb: 2 }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 500, color: THEME_COLORS.grey[900], mb: 2 }}>
           Documentación y Controles Infraestructura (*)
         </Typography>
 
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: '#374151', mb: 2 }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 400, color: THEME_COLORS.grey[700], mb: 2 }}>
           Descripción
         </Typography>
 
-        <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: '#6b7280', lineHeight: 1.6, mb: 3 }}>
+        <Typography variant="body1" paragraph sx={{ fontWeight: 300, color: THEME_COLORS.grey[600], lineHeight: 1.6, mb: 3 }}>
           Documentación necesaria para el control de la infraestructura tecnológica.
         </Typography>
 
         <Alert severity="info" sx={{ mb: 3, background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: '#1e293b' }}>
+          <Typography variant="h6" sx={{ fontWeight: 500, mb: 1, color: THEME_COLORS.grey[900] }}>
             Criterio de aceptación
           </Typography>
           <Typography variant="body2" sx={{ fontWeight: 300, lineHeight: 1.6 }}>
@@ -604,7 +702,7 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ color: '#dc2626', fontWeight: 500 }}>
+              <Typography variant="h6" gutterBottom sx={{ color: THEME_COLORS.error.main, fontWeight: 500 }}>
                 Documentos PDF Requeridos (*)
               </Typography>
               <Alert severity="error" sx={{ mb: 2, background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
@@ -624,24 +722,65 @@ const DocumentacionForm = ({ onSave, onCancel, initialData = {} }) => {
                   <Button
                     variant="contained"
                     component="label"
-                    startIcon={<UploadIcon />}
+                    startIcon={uploading ? <CircularProgress size={20} color="inherit" /> : <UploadIcon />}
+                    disabled={uploading || !seccionId}
                     sx={{
                       mr: 2,
-                      background: '#dc2626',
+                      background: THEME_COLORS.error.main,
                       '&:hover': {
-                        background: '#b91c1c'
+                        background: THEME_COLORS.error.dark
                       }
                     }}
                   >
-                    Subir Documentación PDF (OBLIGATORIO)
+                    {uploading ? 'Subiendo...' : 'Subir Documentación PDF (OBLIGATORIO)'}
                     <input
                       type="file"
                       hidden
                       accept=".pdf"
                       required
+                      onChange={handleFileChange}
+                      disabled={uploading}
+                      multiple
                     />
                   </Button>
+                  {!seccionId && (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 2 }}>
+                      Cargando configuración...
+                    </Typography>
+                  )}
                 </Grid>
+
+                {uploading && (
+                  <Grid item xs={12}>
+                    <Box sx={{ width: '100%' }}>
+                      <LinearProgress variant="determinate" value={uploadProgress} />
+                      <Typography variant="caption" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+                        Subiendo... {uploadProgress}%
+                      </Typography>
+                    </Box>
+                  </Grid>
+                )}
+
+                {uploadedFiles.length > 0 && (
+                  <Grid item xs={12}>
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        ✅ Documentos cargados ({uploadedFiles.length}):
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                        {uploadedFiles.map((file, index) => (
+                          <Chip
+                            key={file.id || index}
+                            icon={<CheckIcon />}
+                            label={`${file.nombre_original} (${(file.tamaño_bytes / 1024).toFixed(1)} KB)`}
+                            color="success"
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                    </Alert>
+                  </Grid>
+                )}
 
                 <Grid item xs={12} md={6}>
                   <TextField

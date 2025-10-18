@@ -52,8 +52,7 @@ import {
   CalendarToday
 } from '@mui/icons-material';
 import { useAuthStore } from '../../auth/store/authStore';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { formatDate, formatDateTime } from '../../../shared/utils/dateHelpers';
 import axios from 'axios';
 
 const DashboardProveedores = () => {
@@ -381,7 +380,7 @@ const DashboardProveedores = () => {
 
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                           <Typography variant="caption" color="text.secondary">
-                            Vence: {format(auditoria.fecha_limite, 'dd/MM/yyyy', { locale: es })}
+                            Vence: {formatDate(auditoria.fecha_limite)}
                           </Typography>
                           <Chip
                             size="small"
@@ -445,7 +444,7 @@ const DashboardProveedores = () => {
                     {alerta.mensaje}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Límite: {format(alerta.fecha_limite, 'dd/MM/yyyy', { locale: es })}
+                    Límite: {formatDate(alerta.fecha_limite)}
                   </Typography>
                 </Alert>
               ))}
@@ -473,7 +472,7 @@ const DashboardProveedores = () => {
                     </ListItemIcon>
                     <ListItemText
                       primary={actividad.descripcion}
-                      secondary={format(actividad.timestamp, 'dd/MM/yyyy HH:mm', { locale: es })}
+                      secondary={formatDateTime(actividad.timestamp)}
                     />
                   </ListItem>
                 ))}

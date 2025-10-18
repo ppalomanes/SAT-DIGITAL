@@ -23,6 +23,10 @@ const VersionDocumento = require('../../../domains/documentos/models/VersionDocu
 // Importar modelos del dominio IA-Análisis
 const AnalisisIA = require('./AnalisisIA');
 
+// Importar e inicializar modelo Tenant
+const TenantModel = require('./Tenant');
+const Tenant = TenantModel(sequelize);
+
 // =============================================================================
 // MODELO: PROVEEDORES
 // =============================================================================
@@ -33,6 +37,14 @@ const Proveedor = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
+    },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
     },
     razon_social: {
       type: DataTypes.STRING(255),
@@ -86,6 +98,14 @@ const Sitio = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
+    },
     proveedor_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -129,6 +149,14 @@ const Usuario = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
+    },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
     },
     email: {
       type: DataTypes.STRING(255),
@@ -241,6 +269,14 @@ const Auditoria = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
+    },
     sitio_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -320,6 +356,14 @@ const Documento = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
+    },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
     },
     auditoria_id: {
       type: DataTypes.INTEGER,
@@ -405,6 +449,14 @@ const Bitacora = sequelize.define(
       primaryKey: true,
       autoIncrement: true
     },
+    tenant_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'tenants',
+        key: 'id'
+      }
+    },
     usuario_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -459,6 +511,61 @@ const Bitacora = sequelize.define(
 // =============================================================================
 // DEFINICIÓN DE RELACIONES
 // =============================================================================
+
+// Tenant - Relaciones principales
+Tenant.hasMany(Usuario, {
+  foreignKey: 'tenant_id',
+  as: 'usuarios'
+});
+Usuario.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
+Tenant.hasMany(Proveedor, {
+  foreignKey: 'tenant_id',
+  as: 'proveedores'
+});
+Proveedor.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
+Tenant.hasMany(Sitio, {
+  foreignKey: 'tenant_id',
+  as: 'sitios'
+});
+Sitio.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
+Tenant.hasMany(Auditoria, {
+  foreignKey: 'tenant_id',
+  as: 'auditorias'
+});
+Auditoria.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
+Tenant.hasMany(Documento, {
+  foreignKey: 'tenant_id',
+  as: 'documentos'
+});
+Documento.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
+Tenant.hasMany(Bitacora, {
+  foreignKey: 'tenant_id',
+  as: 'bitacora'
+});
+Bitacora.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
 
 // Usuario - Proveedor
 Usuario.belongsTo(Proveedor, {
@@ -544,6 +651,16 @@ Bitacora.belongsTo(Usuario, {
 // RELACIONES MÓDULO CALENDARIO
 // =============================================================================
 
+// Tenant - PeriodoAuditoria
+Tenant.hasMany(PeriodoAuditoria, {
+  foreignKey: 'tenant_id',
+  as: 'periodos_auditoria'
+});
+PeriodoAuditoria.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
 // Usuario - PeriodoAuditoria (creador)
 Usuario.hasMany(PeriodoAuditoria, {
   foreignKey: 'created_by',
@@ -552,6 +669,16 @@ Usuario.hasMany(PeriodoAuditoria, {
 PeriodoAuditoria.belongsTo(Usuario, {
   foreignKey: 'created_by',
   as: 'creador'
+});
+
+// Tenant - AsignacionAuditor
+Tenant.hasMany(AsignacionAuditor, {
+  foreignKey: 'tenant_id',
+  as: 'asignaciones_auditor'
+});
+AsignacionAuditor.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
 });
 
 // Auditoria - AsignacionAuditor
@@ -577,6 +704,16 @@ AsignacionAuditor.belongsTo(Usuario, {
 // =============================================================================
 // RELACIONES MÓDULO COMUNICACIÓN
 // =============================================================================
+
+// Tenant - Conversaciones
+Tenant.hasMany(Conversacion, {
+  foreignKey: 'tenant_id',
+  as: 'conversaciones_tenant'
+});
+Conversacion.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
 
 // Auditoria - Conversaciones
 Auditoria.hasMany(Conversacion, {
@@ -608,6 +745,16 @@ Conversacion.belongsTo(Usuario, {
   as: 'iniciador'
 });
 
+// Tenant - Mensajes
+Tenant.hasMany(Mensaje, {
+  foreignKey: 'tenant_id',
+  as: 'mensajes_tenant'
+});
+Mensaje.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
 // Conversacion - Mensajes
 Conversacion.hasMany(Mensaje, {
   foreignKey: 'conversacion_id',
@@ -636,6 +783,16 @@ Documento.hasMany(Mensaje, {
 Mensaje.belongsTo(Documento, {
   foreignKey: 'referencia_documento_id',
   as: 'documento_referencia'
+});
+
+// Tenant - Notificaciones
+Tenant.hasMany(NotificacionUsuario, {
+  foreignKey: 'tenant_id',
+  as: 'notificaciones_tenant'
+});
+NotificacionUsuario.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
 });
 
 // Usuario - Notificaciones
@@ -733,6 +890,7 @@ AnalisisIA.belongsTo(Documento, {
 module.exports = {
   sequelize,
   Op,
+  Tenant,
   Usuario,
   Proveedor,
   Sitio,

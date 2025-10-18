@@ -186,6 +186,9 @@ const runSeeders = async () => {
   try {
     console.log('🌱 Iniciando seeders...');
 
+    // ID del tenant por defecto (Telecom Argentina)
+    const DEFAULT_TENANT_ID = 1;
+
     // 1. CREAR USUARIO ADMINISTRADOR
     console.log('👤 Creando usuario administrador...');
 
@@ -193,6 +196,7 @@ const runSeeders = async () => {
     if (!adminExists) {
       const adminPassword = await bcrypt.hash('admin123', 12);
       await Usuario.create({
+        tenant_id: DEFAULT_TENANT_ID,
         email: 'admin@satdigital.com',
         password_hash: adminPassword,
         nombre: 'Administrador SAT-Digital',
@@ -217,6 +221,7 @@ const runSeeders = async () => {
       const [proveedor, proveedorCreated] = await Proveedor.findOrCreate({
         where: { cuit: proveedorData.cuit },
         defaults: {
+          tenant_id: DEFAULT_TENANT_ID,
           razon_social: proveedorData.razon_social,
           cuit: proveedorData.cuit,
           nombre_comercial: proveedorData.nombre_comercial,
@@ -237,6 +242,7 @@ const runSeeders = async () => {
             nombre: sitioData.nombre
           },
           defaults: {
+            tenant_id: DEFAULT_TENANT_ID,
             proveedor_id: proveedor.id,
             nombre: sitioData.nombre,
             localidad: sitioData.localidad,
@@ -280,6 +286,7 @@ const runSeeders = async () => {
       if (!userExists) {
         const hashedPassword = await bcrypt.hash(userData.password, 12);
         await Usuario.create({
+          tenant_id: DEFAULT_TENANT_ID,
           email: userData.email,
           password_hash: hashedPassword,
           nombre: userData.nombre,
@@ -299,6 +306,7 @@ const runSeeders = async () => {
       if (!proveedorExists) {
         const proveedorPassword = await bcrypt.hash('proveedor123', 12);
         await Usuario.create({
+          tenant_id: DEFAULT_TENANT_ID,
           email: 'proveedor@activo.com',
           password_hash: proveedorPassword,
           nombre: 'Jefe Proveedor Activo',
@@ -308,12 +316,13 @@ const runSeeders = async () => {
         });
         console.log('✅ Usuario jefe proveedor creado: proveedor@activo.com / proveedor123');
       }
-      
+
       // Crear técnico proveedor también
       const tecnicoExists = await Usuario.findOne({ where: { email: 'tecnico@activo.com' } });
       if (!tecnicoExists) {
         const tecnicoPassword = await bcrypt.hash('tecnico123', 12);
         await Usuario.create({
+          tenant_id: DEFAULT_TENANT_ID,
           email: 'tecnico@activo.com',
           password_hash: tecnicoPassword,
           nombre: 'Luis Técnico Proveedor Activo',

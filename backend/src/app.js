@@ -23,10 +23,15 @@ const rateLimit = require('express-rate-limit');
 const { sequelize } = require('./shared/database/connection');
 const logger = require('./shared/utils/logger');
 const { errorHandler, notFoundHandler } = require('./shared/middleware/errorHandlers');
+const { verificarToken } = require('./shared/middleware/authMiddleware');
+const { tenantResolver, validateUserTenant } = require('./shared/middleware/tenantResolver');
+const { tenantScopeMiddleware } = require('./shared/middleware/tenantScope');
 // ChatHandler for WebSocket communication
 const ChatHandler = require('./domains/comunicacion/websockets/chatHandler');
 // Sistema de notificaciones automáticas
 const NotificacionesScheduler = require('./domains/notificaciones/services/NotificacionesScheduler');
+// Multi-tenancy tenant scope hooks
+const { addTenantHooks } = require('./shared/middleware/tenantScope');
 
 // Importar rutas por dominio
 const authRoutes = require('./domains/auth/routes');
@@ -174,20 +179,26 @@ app.get('/health', (req, res) => {
 // API Routes con prefijo
 const API_PREFIX = '/api';
 
+// ===== RUTAS PÚBLICAS (sin tenant ni autenticación) =====
 app.use(`${API_PREFIX}/auth`, authRoutes);
-// app.use(`${API_PREFIX}/usuarios`, userRoutes); // TEMP: Comentado
-app.use(`${API_PREFIX}/proveedores`, proveedoresRoutes);
-app.use(`${API_PREFIX}/sitios`, sitiosRoutes);
-app.use(`${API_PREFIX}/providers`, providerRoutes);
-app.use(`${API_PREFIX}/auditorias`, auditRoutes);
-app.use(`${API_PREFIX}/calendario`, calendarioRoutes);
-app.use(`${API_PREFIX}/documentos`, documentosRoutes);
-app.use(`${API_PREFIX}/comunicacion`, comunicacionRoutes);
-app.use(`${API_PREFIX}/notificaciones`, notificacionesRoutes);
-app.use(`${API_PREFIX}/auditores`, auditoresRoutes);
-app.use(`${API_PREFIX}/parque-informatico`, parqueInformaticoRoutes);
-app.use(`${API_PREFIX}/ia-analisis`, iaAnalisisRoutes);
-app.use(`${API_PREFIX}/diagnosticos`, diagnosticsRoutes);
+
+// ===== RUTAS PROTEGIDAS (requieren autenticación + tenant context) =====
+// Middleware chain: verificarToken → tenantResolver → tenantScopeMiddleware → validateUserTenant
+const protectedMiddleware = [verificarToken, tenantResolver, tenantScopeMiddleware, validateUserTenant];
+
+// app.use(`${API_PREFIX}/usuarios`, ...protectedMiddleware, userRoutes); // TEMP: Comentado
+app.use(`${API_PREFIX}/proveedores`, ...protectedMiddleware, proveedoresRoutes);
+app.use(`${API_PREFIX}/sitios`, ...protectedMiddleware, sitiosRoutes);
+app.use(`${API_PREFIX}/providers`, ...protectedMiddleware, providerRoutes);
+app.use(`${API_PREFIX}/auditorias`, ...protectedMiddleware, auditRoutes);
+app.use(`${API_PREFIX}/calendario`, ...protectedMiddleware, calendarioRoutes);
+app.use(`${API_PREFIX}/documentos`, ...protectedMiddleware, documentosRoutes);
+app.use(`${API_PREFIX}/comunicacion`, ...protectedMiddleware, comunicacionRoutes);
+app.use(`${API_PREFIX}/notificaciones`, ...protectedMiddleware, notificacionesRoutes);
+app.use(`${API_PREFIX}/auditores`, ...protectedMiddleware, auditoresRoutes);
+app.use(`${API_PREFIX}/parque-informatico`, ...protectedMiddleware, parqueInformaticoRoutes);
+app.use(`${API_PREFIX}/ia-analisis`, ...protectedMiddleware, iaAnalisisRoutes);
+app.use(`${API_PREFIX}/diagnosticos`, ...protectedMiddleware, diagnosticsRoutes);
 
 // Documentación API (Swagger) - solo en desarrollo
 if (process.env.NODE_ENV === 'development') {
@@ -212,6 +223,10 @@ const startServer = async () => {
     // Verificar conexión a base de datos
     await sequelize.authenticate();
     logger.info('✅ Database connection established successfully');
+
+    // Agregar hooks globales de tenant scope para aislamiento automático
+    addTenantHooks(sequelize);
+    logger.info('✅ Tenant scope hooks initialized');
 
     // Sincronizar modelos (solo en desarrollo) - DESACTIVADO TEMPORALMENTE
     // if (process.env.NODE_ENV === 'development') {
@@ -280,3 +295,4 @@ if (require.main === module) {
 
 module.exports = { app, server, io };
 // Force restart for diagnostics
+
