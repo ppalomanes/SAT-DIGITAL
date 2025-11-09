@@ -23,9 +23,25 @@ const VersionDocumento = require('../../../domains/documentos/models/VersionDocu
 // Importar modelos del dominio IA-Análisis
 const AnalisisIA = require('./AnalisisIA');
 
+// Importar modelos del dominio Configuraciones
+const ConfiguracionValidacionModel = require('./ConfiguracionValidacion');
+const ConfiguracionHistorialModel = require('./ConfiguracionHistorial');
+
+// Importar modelos del dominio Pliegos de Requisitos
+const PliegoRequisitosModel = require('./PliegoRequisitos');
+const PliegoHistorialModel = require('./PliegoHistorial');
+
 // Importar e inicializar modelo Tenant
 const TenantModel = require('./Tenant');
 const Tenant = TenantModel(sequelize);
+
+// Inicializar modelos de configuraciones
+const ConfiguracionValidacion = ConfiguracionValidacionModel(sequelize);
+const ConfiguracionHistorial = ConfiguracionHistorialModel(sequelize);
+
+// Inicializar modelos de pliegos
+const PliegoRequisitos = PliegoRequisitosModel(sequelize);
+const PliegoHistorial = PliegoHistorialModel(sequelize);
 
 // =============================================================================
 // MODELO: PROVEEDORES
@@ -911,5 +927,11 @@ module.exports = {
   // Modelos de documentos
   VersionDocumento,
   // Modelos de IA-Análisis
-  AnalisisIA
+  AnalisisIA,
+  // Modelos de Configuraciones
+  ConfiguracionValidacion,
+  ConfiguracionHistorial,
+  // Modelos de Pliegos de Requisitos
+  PliegoRequisitos,
+  PliegoHistorial
 };
