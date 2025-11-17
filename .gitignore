@@ -48,3 +48,31 @@ storage/
 # Temporary
 *.tmp
 temp/
+nul
+
+# Testing and debugging scripts (development only)
+test-*.js
+backend/test-*.js
+backend/check-*.js
+backend/diagnose-*.js
+backend/fix-*.js
+backend/scripts/test-*.js
+backend/scripts/debug-*.js
+backend/scripts/check-*.js
+backend/scripts/inspeccionar-*.js
+backend/scripts/listar-*.js
+backend/scripts/migrate-*.js
+backend/scripts/asociar-*.js
+backend/scripts/verificar-*.js
+backend/scripts/actualizar-pliego-completo.js
+
+# Temporary tokens and local files
+.temp_token.txt
+.claude/settings.local.json
+
+# Work in progress components/services
+frontend/src/components/
+frontend/src/services/
+frontend/src/utils/diagnostico*.js
+frontend/src/utils/valores*.js
+frontend/src/domains/auditorias/components/sections/AdminConfigPanel.jsx
