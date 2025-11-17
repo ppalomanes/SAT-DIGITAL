@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,7 +14,9 @@ import {
   Switch,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Autocomplete,
+  Box
 } from '@mui/material';
 import { ExpandMore } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -24,6 +26,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 
 import { useCalendarioStore } from '../store/calendarioStore';
+import pliegosService from '../../../services/pliegosService';
 
 dayjs.locale('es');
 
@@ -45,11 +48,34 @@ function ModalCrearPeriodo() {
     fecha_limite_carga: null,
     fecha_inicio_visitas: null,
     fecha_fin_visitas: null,
+    pliego_requisitos_id: null,
     configuracion_especial: {}
   });
 
   const [errores, setErrores] = useState({});
   const [configuracionAvanzada, setConfiguracionAvanzada] = useState(false);
+  const [pliegos, setPliegos] = useState([]);
+  const [pliegoSeleccionado, setPliegoSeleccionado] = useState(null);
+  const [loadingPliegos, setLoadingPliegos] = useState(false);
+
+  // Cargar pliegos cuando se abre el modal
+  useEffect(() => {
+    if (modalPeriodo) {
+      cargarPliegos();
+    }
+  }, [modalPeriodo]);
+
+  const cargarPliegos = async () => {
+    try {
+      setLoadingPliegos(true);
+      const response = await pliegosService.listarPliegos();
+      setPliegos(response.data || []);
+    } catch (err) {
+      console.error('Error al cargar pliegos:', err);
+    } finally {
+      setLoadingPliegos(false);
+    }
+  };
 
   const handleClose = () => {
     setFormData({
@@ -59,9 +85,11 @@ function ModalCrearPeriodo() {
       fecha_limite_carga: null,
       fecha_inicio_visitas: null,
       fecha_fin_visitas: null,
+      pliego_requisitos_id: null,
       configuracion_especial: {}
     });
     setErrores({});
+    setPliegoSeleccionado(null);
     cerrarModalPeriodo();
   };
 
@@ -204,6 +232,54 @@ function ModalCrearPeriodo() {
                 helperText={errores.codigo || 'Formato: YYYY-MM'}
                 placeholder="2025-05"
                 required
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Autocomplete
+                options={pliegos}
+                value={pliegoSeleccionado}
+                onChange={(event, newValue) => {
+                  setPliegoSeleccionado(newValue);
+                  setFormData(prev => ({
+                    ...prev,
+                    pliego_requisitos_id: newValue ? newValue.id : null
+                  }));
+                }}
+                getOptionLabel={(option) => `${option.codigo} - ${option.nombre}`}
+                loading={loadingPliegos}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Pliego de Requisitos"
+                    helperText="Selecciona el pliego de requisitos técnicos que aplicará a este período"
+                    InputProps={{
+                      ...params.InputProps,
+                      endAdornment: (
+                        <>
+                          {loadingPliegos ? <CircularProgress color="inherit" size={20} /> : null}
+                          {params.InputProps.endAdornment}
+                        </>
+                      ),
+                    }}
+                  />
+                )}
+                renderOption={(props, option) => (
+                  <li {...props}>
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium">
+                        {option.codigo} - {option.nombre}
+                      </Typography>
+                      {option.descripcion && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          {option.descripcion.substring(0, 80)}
+                          {option.descripcion.length > 80 ? '...' : ''}
+                        </Typography>
+                      )}
+                    </Box>
+                  </li>
+                )}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
               />
             </Grid>
 

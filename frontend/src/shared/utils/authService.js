@@ -19,16 +19,23 @@ const apiClient = axios.create({
  */
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('sat-digital-auth');
-    if (token) {
+    const authStorageData = localStorage.getItem('sat-digital-auth');
+    if (authStorageData) {
       try {
-        const authData = JSON.parse(token);
-        if (authData.state?.token) {
-          config.headers.Authorization = `Bearer ${authData.state.token}`;
+        const authData = JSON.parse(authStorageData);
+        // Zustand puede guardar en authData.state o directamente en authData
+        const token = authData.state?.token || authData.token;
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+          console.log('✅ Token agregado al request:', config.url);
+        } else {
+          console.warn('⚠️ No se encontró token en localStorage');
         }
       } catch (error) {
         console.warn('Error parseando token desde localStorage:', error);
       }
+    } else {
+      console.warn('⚠️ No hay datos de autenticación en localStorage');
     }
     return config;
   },
@@ -53,25 +60,31 @@ apiClient.interceptors.response.use(
 
       try {
         // Intentar refresh token
-        const authData = localStorage.getItem('sat-digital-auth');
-        if (authData) {
-          const parsedAuth = JSON.parse(authData);
-          if (parsedAuth.state?.token) {
+        const authStorageData = localStorage.getItem('sat-digital-auth');
+        if (authStorageData) {
+          const parsedAuth = JSON.parse(authStorageData);
+          const currentToken = parsedAuth.state?.token || parsedAuth.token;
+
+          if (currentToken) {
             const refreshResponse = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {}, {
               headers: {
-                Authorization: `Bearer ${parsedAuth.state.token}`
+                Authorization: `Bearer ${currentToken}`
               }
             });
 
             const newToken = refreshResponse.data.token;
-            
-            // Actualizar token en localStorage
-            parsedAuth.state.token = newToken;
+
+            // Actualizar token en localStorage (mantener estructura original)
+            if (parsedAuth.state) {
+              parsedAuth.state.token = newToken;
+            } else {
+              parsedAuth.token = newToken;
+            }
             localStorage.setItem('sat-digital-auth', JSON.stringify(parsedAuth));
-            
+
             // Actualizar header del request original
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            
+
             return apiClient(originalRequest);
           }
         }

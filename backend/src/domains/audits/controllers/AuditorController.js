@@ -12,16 +12,18 @@
 
 const { z } = require('zod');
 const { Op } = require('sequelize');
-const { 
-  Usuario, 
-  Auditoria, 
-  Sitio, 
-  Proveedor, 
-  Documento, 
+const {
+  Usuario,
+  Auditoria,
+  Sitio,
+  Proveedor,
+  Documento,
   AsignacionAuditor,
   Conversacion,
-  Mensaje
+  Mensaje,
+  PliegoRequisitos
 } = require('../../../shared/database/models');
+const PeriodoAuditoria = require('../../calendario/models/PeriodoAuditoria');
 const logger = require('../../../shared/utils/logger');
 
 /**
@@ -611,6 +613,83 @@ class AuditorController {
 
     } catch (error) {
       logger.error('Error exportando reporte:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtener pliego de requisitos asociado a una auditoría
+   * GET /api/auditorias/:id/pliego
+   */
+  static async obtenerPliegoAuditoria(req, res) {
+    try {
+      const { id: auditoria_id } = req.params;
+      const { tenant_id } = req.usuario;
+
+      // Buscar la auditoría con su período
+      const auditoria = await Auditoria.findOne({
+        where: { id: auditoria_id, tenant_id },
+        attributes: ['id', 'periodo', 'sitio_id']
+      });
+
+      if (!auditoria) {
+        return res.status(404).json({
+          success: false,
+          message: 'Auditoría no encontrada'
+        });
+      }
+
+      // Buscar el período y su pliego asociado
+      const periodo = await PeriodoAuditoria.findOne({
+        where: {
+          codigo: auditoria.periodo,
+          tenant_id
+        },
+        attributes: ['id', 'nombre', 'codigo', 'pliego_requisitos_id']
+      });
+
+      if (!periodo || !periodo.pliego_requisitos_id) {
+        return res.json({
+          success: true,
+          message: 'Esta auditoría no tiene un pliego de requisitos asociado',
+          data: null
+        });
+      }
+
+      // Obtener el pliego completo
+      const pliego = await PliegoRequisitos.findOne({
+        where: {
+          id: periodo.pliego_requisitos_id,
+          tenant_id,
+          activo: 1  // SQL Server BIT field: use 1 instead of true
+        }
+      });
+
+      if (!pliego) {
+        return res.status(404).json({
+          success: false,
+          message: 'Pliego de requisitos no encontrado'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          pliego,
+          periodo: {
+            id: periodo.id,
+            nombre: periodo.nombre,
+            codigo: periodo.codigo
+          }
+        }
+      });
+
+    } catch (error) {
+      logger.error('Error obteniendo pliego de auditoría:', error);
       res.status(500).json({
         success: false,
         message: 'Error interno del servidor',

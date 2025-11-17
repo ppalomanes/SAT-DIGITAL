@@ -94,6 +94,16 @@ router.post('/exportar-reporte',
 );
 
 /**
+ * GET /api/auditorias/:id/pliego
+ * Obtener pliego de requisitos asociado a una auditoría
+ */
+router.get('/:id/pliego',
+  verificarRol('admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor', 'tecnico_proveedor'),
+  verificarSegregacionProveedor,
+  AuditorController.obtenerPliegoAuditoria
+);
+
+/**
  * CHECKPOINT 2.9 - WORKFLOW DE ESTADOS AUTOMÁTICOS
  */
 

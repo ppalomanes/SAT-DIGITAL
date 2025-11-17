@@ -39,9 +39,9 @@ import {
   Analytics as AnalyticsIcon,
   Refresh as RefreshIcon,
   GetApp as DownloadIcon,
-  FileDownload as ExportIcon
-,
-  CheckCircle as CheckIcon
+  FileDownload as ExportIcon,
+  CheckCircle as CheckIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { THEME_COLORS } from '../../../../shared/constants/theme';
 import httpClient from '../../../../shared/services/httpClient';
@@ -50,6 +50,15 @@ import httpClient from '../../../../shared/services/httpClient';
 import { processExcelFile } from '../../../../utils/excelProcessor';
 import { exportToExcel, exportToCSV, exportToJSON, generateComplianceReport } from '../../../../utils/dataExporter';
 import { HEADSETS_HOMOLOGADOS, MARCAS_HEADSETS_HOMOLOGADAS } from '../../../../utils/headsetsHomologados';
+import AdminConfigPanel from './AdminConfigPanel';
+
+// Importar sistema de validación de pliegos
+import auditoriasService from '../../../../services/auditoriasService';
+import { validarContraPliego } from '../../../../utils/pliegoValidator';
+import { transformarPliegoAValidationRules } from '../../../../utils/pliegoTransformer';
+import diagnosticoValidacion from '../../../../utils/diagnosticoValidacion';
+import diagnosticoFalsosPositivos from '../../../../utils/diagnosticoFalsosPositivos';
+import PliegoRequisitosPanel from '../PliegoRequisitosPanel';
 
 const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData }) => {
   // Verificar rol de usuario
@@ -85,6 +94,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
 
   // Componente para configuración de requisitos mínimos (solo administrador)
   const renderRequisitosMinimoConfig = () => {
+    // Si no es admin y está bloqueado, mostrar mensaje
     if (!isAdmin && formData.configuracionBloqueada) {
       return (
         <Grid item xs={12}>
@@ -104,6 +114,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
       );
     }
 
+    // Si no es admin, no mostrar nada
     if (!isAdmin) return null;
 
     return (
@@ -127,6 +138,55 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
             </Box>
 
             {formData.mostrarConfiguracion && (
+              <AdminConfigPanel
+                formData={formData}
+                onConfigChange={handleRequirementChange}
+              />
+            )}
+
+            <Box sx={{ mt: 3, p: 2, background: '#fff3cd', borderRadius: 1, display: formData.mostrarConfiguracion ? 'block' : 'none' }}>
+              <Button
+                variant="contained"
+                color="warning"
+                size="small"
+                onClick={async () => {
+                  try {
+                    setFormData(prev => ({ ...prev, procesando: true }));
+
+                    const response = await httpClient.post('/configuraciones', {
+                      auditoria_id: auditData?.id || null,
+                      tipo_seccion: 'parque_informatico',
+                      requisitos_minimos: formData.requisitosMinimos,
+                      nombre_configuracion: auditData?.nombre || 'Configuración Global',
+                      descripcion: `Configuración de requisitos mínimos para validación de parque informático`,
+                      bloqueado: true
+                    });
+
+                    if (response.data.success) {
+                      handleInputChange('configuracionBloqueada', true);
+                      handleInputChange('mostrarConfiguracion', false);
+                      alert('✅ Configuración guardada y bloqueada exitosamente');
+                      console.log('✅ Configuración guardada:', response.data.data.id);
+                    }
+                  } catch (error) {
+                    console.error('Error guardando configuración:', error);
+                    alert('❌ Error al guardar la configuración: ' + (error.response?.data?.message || error.message));
+                  } finally {
+                    setFormData(prev => ({ ...prev, procesando: false }));
+                  }
+                }}
+                disabled={formData.procesando}
+                sx={{ mr: 2 }}
+              >
+                {formData.procesando ? '⏳ Guardando...' : '🔒 Bloquear Configuración'}
+              </Button>
+              <Typography variant="caption" sx={{ color: '#856404' }}>
+                Al bloquear, otros usuarios no podrán modificar estos requisitos.
+              </Typography>
+            </Box>
+
+            {/*OLD-CONFIG-MARKER-DO-NOT-REMOVE*/}
+            {false && (
               <Box>
                 <Alert severity="warning" sx={{ mb: 3 }}>
                   <Typography variant="body2" sx={{ fontWeight: 500 }}>
@@ -669,6 +729,11 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
 
+  // Estado para validación de pliego
+  const [pliegoData, setPliegoData] = useState(null);
+  const [resultadosValidacion, setResultadosValidacion] = useState(null);
+  const [loadingPliego, setLoadingPliego] = useState(false);
+
   // Obtener ID de la sección desde el backend
   useEffect(() => {
     const fetchSeccionId = async () => {
@@ -685,12 +750,185 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
     fetchSeccionId();
   }, []);
 
+  // Cargar configuración de validación desde backend
+  useEffect(() => {
+    const fetchConfiguracion = async () => {
+      try {
+        const response = await httpClient.get('/configuraciones', {
+          params: {
+            auditoria_id: auditData?.id,
+            tipo_seccion: 'parque_informatico'
+          }
+        });
+
+        if (response.data.success && response.data.data) {
+          const config = response.data.data;
+          setFormData(prev => ({
+            ...prev,
+            requisitosMinimos: config.requisitos_minimos,
+            configuracionBloqueada: config.bloqueado
+          }));
+          console.log('✅ Configuración cargada desde backend:', config.id);
+        }
+      } catch (error) {
+        // Si no hay configuración, usar valores por defecto (ya están en initialData)
+        if (error.response?.status !== 404) {
+          console.error('Error cargando configuración:', error);
+        }
+      }
+    };
+
+    if (isAdmin) {
+      fetchConfiguracion();
+    }
+  }, [auditData?.id, isAdmin]);
+
   // Cargar documentos existentes si hay auditData
   useEffect(() => {
     if (auditData?.id) {
       fetchExistingDocuments();
     }
   }, [auditData]);
+
+  // Cargar pliego de requisitos asociado a la auditoría
+  useEffect(() => {
+    const cargarPliego = async () => {
+      if (!auditData?.id) return;
+
+      setLoadingPliego(true);
+      try {
+        const response = await auditoriasService.obtenerPliegoAuditoria(auditData.id);
+        if (response.success && response.data?.pliego) {
+          setPliegoData(response.data.pliego);
+          console.log('✅ Pliego cargado:', response.data.pliego.codigo);
+        } else {
+          console.log('ℹ️ Esta auditoría no tiene pliego de requisitos asociado');
+          setPliegoData(null);
+        }
+      } catch (error) {
+        console.error('Error cargando pliego:', error);
+        setPliegoData(null);
+      } finally {
+        setLoadingPliego(false);
+      }
+    };
+
+    cargarPliego();
+  }, [auditData?.id]);
+
+  // Exponer herramientas de diagnóstico en la consola del navegador
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.SAT_DEBUG = {
+        equipos: formData.datosNormalizados,
+        pliego: pliegoData,
+        validacion: resultadosValidacion,
+        estadisticas: formData.estadisticas,
+
+        // Funciones de diagnóstico
+        comparar: () => diagnosticoValidacion.compararValidaciones(
+          formData.datosNormalizados,
+          pliegoData
+        ),
+        mostrarPliego: () => diagnosticoValidacion.mostrarRequisitosPliego(pliegoData),
+        analizarEquipo: (index) => diagnosticoValidacion.analizarEquipo(
+          formData.datosNormalizados[index],
+          pliegoData
+        ),
+        buscarHostname: (hostname) => {
+          const encontrados = diagnosticoValidacion.buscarPorHostname(
+            formData.datosNormalizados,
+            hostname
+          );
+          return encontrados;
+        },
+        analizarHostname: (hostname) => {
+          const encontrados = diagnosticoValidacion.buscarPorHostname(
+            formData.datosNormalizados,
+            hostname
+          );
+          if (encontrados.length > 0) {
+            console.log('\n📊 ANÁLISIS DETALLADO:');
+            encontrados.forEach((eq, i) => {
+              console.log(`\n${'='.repeat(80)}`);
+              console.log(`EQUIPO ${i + 1} de ${encontrados.length}: ${eq.hostname}`);
+              console.log('='.repeat(80));
+              diagnosticoValidacion.analizarEquipo(eq, pliegoData);
+            });
+          }
+          return encontrados;
+        },
+        mostrarReglas: () => {
+          const rules = transformarPliegoAValidationRules(pliegoData);
+          diagnosticoValidacion.mostrarReglasTransformadas(rules);
+          return rules;
+        },
+
+        // Diagnóstico de falsos positivos
+        analizarFalsosPositivos: (hostnames) => {
+          return diagnosticoFalsosPositivos.analizarFalsosPositivos(
+            formData.datosNormalizados,
+            hostnames
+          );
+        },
+        verificarActualizacion: () => {
+          return diagnosticoFalsosPositivos.verificarActualizacionCumpleRequisitos(
+            formData.datosNormalizados
+          );
+        },
+
+        // Ayuda
+        ayuda: () => {
+          console.log('='.repeat(80));
+          console.log('🛠️  HERRAMIENTAS DE DIAGNÓSTICO SAT-DIGITAL');
+          console.log('='.repeat(80));
+          console.log('');
+          console.log('Usa window.SAT_DEBUG para acceder a:');
+          console.log('');
+          console.log('  📊 DATOS:');
+          console.log('    SAT_DEBUG.equipos       - Array de equipos normalizados');
+          console.log('    SAT_DEBUG.pliego        - Pliego de requisitos actual');
+          console.log('    SAT_DEBUG.validacion    - Resultados de validación');
+          console.log('    SAT_DEBUG.estadisticas  - Estadísticas de normalización');
+          console.log('');
+          console.log('  🔍 FUNCIONES:');
+          console.log('    SAT_DEBUG.comparar()                    - Comparar validación Excel vs Pliego');
+          console.log('    SAT_DEBUG.mostrarPliego()               - Mostrar requisitos del pliego');
+          console.log('    SAT_DEBUG.analizarEquipo(index)         - Analizar un equipo por índice');
+          console.log('    SAT_DEBUG.buscarHostname(hostname)      - Buscar equipos por hostname');
+          console.log('    SAT_DEBUG.analizarHostname(hostname)    - Buscar y analizar por hostname');
+          console.log('    SAT_DEBUG.mostrarReglas()               - Ver reglas transformadas');
+          console.log('    SAT_DEBUG.analizarFalsosPositivos([])   - Analizar equipos que NO deberían cumplir');
+          console.log('    SAT_DEBUG.verificarActualizacion()      - Verificar si cumpleRequisitos se actualizó');
+          console.log('    SAT_DEBUG.ayuda()                       - Mostrar esta ayuda');
+          console.log('');
+          console.log('  💡 EJEMPLOS:');
+          console.log('    SAT_DEBUG.comparar()                                           // Comparar validaciones');
+          console.log('    SAT_DEBUG.analizarEquipo(0)                                    // Analizar primer equipo');
+          console.log('    SAT_DEBUG.buscarHostname("AR-CPUDEL70525")                     // Buscar por hostname');
+          console.log('    SAT_DEBUG.analizarHostname("CPUDEL")                           // Buscar y analizar');
+          console.log('    SAT_DEBUG.verificarActualizacion()                             // Verificar actualización');
+          console.log('    SAT_DEBUG.analizarFalsosPositivos(["AR-CPU1", "AR-CPU2"])      // Analizar falsos positivos');
+          console.log('    SAT_DEBUG.equipos.length                                       // Total de equipos');
+          console.log('');
+          console.log('='.repeat(80));
+        }
+      };
+
+      // Auto-ejecutar ayuda si hay datos
+      if (formData.datosNormalizados && formData.datosNormalizados.length > 0) {
+        console.log('');
+        console.log('✅ Datos cargados. Ejecuta SAT_DEBUG.ayuda() para ver herramientas de diagnóstico');
+        console.log('');
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete window.SAT_DEBUG;
+      }
+    };
+  }, [formData.datosNormalizados, pliegoData, resultadosValidacion, formData.estadisticas]);
 
   const fetchExistingDocuments = async () => {
     try {
@@ -792,23 +1030,73 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
       
       reader.onload = async (e) => {
         try {
-          // Usar el procesador del módulo normalizador
+          // Determinar qué requisitos usar para validación
+          let validationRules = formData.requisitosMinimos;
+
+          // Si hay pliego, transformarlo y usarlo en lugar de requisitos locales
+          if (pliegoData) {
+            console.log('📋 Usando pliego para validación:', pliegoData.codigo);
+            console.log('📋 Requisitos del pliego:', pliegoData.parque_informatico);
+            validationRules = transformarPliegoAValidationRules(pliegoData);
+            console.log('🔧 Reglas de validación transformadas:', JSON.stringify(validationRules, null, 2));
+          }
+
+          // Usar el procesador del módulo normalizador CON requisitos del pliego
           const { normalizedData, stats } = await processExcelFile(
             e.target.result,
-            formData.requisitosMinimos
+            validationRules
           );
-          
+
+          console.log('📊 Resultados de processExcelFile:');
+          console.log(`   Total equipos: ${normalizedData.length}`);
+          console.log(`   Cumplen (Excel): ${stats.equiposCumplen}`);
+          console.log(`   No cumplen (Excel): ${stats.equiposNoCumplen}`);
+          console.log(`   % Cumplimiento (Excel): ${stats.porcentajeCumplimiento}%`);
+
+          // Validar contra pliego si existe (para validaciones avanzadas)
+          let validacion = null;
+          let datosFinales = normalizedData;
+
+          if (pliegoData) {
+            console.log('\n🔍 Ejecutando validación detallada contra pliego...');
+            validacion = validarContraPliego(normalizedData, pliegoData);
+            setResultadosValidacion(validacion);
+
+            console.log('✅ Validación contra pliego completada:');
+            console.log(`   Total equipos: ${validacion.estadisticas.total}`);
+            console.log(`   Cumplen (Pliego): ${validacion.estadisticas.cumplen}`);
+            console.log(`   No cumplen (Pliego): ${validacion.estadisticas.no_cumplen}`);
+            console.log(`   % Cumplimiento (Pliego): ${validacion.estadisticas.porcentaje_cumplimiento}%`);
+            console.log(`   Errores por campo:`, validacion.estadisticas.errores_por_campo);
+
+            // CRÍTICO: Actualizar cumpleRequisitos basándose en validación del pliego
+            datosFinales = validacion.equipos.map(equipo => ({
+              ...equipo,
+              cumpleRequisitos: equipo.validacion_pliego?.cumple_global ? 'Sí' : 'No'
+            }));
+
+            // Recalcular estadísticas con la validación del pliego
+            stats.equiposCumplen = validacion.estadisticas.cumplen;
+            stats.equiposNoCumplen = validacion.estadisticas.no_cumplen;
+            stats.porcentajeCumplimiento = validacion.estadisticas.porcentaje_cumplimiento;
+
+            console.log('\n✅ Estadísticas finales actualizadas:');
+            console.log(`   Cumplen: ${stats.equiposCumplen}`);
+            console.log(`   No cumplen: ${stats.equiposNoCumplen}`);
+            console.log(`   % Cumplimiento: ${stats.porcentajeCumplimiento}%`);
+          }
+
           setFormData(prev => ({
             ...prev,
             archivoInventario: file,
-            datosNormalizados: normalizedData,
+            datosNormalizados: datosFinales,
             estadisticas: stats,
             procesando: false
           }));
-          
+
           // Mostrar preview de los primeros registros
-          setPreviewData(normalizedData.slice(0, 5));
-          
+          setPreviewData(datosFinales.slice(0, 5));
+
         } catch (error) {
           console.error('Error al procesar archivo:', error);
           setFormData(prev => ({
@@ -836,7 +1124,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
         procesando: false
       }));
     }
-  }, [formData.requisitosMinimos]);
+  }, [formData.requisitosMinimos, pliegoData]);
 
   // Activar/desactivar gráficos de normalización
   const toggleNormalizationGraphics = () => {
@@ -974,6 +1262,29 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
     <Box sx={{ p: 2 }}>
 
       <Grid container spacing={3}>
+
+        {/* Panel de Pliego de Requisitos */}
+        {loadingPliego && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <CircularProgress size={24} />
+                  <Typography variant="body2">Cargando pliego de requisitos...</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {!loadingPliego && pliegoData && (
+          <Grid item xs={12}>
+            <PliegoRequisitosPanel
+              pliego={pliegoData}
+              resultadosValidacion={resultadosValidacion}
+            />
+          </Grid>
+        )}
 
         {/* Configuración de Requisitos Mínimos (Solo Administrador) */}
         {renderRequisitosMinimoConfig()}
@@ -1140,6 +1451,28 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
                   {formData.error}
                 </Alert>
               )}
+
+              {formData.datosNormalizados && pliegoData && resultadosValidacion && (
+                <Alert severity="success" sx={{ mb: 2 }} icon={<CheckIcon />}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5 }}>
+                    ✓ Validación contra pliego completada
+                  </Typography>
+                  <Typography variant="body2">
+                    Pliego: <strong>{pliegoData.codigo} - {pliegoData.nombre}</strong>
+                  </Typography>
+                  <Typography variant="body2">
+                    Cumplimiento: <strong>{resultadosValidacion.estadisticas.porcentaje_cumplimiento}%</strong> ({resultadosValidacion.estadisticas.cumplen} de {resultadosValidacion.estadisticas.total} equipos)
+                  </Typography>
+                </Alert>
+              )}
+
+              {formData.datosNormalizados && !pliegoData && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <Typography variant="body2">
+                    Este período no tiene un pliego de requisitos asociado. Los equipos se validaron con criterios generales.
+                  </Typography>
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -1258,6 +1591,7 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
                         <TableCell><strong>Memoria</strong></TableCell>
                         <TableCell><strong>Almacenamiento</strong></TableCell>
                         <TableCell><strong>Estado</strong></TableCell>
+                        {pliegoData && <TableCell><strong>Validación Pliego</strong></TableCell>}
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1268,12 +1602,27 @@ const HardwareSoftwareForm = ({ onSave, onCancel, initialData = {}, auditData })
                           <TableCell>{row.memoria || row.RAM || 'N/A'}</TableCell>
                           <TableCell>{row.almacenamiento || row.Almacenamiento || 'N/A'}</TableCell>
                           <TableCell>
-                            <Chip 
+                            <Chip
                               size="small"
                               label={row.cumpleRequisitos ? 'Conforme' : 'No Conforme'}
                               color={row.cumpleRequisitos ? 'success' : 'error'}
                             />
                           </TableCell>
+                          {pliegoData && row.validacion_pliego && (
+                            <TableCell>
+                              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                                <Chip
+                                  size="small"
+                                  label={row.validacion_pliego.cumple_global ? 'Cumple Pliego' : 'No Cumple'}
+                                  color={row.validacion_pliego.cumple_global ? 'success' : 'error'}
+                                  icon={row.validacion_pliego.cumple_global ? <CheckIcon /> : <ErrorIcon />}
+                                />
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                  Puntuación: {row.validacion_pliego.puntuacion}/100
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

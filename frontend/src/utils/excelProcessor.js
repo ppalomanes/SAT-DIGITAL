@@ -63,61 +63,82 @@ export const processExcelFile = async (arrayBuffer, validationRules = {}) => {
   }
 };
 
+// Función auxiliar para buscar columnas con nombres flexibles
+const findColumnValue = (record, keywords) => {
+  // Buscar coincidencia exacta primero
+  for (const key of keywords) {
+    if (record[key] !== undefined) {
+      return record[key];
+    }
+  }
+
+  // Buscar coincidencia parcial (columnas con paréntesis y descripciones)
+  const recordKeys = Object.keys(record);
+  for (const keyword of keywords) {
+    const foundKey = recordKeys.find(k =>
+      k.toLowerCase().includes(keyword.toLowerCase())
+    );
+    if (foundKey && record[foundKey] !== undefined) {
+      return record[foundKey];
+    }
+  }
+
+  return '';
+};
+
 // Normalizar un registro individual
 const normalizeRecord = async (record, validationRules) => {
   const normalized = {
     // Campos básicos
-    proveedor: record.Proveedor || '',
-    sitio: record.Sitio || '',
-    atencion: record['Atención (Presencial, Remoto)'] || '',
-    usuario: record['Usuario (u######)'] || '',
-    hostname: record.Hostname || record.hostname || record.Host || '',
+    proveedor: findColumnValue(record, ['Proveedor']),
+    sitio: findColumnValue(record, ['Sitio', 'Site']),
+    atencion: findColumnValue(record, ['Atención', 'Atencion', 'Tipo']),
+    usuario: findColumnValue(record, ['Usuario', 'User', 'TECO']),
+    hostname: findColumnValue(record, ['Hostname', 'Host', 'Equipo', 'PC']),
 
-    // Procesador
-    procesadorOriginal: record['Procesador (marca [INTEL o AMD], modelo [I5, i7, Ryzen 5,etc] y velocidad (#.#GHz)'] ||
-                       record['Procesador (marca, modelo y velocidad)'] ||
-                       record.Procesador || record.CPU || record.Processor || '',
+    // Procesador - buscar por palabra clave "Procesador" o "CPU"
+    procesadorOriginal: findColumnValue(record, ['Procesador', 'CPU', 'Processor']),
     procesadorNormalizado: '',
     procesadorMarca: '',
     procesadorModelo: '',
     procesadorVelocidad: 0,
     procesadorNucleos: 0,
 
-    // Memoria
-    memoriaOriginal: record['RAM (## Gb)'] || record.RAM || record.Memoria || record.Memory || '',
+    // Memoria - buscar por "RAM" o "Memoria"
+    memoriaOriginal: findColumnValue(record, ['RAM', 'Memoria', 'Memory']),
     memoriaNormalizada: '',
     memoriaCapacidad: 0,
     memoriaTipo: '',
 
-    // Almacenamiento
-    almacenamientoOriginal: record['Disco (Capacidad [### Gb o ###Tb]; TIPO [HDD o SSD])'] ||
-                           record.Almacenamiento || record.Storage || record.Disco || '',
+    // Almacenamiento - buscar columnas de capacidad y tipo
+    almacenamientoCapacidadOriginal: findColumnValue(record, ['Disco (Capacidad', 'Disco', 'Almacenamiento', 'Storage', 'Capacidad']),
+    almacenamientoTipoOriginal: findColumnValue(record, ['Disco ( Tipo', 'Tipo [HDD', 'Tipo']),
+    almacenamientoOriginal: '', // Se construirá combinando capacidad y tipo
     almacenamientoNormalizado: '',
     almacenamientoCapacidad: 0, // Capacidad comercial redondeada
     almacenamientoCapacidadReal: 0, // Capacidad real del archivo
     almacenamientoTipo: '',
 
     // Sistema Operativo
-    sistemaOperativoOriginal: record['Sistema Operativo (Windows 11 - version ###.##.###)'] ||
-                             record['Sistema Operativo'] || record.SO || record.OS || '',
+    sistemaOperativoOriginal: findColumnValue(record, ['Sistema Operativo', 'SO', 'OS', 'Windows']),
     sistemaOperativoNormalizado: '',
 
     // Navegador
-    navegadorOriginal: record['Navegador (Marca y version)'] || record.Navegador || record.Browser || '',
+    navegadorOriginal: findColumnValue(record, ['Navegador', 'Browser']),
     navegadorNormalizado: '',
 
     // Headset
-    headsetOriginal: record['Headset (Marca, Modelo)'] || record.Headset || record.Auriculares || '',
+    headsetOriginal: findColumnValue(record, ['Headset', 'Auriculares']),
     headsetNormalizado: '',
 
     // Conectividad (para teletrabajo)
-    isp: record['Nombre ISP'] || '',
-    tipoConexion: record['Tipo de conexión (Cable, 4G, Fibra, Satelital)'] || '',
-    velocidadDown: record['Velocidad Down (Mbps)'] || '',
-    velocidadUp: record['Velocidad Up (Mbps)'] || '',
+    isp: findColumnValue(record, ['Nombre ISP', 'ISP', 'Proveedor Internet']),
+    tipoConexion: findColumnValue(record, ['Tipo de conexión', 'Tipo conexión', 'Tecnología', 'Conexión']),
+    velocidadDown: findColumnValue(record, ['Velocidad Down', 'Download', 'Bajada', 'Down']),
+    velocidadUp: findColumnValue(record, ['Velocidad Up', 'Upload', 'Subida', 'Up']),
 
     // Seguridad
-    antivirus: record['Antivirus (Marca y Modelo)'] || '',
+    antivirus: findColumnValue(record, ['Antivirus', 'Antimalware', 'Seguridad']),
 
     // Estado de validación
     cumpleRequisitos: false,
@@ -136,8 +157,16 @@ const normalizeRecord = async (record, validationRules) => {
   // Normalizar memoria
   const memoriaInfo = normalizeMemoria(normalized.memoriaOriginal);
   normalized.memoriaNormalizada = memoriaInfo.normalized;
-  normalized.memoriaCapacidad = memoriaInfo.capacidad;
+  normalized.memoriaCapacidad = memoriaInfo.capacidadComercial || memoriaInfo.capacidad; // Usar capacidad comercial
   normalized.memoriaTipo = memoriaInfo.tipo;
+
+  // Combinar columnas de almacenamiento si están separadas
+  if (!normalized.almacenamientoOriginal && (normalized.almacenamientoCapacidadOriginal || normalized.almacenamientoTipoOriginal)) {
+    // Combinar capacidad y tipo en un solo string para normalización
+    const capacidad = normalized.almacenamientoCapacidadOriginal || '';
+    const tipo = normalized.almacenamientoTipoOriginal || '';
+    normalized.almacenamientoOriginal = `${capacidad} ${tipo}`.trim();
+  }
 
   // Normalizar almacenamiento
   const almacenamientoInfo = normalizeAlmacenamiento(normalized.almacenamientoOriginal);
@@ -214,9 +243,14 @@ const extractProcessorInfo = (processorString) => {
   if (!processorString) return info;
   
   // Extraer marca
-  if (processorString.toLowerCase().includes('intel')) {
+  const procLower = processorString.toLowerCase();
+
+  // Detectar Intel: por palabra completa O por prefijos i3/i5/i7/i9
+  if (procLower.includes('intel') || /\bi[3579]-/.test(procLower)) {
     info.marca = 'Intel';
-  } else if (processorString.toLowerCase().includes('amd')) {
+  }
+  // Detectar AMD: por palabra completa O por Ryzen
+  else if (procLower.includes('amd') || procLower.includes('ryzen')) {
     info.marca = 'AMD';
   }
   
@@ -244,11 +278,34 @@ const extractProcessorInfo = (processorString) => {
   return info;
 };
 
+// Función para redondear memoria RAM a capacidades comerciales estándar
+const roundToCommercialRAM = (capacityGB) => {
+  // Capacidades comerciales de RAM ordenadas de menor a mayor
+  const commercialTiers = [2, 4, 8, 16, 32, 64, 128, 256, 512];
+
+  // Si es exactamente igual a un tier, devolverlo
+  if (commercialTiers.includes(capacityGB)) {
+    return capacityGB;
+  }
+
+  // Redondear al tier comercial más cercano
+  // Para valores como 7.84 GB (8 GB real menos overhead), redondear hacia arriba
+  for (const tier of commercialTiers) {
+    if (capacityGB < tier) {
+      return tier;
+    }
+  }
+
+  // Para capacidades muy grandes, redondear hacia arriba
+  return Math.ceil(capacityGB / 64) * 64;
+};
+
 // Normalizar memoria
 const normalizeMemoria = (memoriaString) => {
   const info = {
     normalized: '',
     capacidad: 0,
+    capacidadComercial: 0,
     tipo: ''
   };
 
@@ -267,7 +324,6 @@ const normalizeMemoria = (memoriaString) => {
     }
   } else {
     memoriaStr = memoriaString.toString().trim();
-    info.normalized = memoriaStr;
 
     // Extraer capacidad - soportar números decimales también
     const capacidadMatch = memoriaStr.match(/(\d+[\.,]?\d*)\s*(?:GB|Gb|gb)?/i);
@@ -278,7 +334,14 @@ const normalizeMemoria = (memoriaString) => {
     }
   }
 
-  info.normalized = memoriaStr;
+  // Redondear a capacidad comercial
+  if (info.capacidad > 0) {
+    info.capacidadComercial = roundToCommercialRAM(info.capacidad);
+    // Usar capacidad comercial para el valor normalizado
+    info.normalized = `${info.capacidadComercial} GB`;
+  } else {
+    info.normalized = memoriaStr;
+  }
 
   // Extraer tipo - asumimos DDR4 por defecto ya que el archivo no especifica tipo
   if (memoriaStr.toLowerCase().includes('ddr4')) {
@@ -361,11 +424,6 @@ const normalizeAlmacenamiento = (almacenamientoString) => {
     }
   }
 
-  // Redondear a capacidad comercial estándar
-  if (info.capacidad > 0) {
-    info.capacidadComercial = roundToCommercialCapacity(info.capacidad);
-  }
-
   // Extraer tipo - diferentes formatos por proveedor
   const almacenamientoLower = almacenamientoStr.toLowerCase();
   if (almacenamientoLower.includes('ssd')) {
@@ -381,6 +439,19 @@ const normalizeAlmacenamiento = (almacenamientoString) => {
       info.tipo = 'SSD';
     } else {
       info.tipo = 'HDD';
+    }
+  }
+
+  // Redondear a capacidad comercial estándar y actualizar valor normalizado
+  if (info.capacidad > 0) {
+    info.capacidadComercial = roundToCommercialCapacity(info.capacidad);
+    // Actualizar valor normalizado con capacidad comercial
+    if (info.capacidadComercial >= 1024) {
+      // Convertir a TB si es >= 1TB
+      const capacidadTB = info.capacidadComercial / 1024;
+      info.normalized = `${capacidadTB} TB ${info.tipo}`.trim();
+    } else {
+      info.normalized = `${info.capacidadComercial} GB ${info.tipo}`.trim();
     }
   }
 
