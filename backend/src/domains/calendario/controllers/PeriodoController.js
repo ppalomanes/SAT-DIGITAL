@@ -21,7 +21,8 @@ const crearPeriodoSchema = z.object({
   fecha_inicio_visitas: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   fecha_fin_visitas: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   estado: z.enum(['planificacion', 'activo', 'carga', 'visitas', 'cerrado']).optional(),
-  configuracion_especial: z.object({}).optional()
+  configuracion_especial: z.object({}).optional(),
+  pliego_requisitos_id: z.number().int().positive().nullable().optional()
 });
 
 class PeriodoController {
@@ -40,20 +41,20 @@ class PeriodoController {
         });
       }
       
-      const { nombre, codigo, fecha_inicio, fecha_limite_carga, fecha_inicio_visitas, fecha_fin_visitas, estado, configuracion_especial } = validation.data;
-      
+      const { nombre, codigo, fecha_inicio, fecha_limite_carga, fecha_inicio_visitas, fecha_fin_visitas, estado, configuracion_especial, pliego_requisitos_id } = validation.data;
+
       // Verificar que no exista ya un período con ese código
       const periodoExistente = await PeriodoAuditoria.findOne({
         where: { codigo }
       });
-      
+
       if (periodoExistente) {
         return res.status(409).json({
           success: false,
           error: `Ya existe un período con código ${codigo}`
         });
       }
-      
+
       // Si se marca como activo, desactivar otros períodos activos
       if (estado === 'activo') {
         await PeriodoAuditoria.update(
@@ -61,7 +62,7 @@ class PeriodoController {
           { where: { estado: 'activo' } }
         );
       }
-      
+
       const nuevoPeriodo = await PeriodoAuditoria.create({
         nombre,
         codigo,
@@ -71,6 +72,7 @@ class PeriodoController {
         fecha_fin_visitas,
         estado: estado || 'planificacion',
         configuracion_especial,
+        pliego_requisitos_id: pliego_requisitos_id || null,
         created_by: req.user?.id || 1
       });
       

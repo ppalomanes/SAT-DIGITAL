@@ -23,6 +23,10 @@ import EmailTestingPage from './domains/notificaciones/pages/EmailTestingPage';
 import AuditoriasPage from './domains/auditorias/pages/AuditoriasPage';
 import TestIA from './domains/ia-analisis/pages/TestIA';
 import DiagnosticosPage from './domains/admin/pages/DiagnosticosPage';
+import ConfiguracionPage from './pages/configuracion/ConfiguracionPage';
+import PliegoEditor from './pages/configuracion/PliegoEditor';
+import PliegoDetalle from './pages/configuracion/PliegoDetalle';
+import HeadsetsPage from './pages/configuracion/HeadsetsPage';
 
 // Componentes de protección
 import ProtectedRoute from './shared/components/Auth/ProtectedRoute';
@@ -316,15 +320,59 @@ function App() {
               } 
             />
 
-            <Route 
-              path="/configuracion" 
+            <Route
+              path="/configuracion"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <AdminLayout>
-                    <div>Módulo de Configuración - En desarrollo</div>
+                    <ConfiguracionPage />
                   </AdminLayout>
                 </ProtectedRoute>
-              } 
+              }
+            />
+
+            <Route
+              path="/configuracion/nuevo"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <PliegoEditor />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/configuracion/editar/:id"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <PliegoEditor />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/configuracion/:id"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <PliegoDetalle />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/configuracion/headsets"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLayout>
+                    <HeadsetsPage />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
             />
 
             <Route

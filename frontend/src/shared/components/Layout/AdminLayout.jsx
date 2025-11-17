@@ -41,7 +41,8 @@ import {
   Person as PersonIcon,
   Analytics as AnalyticsIcon,
   Search,
-  Tune as DiagnosticsIcon
+  Tune as DiagnosticsIcon,
+  Headset as HeadsetIcon
 } from '@mui/icons-material';
 import { useAuthStore } from '../../../domains/auth/store/authStore';
 import { useWebSocket } from '../../../domains/comunicacion/hooks/useWebSocket';
@@ -148,6 +149,13 @@ const menuItems = {
       title: 'Configuración',
       icon: <SettingsIcon />,
       path: '/configuracion',
+      badge: null
+    },
+    {
+      id: 'headsets',
+      title: 'Headsets',
+      icon: <HeadsetIcon />,
+      path: '/configuracion/headsets',
       badge: null
     }
   ],

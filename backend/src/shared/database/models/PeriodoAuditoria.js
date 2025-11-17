@@ -40,6 +40,24 @@ const PeriodoAuditoria = sequelize.define('PeriodoAuditoria', {
     type: DataTypes.JSON,
     allowNull: true
   },
+  tenant_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'tenants',
+      key: 'id'
+    },
+    comment: 'ID del tenant (multi-tenancy)'
+  },
+  pliego_requisitos_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'pliegos_requisitos',
+      key: 'id'
+    },
+    comment: 'Pliego de requisitos técnicos aplicable a este período'
+  },
   created_by: {
     type: DataTypes.INTEGER,
     allowNull: false,

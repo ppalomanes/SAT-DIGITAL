@@ -48,6 +48,9 @@ const auditoresRoutes = require('./domains/auditores/routes');
 const { parqueInformaticoRoutes } = require('./domains/parque-informatico/routes');
 const iaAnalisisRoutes = require('./domains/ia-analisis/routes/analysisRoutes');
 const diagnosticsRoutes = require('./domains/diagnosticos/routes/diagnosticsRoutes');
+const configuracionesRoutes = require('./domains/configuraciones/routes');
+const pliegosRoutes = require('./domains/pliegos/routes');
+const headsetsRoutes = require('./domains/headsets/routes');
 
 // Inicializar Express y HTTP Server
 const app = express();
@@ -199,6 +202,9 @@ app.use(`${API_PREFIX}/auditores`, ...protectedMiddleware, auditoresRoutes);
 app.use(`${API_PREFIX}/parque-informatico`, ...protectedMiddleware, parqueInformaticoRoutes);
 app.use(`${API_PREFIX}/ia-analisis`, ...protectedMiddleware, iaAnalisisRoutes);
 app.use(`${API_PREFIX}/diagnosticos`, ...protectedMiddleware, diagnosticsRoutes);
+app.use(`${API_PREFIX}/configuraciones`, ...protectedMiddleware, configuracionesRoutes);
+app.use(`${API_PREFIX}/pliegos`, ...protectedMiddleware, pliegosRoutes);
+app.use(`${API_PREFIX}/headsets`, ...protectedMiddleware, headsetsRoutes);
 
 // Documentación API (Swagger) - solo en desarrollo
 if (process.env.NODE_ENV === 'development') {

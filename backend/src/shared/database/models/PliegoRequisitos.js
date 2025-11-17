@@ -79,81 +79,79 @@ const PliegoRequisitos = (sequelize) => {
     parque_informatico: {
       type: DataTypes.TEXT('long'),
       allowNull: true,
+      comment: 'Requisitos de hardware/software (CPU, RAM, SSD, SO, etc.)',
       get() {
         const rawValue = this.getDataValue('parque_informatico');
         return rawValue ? JSON.parse(rawValue) : null;
       },
       set(value) {
         this.setDataValue('parque_informatico', value ? JSON.stringify(value) : null);
-      },
-      comment: 'Requisitos de hardware/software (CPU, RAM, SSD, SO, etc.)'
+      }
     },
 
     conectividad: {
       type: DataTypes.TEXT('long'),
       allowNull: true,
+      comment: 'Requisitos de conectividad hogar/sitio',
       get() {
         const rawValue = this.getDataValue('conectividad');
         return rawValue ? JSON.parse(rawValue) : null;
       },
       set(value) {
         this.setDataValue('conectividad', value ? JSON.stringify(value) : null);
-      },
-      comment: 'Requisitos de conectividad hogar/sitio'
+      }
     },
 
     infraestructura: {
       type: DataTypes.TEXT('long'),
       allowNull: true,
+      comment: 'Requisitos de infraestructura física (UPS, Generador, etc.)',
       get() {
         const rawValue = this.getDataValue('infraestructura');
         return rawValue ? JSON.parse(rawValue) : null;
       },
       set(value) {
         this.setDataValue('infraestructura', value ? JSON.stringify(value) : null);
-      },
-      comment: 'Requisitos de infraestructura física (UPS, Generador, etc.)'
+      }
     },
 
     seguridad: {
       type: DataTypes.TEXT('long'),
       allowNull: true,
+      comment: 'Requisitos de seguridad informática y física',
       get() {
         const rawValue = this.getDataValue('seguridad');
         return rawValue ? JSON.parse(rawValue) : null;
       },
       set(value) {
         this.setDataValue('seguridad', value ? JSON.stringify(value) : null);
-      },
-      comment: 'Requisitos de seguridad informática y física'
+      }
     },
 
     documentacion: {
       type: DataTypes.TEXT('long'),
       allowNull: true,
+      comment: 'Requisitos de documentación obligatoria',
       get() {
         const rawValue = this.getDataValue('documentacion');
         return rawValue ? JSON.parse(rawValue) : null;
       },
       set(value) {
         this.setDataValue('documentacion', value ? JSON.stringify(value) : null);
-      },
-      comment: 'Requisitos de documentación obligatoria'
+      }
     },
 
     personal: {
       type: DataTypes.TEXT('long'),
       allowNull: true,
+      comment: 'Requisitos de personal (capacitaciones, certificaciones)',
       get() {
         const rawValue = this.getDataValue('personal');
         return rawValue ? JSON.parse(rawValue) : null;
       },
       set(value) {
         this.setDataValue('personal', value ? JSON.stringify(value) : null);
-      },
-      comment: 'Requisitos de personal (capacitaciones, certific
-
-aciones)'
+      }
     },
 
     // Archivo de headsets homologados
@@ -181,8 +179,7 @@ aciones)'
 
     creado_en: {
       type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
+      allowNull: false
     },
 
     modificado_por: {

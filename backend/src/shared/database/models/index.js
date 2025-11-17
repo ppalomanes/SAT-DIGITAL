@@ -30,6 +30,7 @@ const ConfiguracionHistorialModel = require('./ConfiguracionHistorial');
 // Importar modelos del dominio Pliegos de Requisitos
 const PliegoRequisitosModel = require('./PliegoRequisitos');
 const PliegoHistorialModel = require('./PliegoHistorial');
+const HeadsetHomologadoModel = require('./HeadsetHomologado');
 
 // Importar e inicializar modelo Tenant
 const TenantModel = require('./Tenant');
@@ -42,6 +43,7 @@ const ConfiguracionHistorial = ConfiguracionHistorialModel(sequelize);
 // Inicializar modelos de pliegos
 const PliegoRequisitos = PliegoRequisitosModel(sequelize);
 const PliegoHistorial = PliegoHistorialModel(sequelize);
+const HeadsetHomologado = HeadsetHomologadoModel(sequelize);
 
 // =============================================================================
 // MODELO: PROVEEDORES
@@ -903,6 +905,20 @@ AnalisisIA.belongsTo(Documento, {
   as: 'documento'
 });
 
+// =============================================================================
+// RELACIONES MÓDULO HEADSETS HOMOLOGADOS
+// =============================================================================
+
+// Tenant - HeadsetHomologado
+Tenant.hasMany(HeadsetHomologado, {
+  foreignKey: 'tenant_id',
+  as: 'headsets_homologados'
+});
+HeadsetHomologado.belongsTo(Tenant, {
+  foreignKey: 'tenant_id',
+  as: 'tenant'
+});
+
 module.exports = {
   sequelize,
   Op,
@@ -933,5 +949,7 @@ module.exports = {
   ConfiguracionHistorial,
   // Modelos de Pliegos de Requisitos
   PliegoRequisitos,
-  PliegoHistorial
+  PliegoHistorial,
+  // Modelos de Headsets Homologados
+  HeadsetHomologado
 };
