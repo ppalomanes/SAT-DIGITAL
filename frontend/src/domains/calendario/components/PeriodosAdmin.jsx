@@ -234,7 +234,7 @@ const PeriodosAdmin = () => {
                 <Typography variant="body2" color="text.secondary">
                   Código: {periodoActivo.codigo} |
                   Desde: {dayjs(periodoActivo.fecha_inicio).format('DD/MM/YYYY')} |
-                  Hasta: {dayjs(periodoActivo.fecha_fin_visitas).format('DD/MM/YYYY')}
+                  Hasta: {periodoActivo.fecha_fin_visitas ? dayjs(periodoActivo.fecha_fin_visitas).format('DD/MM/YYYY') : 'Sin fecha límite'}
                 </Typography>
               </Box>
               <Chip label="ACTIVO" color="success" />
@@ -289,7 +289,7 @@ const PeriodosAdmin = () => {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {dayjs(periodo.fecha_inicio).format('DD/MM/YY')} - {dayjs(periodo.fecha_fin_visitas).format('DD/MM/YY')}
+                          {dayjs(periodo.fecha_inicio).format('DD/MM/YY')} - {periodo.fecha_fin_visitas ? dayjs(periodo.fecha_fin_visitas).format('DD/MM/YY') : 'S/F'}
                         </Typography>
                       </TableCell>
                       <TableCell align="center">

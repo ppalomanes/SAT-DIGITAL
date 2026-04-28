@@ -91,103 +91,99 @@ const DashboardProveedores = () => {
   const cargarDashboard = async () => {
     try {
       setLoading(true);
-      
-      // Simular datos específicos del proveedor hasta implementar endpoints
-      const datosSimulados = {
-        resumen: {
-          auditorias_activas: 3,
-          documentos_pendientes: 15,
-          alertas_criticas: 2,
-          proximos_vencimientos: 1
-        },
-        auditorias: [
-          {
-            id: 1,
-            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sede Central Florida' : 'APEX Centro',
-            periodo: '2024-11',
-            estado: 'en_carga',
-            progreso: 65,
-            documentos_cargados: 8,
-            documentos_totales: 13,
-            fecha_limite: new Date(2024, 11, 20),
-            dias_restantes: 12,
-            prioridad: 'alta'
-          },
-          {
-            id: 2,
-            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Norte' : 'Teleperformance Norte',
-            periodo: '2024-11',
-            estado: 'pendiente_evaluacion',
-            progreso: 100,
-            documentos_cargados: 13,
-            documentos_totales: 13,
-            fecha_limite: new Date(2024, 10, 30),
-            dias_restantes: -5,
-            prioridad: 'completada'
-          },
-          {
-            id: 3,
-            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Sur' : 'CityTech Sur',
-            periodo: '2024-11',
-            estado: 'programada',
-            progreso: 0,
-            documentos_cargados: 0,
-            documentos_totales: 13,
-            fecha_limite: new Date(2024, 11, 25),
-            dias_restantes: 17,
-            prioridad: 'media'
-          }
-        ],
-        alertas: [
-          {
-            id: 1,
-            tipo: 'vencimiento_proximo',
-            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sede Central Florida' : 'APEX Centro',
-            mensaje: 'Documentos vencen en 12 días',
-            severidad: 'warning',
-            fecha_limite: new Date(2024, 11, 20)
-          },
-          {
-            id: 2,
-            tipo: 'documentos_faltantes',
-            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Sur' : 'CityTech Sur',
-            mensaje: '5 secciones técnicas sin documentos',
-            severidad: 'info',
-            fecha_limite: new Date(2024, 11, 25)
-          }
-        ],
-        actividadReciente: [
-          {
-            tipo: 'documento_cargado',
-            descripcion: 'Documento Topology Network cargado exitosamente',
-            timestamp: new Date(),
-            auditoriaId: 1
-          },
-          {
-            tipo: 'mensaje_auditor',
-            descripcion: 'Nuevo mensaje del auditor en auditoría APEX Centro',
-            timestamp: new Date(Date.now() - 30 * 60000),
-            auditoriaId: 1
-          },
-          {
-            tipo: 'estado_cambiado',
-            descripcion: 'Auditoría Teleperformance Norte pasó a Pendiente Evaluación',
-            timestamp: new Date(Date.now() - 2 * 60 * 60000),
-            auditoriaId: 2
-          }
-        ],
-        estadisticasGeneral: {
-          sitios_totales: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 1 : 3,
-          documentos_cargados_mes: 25,
-          cumplimiento_promedio: 87
-        }
-      };
 
-      setDashboardData(datosSimulados);
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [auditoriasRes, notifRes] = await Promise.allSettled([
+        axios.get(`${API_BASE}/api/auditorias`, { headers }),
+        axios.get(`${API_BASE}/api/notificaciones`, { headers, params: { limit: 10 } }),
+      ]);
+
+      const auditorias = auditoriasRes.status === 'fulfilled'
+        ? (auditoriasRes.value.data?.data || auditoriasRes.value.data || [])
+        : [];
+
+      const notificaciones = notifRes.status === 'fulfilled'
+        ? (notifRes.value.data?.data || notifRes.value.data || [])
+        : [];
+
+      // Normalizar auditorías al shape que espera el template
+      const hoy = new Date();
+      const auditoriasNorm = auditorias.map((a) => {
+        const fechaLimite = a.fecha_fin_visitas ? new Date(a.fecha_fin_visitas) : null;
+        const diasRestantes = fechaLimite
+          ? Math.ceil((fechaLimite - hoy) / (1000 * 60 * 60 * 24))
+          : 99;
+        const docs = a.documentos_cargados ?? 0;
+        const total = a.documentos_totales ?? 13;
+        return {
+          id: a.id,
+          sitio: a.sitio?.nombre || a.nombre_sitio || a.sitio_nombre || `Auditoría ${a.id}`,
+          periodo: a.periodo?.codigo || a.periodo_codigo || a.codigo || '',
+          estado: a.estado || 'programada',
+          progreso: total > 0 ? Math.round((docs / total) * 100) : 0,
+          documentos_cargados: docs,
+          documentos_totales: total,
+          fecha_limite: fechaLimite,
+          dias_restantes: diasRestantes,
+          prioridad: diasRestantes < 0 ? 'vencida' : diasRestantes <= 7 ? 'alta' : 'media',
+        };
+      });
+
+      const activas = auditoriasNorm.filter(
+        (a) => !['cerrada', 'cancelada'].includes(a.estado)
+      );
+      const docsPendientes = auditoriasNorm.reduce(
+        (sum, a) => sum + Math.max(0, a.documentos_totales - a.documentos_cargados), 0
+      );
+      const alertasCriticas = auditoriasNorm.filter((a) => a.dias_restantes < 0).length;
+      const proximosVenc = auditoriasNorm.filter(
+        (a) => a.dias_restantes >= 0 && a.dias_restantes <= 7
+      ).length;
+
+      const cumplimientoPromedio = auditoriasNorm.length > 0
+        ? Math.round(auditoriasNorm.reduce((s, a) => s + a.progreso, 0) / auditoriasNorm.length)
+        : 0;
+
+      // Construir alertas desde notificaciones del backend
+      const alertas = notificaciones.slice(0, 5).map((n, i) => ({
+        id: n.id || i,
+        tipo: n.tipo || 'info',
+        sitio: n.titulo || 'Sistema',
+        mensaje: n.mensaje || n.contenido || '',
+        severidad: n.prioridad === 'alta' ? 'warning' : 'info',
+        fecha_limite: n.fecha_limite ? new Date(n.fecha_limite) : null,
+      }));
+
+      // Actividad reciente desde mensajes/eventos de auditorías
+      const actividadReciente = auditoriasNorm.slice(0, 3).map((a) => ({
+        tipo: 'estado_cambiado',
+        descripcion: `Auditoría ${a.sitio} — ${a.estado.replace(/_/g, ' ')}`,
+        timestamp: new Date(),
+        auditoriaId: a.id,
+      }));
+
+      setDashboardData({
+        resumen: {
+          auditorias_activas: activas.length,
+          documentos_pendientes: docsPendientes,
+          alertas_criticas: alertasCriticas,
+          proximos_vencimientos: proximosVenc,
+        },
+        auditorias: auditoriasNorm,
+        alertas,
+        actividadReciente,
+        estadisticasGeneral: {
+          sitios_totales: new Set(auditoriasNorm.map((a) => a.sitio)).size,
+          documentos_cargados_mes: auditoriasNorm.reduce((s, a) => s + a.documentos_cargados, 0),
+          cumplimiento_promedio: cumplimientoPromedio,
+        },
+      });
 
     } catch (error) {
       console.error('Error cargando dashboard:', error);
-      // Mantener datos por defecto en caso de error
     } finally {
       setLoading(false);
     }
