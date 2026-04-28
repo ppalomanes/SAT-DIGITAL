@@ -52,6 +52,31 @@ const configuracionesRoutes = require('./domains/configuraciones/routes');
 const pliegosRoutes = require('./domains/pliegos/routes');
 const headsetsRoutes = require('./domains/headsets/routes');
 
+// Configuración de CORS — debe estar ANTES de Socket.IO y Express
+const ALLOWED_ORIGINS = [
+  // Producción
+  'http://sat.personal.com.ar',
+  'https://sat.personal.com.ar',
+  'http://10.75.247.181',
+  // Desarrollo local
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003',
+  'http://localhost:3004',
+  'http://localhost:3005',
+  'http://localhost:3006',
+  'http://localhost:3007',
+  'http://localhost:3008',
+  'http://localhost:3009',
+  'http://localhost:3010',
+  'http://localhost:3011',
+  'http://localhost:3012',
+  'http://localhost:3014',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
 // Inicializar Express y HTTP Server
 const app = express();
 const server = http.createServer(app);
@@ -80,31 +105,6 @@ const limiter = rateLimit({
     return req.ip === '::1' || req.ip === '127.0.0.1' || req.ip === '::ffff:127.0.0.1';
   }
 });
-
-// Configuración de CORS
-const ALLOWED_ORIGINS = [
-  // Producción
-  'http://sat.personal.com.ar',
-  'https://sat.personal.com.ar',
-  'http://10.75.247.181',
-  // Desarrollo local
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:3002',
-  'http://localhost:3003',
-  'http://localhost:3004',
-  'http://localhost:3005',
-  'http://localhost:3006',
-  'http://localhost:3007',
-  'http://localhost:3008',
-  'http://localhost:3009',
-  'http://localhost:3010',
-  'http://localhost:3011',
-  'http://localhost:3012',
-  'http://localhost:3014',
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-];
 
 const corsOptions = {
   origin: (origin, callback) => {
