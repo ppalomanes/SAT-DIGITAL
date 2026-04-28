@@ -45,6 +45,7 @@ Verificar que estén instalados:
 ### Instalación de Node.js (si no está instalado)
 
 Descargar desde: https://nodejs.org/en/download/
+
 - Versión recomendada: LTS 18.x o superior
 
 ---
@@ -173,8 +174,8 @@ npm install
 Editar `frontend\src\config\api.js` (o el archivo de configuración correspondiente):
 
 ```javascript
-export const API_BASE_URL = 'http://10.75.247.181:3001/api';
-export const WEBSOCKET_URL = 'http://10.75.247.181:3001';
+export const API_BASE_URL = "http://10.75.247.181:3001/api";
+export const WEBSOCKET_URL = "http://10.75.247.181:3001";
 ```
 
 ### 4.3 Iniciar el frontend
@@ -191,22 +192,25 @@ El frontend estará disponible en: http://10.75.247.181:5173
 
 ### URLs del sistema
 
-- **Frontend:** http://10.75.247.181:5173
-- **Backend API:** http://10.75.247.181:3001/api
-- **Health Check:** http://10.75.247.181:3001/health
-- **phpMyAdmin:** http://10.75.247.181/phpmyadmin
+- **Frontend:** <http://10.75.247.181:5173>
+- **Backend API:** <http://10.75.247.181:3001/api>
+- **Health Check:** <http://10.75.247.181:3001/health>
+- **phpMyAdmin:** <http://10.75.247.181/phpmyadmin>
 
 ### Credenciales de acceso
 
 **Administrador:**
-- Email: admin@satdigital.com
+
+- Email: <admin@satdigital.com>
 - Password: admin123
 
 **Auditor:**
-- Email: auditor@satdigital.com
+
+- Email: <auditor@satdigital.com>
 - Password: auditor123
 
 **Proveedor:**
+
 - Email: proveedor@activo.com
 - Password: proveedor123
 
@@ -306,6 +310,7 @@ git merge dev        # Fusionar cambios
 ### Problema: Error de conexión a MySQL
 
 **Solución:**
+
 1. Verificar que MySQL esté corriendo en XAMPP
 2. Verificar credenciales en `.env`
 3. Verificar que la base de datos `sat_digital` exista
@@ -313,6 +318,7 @@ git merge dev        # Fusionar cambios
 ### Problema: Puerto 3001 o 5173 en uso
 
 **Solución:**
+
 ```bash
 # Ver qué proceso usa el puerto
 netstat -ano | findstr :3001
@@ -325,6 +331,7 @@ taskkill /PID <numero_pid> /F
 ### Problema: Error "Cannot find module"
 
 **Solución:**
+
 ```bash
 # Borrar node_modules e instalar de nuevo
 rmdir /s /q node_modules
@@ -335,6 +342,7 @@ npm install
 
 **Solución:**
 Verificar que `ALLOWED_ORIGINS` en `.env` incluya:
+
 ```
 http://10.75.247.181:5173,http://10.75.247.181:3001
 ```
@@ -400,13 +408,16 @@ C:\inetpub\wwwroot\SAT-Digital\
 ## 12. Contacto y Soporte
 
 **Documentación del proyecto:**
+
 - Ver carpeta `documentacion/`
 - Archivo maestro: `documentacion/01-DOCUMENTO-MAESTRO.md`
 
 **Repositorio:**
+
 - https://github.com/ppalomanes/SAT-DIGITAL
 
 **En caso de problemas:**
+
 1. Revisar logs en `backend/logs/`
 2. Ejecutar `npm run health-check` en backend
 3. Verificar consola del navegador (F12)
