@@ -32,10 +32,17 @@ echo       Listo
 
 REM --- 2. Actualizar codigo desde GitHub ---
 echo [2/5] Actualizando codigo desde GitHub (main)...
-git pull origin main
+git fetch origin main
 if %ERRORLEVEL% neq 0 (
     echo.
-    echo ERROR: git pull fallo. Reiniciando servicio y abortando...
+    echo ERROR: git fetch fallo. Revisá la conexion o el proxy.
+    sc start "%SERVICE_NAME%" >nul 2>&1
+    pause
+    exit /b 1
+)
+git reset --hard origin/main
+if %ERRORLEVEL% neq 0 (
+    echo ERROR: git reset fallo.
     sc start "%SERVICE_NAME%" >nul 2>&1
     pause
     exit /b 1
