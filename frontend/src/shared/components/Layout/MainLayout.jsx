@@ -28,15 +28,25 @@ import {
   Toolbar,
 } from '@mui/material';
 
+// Mapa de permisos por rol — define qué secciones puede ver cada rol
+const MENU_PERMISSIONS = {
+  admin:             ['*'],
+  auditor_general:   ['dashboard', 'calendario', 'auditorias', 'documentos', 'comunicacion', 'proveedores', 'configuracion'],
+  auditor_interno:   ['dashboard', 'calendario', 'auditorias', 'documentos', 'comunicacion', 'configuracion'],
+  jefe_proveedor:    ['dashboard', 'auditorias', 'documentos', 'comunicacion', 'configuracion'],
+  tecnico_proveedor: ['dashboard', 'auditorias', 'documentos', 'comunicacion', 'configuracion'],
+  visualizador:      ['dashboard', 'auditorias', 'configuracion'],
+};
+
 const SIDEBAR_ITEMS = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard', roles: 'all' },
-  { text: 'Calendario', icon: <CalendarToday />, path: '/calendario', roles: ['admin', 'auditor'] },
-  { text: 'Auditorías', icon: <Assignment />, path: '/auditorias', roles: 'all' },
-  { text: 'Documentos', icon: <DescriptionOutlined />, path: '/documentos', roles: 'all' },
-  { text: 'Comunicación', icon: <ChatOutlined />, path: '/comunicacion', roles: 'all' },
-  { text: 'Proveedores', icon: <Business />, path: '/proveedores', roles: ['admin', 'auditor'] },
-  { text: 'Usuarios', icon: <People />, path: '/usuarios', roles: ['admin'] },
-  { text: 'Configuración', icon: <Settings />, path: '/configuracion', roles: 'all' },
+  { text: 'Dashboard',     icon: <Dashboard />,          path: '/dashboard',    key: 'dashboard' },
+  { text: 'Calendario',    icon: <CalendarToday />,       path: '/calendario',   key: 'calendario' },
+  { text: 'Auditorías',    icon: <Assignment />,          path: '/auditorias',   key: 'auditorias' },
+  { text: 'Documentos',    icon: <DescriptionOutlined />, path: '/documentos',   key: 'documentos' },
+  { text: 'Comunicación',  icon: <ChatOutlined />,        path: '/comunicacion', key: 'comunicacion' },
+  { text: 'Proveedores',   icon: <Business />,            path: '/proveedores',  key: 'proveedores' },
+  { text: 'Usuarios',      icon: <People />,              path: '/usuarios',     key: 'usuarios' },
+  { text: 'Configuración', icon: <Settings />,            path: '/configuracion',key: 'configuracion' },
 ];
 
 const DRAWER_WIDTH = 260;
@@ -55,8 +65,12 @@ const MainLayout = ({ children }) => {
   const usuarioActual = usuario || { nombre: 'Usuario Sistema', email: 'usuario@sistema.com', rol: 'admin' };
 
   const filteredSidebarItems = SIDEBAR_ITEMS.filter(item => {
-    if (item.roles === 'all') return true;
-    return true;
+    const rol = usuarioActual?.rol;
+    if (!rol) return false;
+    const permisos = MENU_PERMISSIONS[rol];
+    if (!permisos) return false;
+    if (permisos.includes('*')) return true;
+    return permisos.includes(item.key);
   });
 
   const handleSidebarToggle = () => {

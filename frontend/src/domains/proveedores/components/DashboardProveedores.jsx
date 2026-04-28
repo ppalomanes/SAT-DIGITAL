@@ -56,7 +56,7 @@ import { formatDate, formatDateTime } from '../../../shared/utils/dateHelpers';
 import axios from 'axios';
 
 const DashboardProveedores = () => {
-  const { user } = useAuthStore();
+  const { usuario } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
     resumen: {
@@ -103,7 +103,7 @@ const DashboardProveedores = () => {
         auditorias: [
           {
             id: 1,
-            sitio: user?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sede Central Florida' : 'APEX Centro',
+            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sede Central Florida' : 'APEX Centro',
             periodo: '2024-11',
             estado: 'en_carga',
             progreso: 65,
@@ -115,7 +115,7 @@ const DashboardProveedores = () => {
           },
           {
             id: 2,
-            sitio: user?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Norte' : 'Teleperformance Norte',
+            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Norte' : 'Teleperformance Norte',
             periodo: '2024-11',
             estado: 'pendiente_evaluacion',
             progreso: 100,
@@ -127,7 +127,7 @@ const DashboardProveedores = () => {
           },
           {
             id: 3,
-            sitio: user?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Sur' : 'CityTech Sur',
+            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Sur' : 'CityTech Sur',
             periodo: '2024-11',
             estado: 'programada',
             progreso: 0,
@@ -142,7 +142,7 @@ const DashboardProveedores = () => {
           {
             id: 1,
             tipo: 'vencimiento_proximo',
-            sitio: user?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sede Central Florida' : 'APEX Centro',
+            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sede Central Florida' : 'APEX Centro',
             mensaje: 'Documentos vencen en 12 días',
             severidad: 'warning',
             fecha_limite: new Date(2024, 11, 20)
@@ -150,7 +150,7 @@ const DashboardProveedores = () => {
           {
             id: 2,
             tipo: 'documentos_faltantes',
-            sitio: user?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Sur' : 'CityTech Sur',
+            sitio: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 'Sucursal Sur' : 'CityTech Sur',
             mensaje: '5 secciones técnicas sin documentos',
             severidad: 'info',
             fecha_limite: new Date(2024, 11, 25)
@@ -177,7 +177,7 @@ const DashboardProveedores = () => {
           }
         ],
         estadisticasGeneral: {
-          sitios_totales: user?.proveedor?.nombre === 'Grupo Activo SRL' ? 1 : 3,
+          sitios_totales: usuario?.proveedor?.nombre === 'Grupo Activo SRL' ? 1 : 3,
           documentos_cargados_mes: 25,
           cumplimiento_promedio: 87
         }
@@ -241,14 +241,14 @@ const DashboardProveedores = () => {
         <Box>
           <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Dashboard color="primary" />
-            Dashboard - {user?.proveedor?.nombre || 'Proveedor'}
+            Dashboard - {usuario?.proveedor?.nombre || 'Proveedor'}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
             <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
               <Business />
             </Avatar>
             <Typography variant="subtitle1" color="text.secondary">
-              Bienvenido, {user?.nombre || 'Usuario'}
+              Bienvenido, {usuario?.nombre || usuario?.email || 'Usuario'}
             </Typography>
             <Chip
               icon={<LocationOn />}
@@ -272,57 +272,57 @@ const DashboardProveedores = () => {
       </Box>
 
       {/* Métricas Principales */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card sx={{ bgcolor: 'primary.main', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Assignment fontSize="large" />
-                <Box>
-                  <Typography variant="h4">{dashboardData.resumen.auditorias_activas}</Typography>
-                  <Typography variant="body2">Auditorías Activas</Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>{dashboardData.resumen.auditorias_activas}</Typography>
+                  <Typography variant="body2" noWrap>Auditorías Activas</Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
+
+        <Grid item xs={6} sm={6} md={3}>
           <Card sx={{ bgcolor: 'warning.main', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <CloudUpload fontSize="large" />
-                <Box>
-                  <Typography variant="h4">{dashboardData.resumen.documentos_pendientes}</Typography>
-                  <Typography variant="body2">Docs. Pendientes</Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>{dashboardData.resumen.documentos_pendientes}</Typography>
+                  <Typography variant="body2" noWrap>Docs. Pendientes</Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card sx={{ bgcolor: 'error.main', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Warning fontSize="large" />
-                <Box>
-                  <Typography variant="h4">{dashboardData.resumen.alertas_criticas}</Typography>
-                  <Typography variant="body2">Alertas Críticas</Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>{dashboardData.resumen.alertas_criticas}</Typography>
+                  <Typography variant="body2" noWrap>Alertas Críticas</Typography>
                 </Box>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}>
           <Card sx={{ bgcolor: 'success.main', color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Timeline fontSize="large" />
-                <Box>
-                  <Typography variant="h4">{dashboardData.estadisticasGeneral.cumplimiento_promedio}%</Typography>
-                  <Typography variant="body2">Cumplimiento</Typography>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>{dashboardData.estadisticasGeneral.cumplimiento_promedio}%</Typography>
+                  <Typography variant="body2" noWrap>Cumplimiento</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -354,7 +354,7 @@ const DashboardProveedores = () => {
                     >
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                          <Typography variant="h6" noWrap>
+                          <Typography variant="h6" noWrap title={auditoria.sitio}>
                             {auditoria.sitio}
                           </Typography>
                           {getEstadoChip(auditoria.estado)}
@@ -391,19 +391,16 @@ const DashboardProveedores = () => {
                         </Box>
 
                         <Box sx={{ display: 'flex', gap: 1 }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<CloudUpload />}
-                            disabled={auditoria.estado === 'cerrada'}
-                          >
-                            Cargar Docs
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<Chat />}
-                          >
+                          {(auditoria.estado === 'cerrada' || auditoria.estado === 'vencida' || auditoria.dias_restantes < 0) ? (
+                            <Button size="small" variant="outlined" disabled sx={{ color: 'text.disabled', borderColor: 'divider' }}>
+                              Auditoría vencida
+                            </Button>
+                          ) : (
+                            <Button size="small" variant="outlined" startIcon={<CloudUpload />}>
+                              Cargar Docs
+                            </Button>
+                          )}
+                          <Button size="small" variant="outlined" startIcon={<Chat />}>
                             Chat
                           </Button>
                         </Box>
@@ -477,6 +474,16 @@ const DashboardProveedores = () => {
                   </ListItem>
                 ))}
               </List>
+              <Box sx={{ display: 'flex', justifyContent: 'center', pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => window.location.href = '/comunicacion'}
+                  sx={{ textTransform: 'none' }}
+                >
+                  Ver toda la actividad →
+                </Button>
+              </Box>
             </AccordionDetails>
           </Accordion>
         </Grid>
