@@ -60,34 +60,7 @@ const PORT = process.env.PORT || 3001;
 // Configuración de Socket.IO
 const io = socketIo(server, {
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3003',
-      'http://localhost:3004',
-      'http://localhost:3005',
-      'http://localhost:3006',
-      'http://localhost:3007',
-      'http://localhost:3008',
-      'http://localhost:3009',
-      'http://localhost:3010',
-      'http://localhost:3011',
-      'http://localhost:3012',
-      'http://localhost:3014',
-      'http://localhost:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3003',
-      'http://127.0.0.1:3004',
-      'http://127.0.0.1:3005',
-      'http://127.0.0.1:3006',
-      'http://127.0.0.1:3007',
-      'http://127.0.0.1:3008',
-      'http://127.0.0.1:3009',
-      'http://127.0.0.1:3010',
-      'http://127.0.0.1:3011',
-      'http://127.0.0.1:3012',
-      'http://127.0.0.1:3014',
-      'http://127.0.0.1:5173'
-    ],
+    origin: ALLOWED_ORIGINS,
     credentials: true,
     methods: ['GET', 'POST']
   }
@@ -109,44 +82,49 @@ const limiter = rateLimit({
 });
 
 // Configuración de CORS
+const ALLOWED_ORIGINS = [
+  // Producción
+  'http://sat.personal.com.ar',
+  'https://sat.personal.com.ar',
+  'http://10.75.247.181',
+  // Desarrollo local
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003',
+  'http://localhost:3004',
+  'http://localhost:3005',
+  'http://localhost:3006',
+  'http://localhost:3007',
+  'http://localhost:3008',
+  'http://localhost:3009',
+  'http://localhost:3010',
+  'http://localhost:3011',
+  'http://localhost:3012',
+  'http://localhost:3014',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3003',  // Puerto anterior del frontend
-    'http://localhost:3004',  // Puerto anterior del frontend
-    'http://localhost:3005',  // Puerto anterior del frontend
-    'http://localhost:3006',  // Puerto anterior del frontend
-    'http://localhost:3007',  // Puerto anterior del frontend
-    'http://localhost:3008',  // Puerto actual del frontend
-    'http://localhost:3009',  // Puerto nuevo del frontend
-    'http://localhost:3010',  // Puerto nuevo del frontend
-    'http://localhost:3011',  // Puerto actual del frontend
-    'http://localhost:3012',  // Puerto actual del frontend Dashboard
-    'http://localhost:3014',  // Puerto nuevo del frontend
-    'http://localhost:5173',  // Puerto por defecto de Vite
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3003',
-    'http://127.0.0.1:3004',
-    'http://127.0.0.1:3005',
-    'http://127.0.0.1:3006',
-    'http://127.0.0.1:3007',
-    'http://127.0.0.1:3008',
-    'http://127.0.0.1:3009',
-    'http://127.0.0.1:3010',
-    'http://127.0.0.1:3011',
-    'http://127.0.0.1:3012',
-    'http://127.0.0.1:3014',
-    'http://127.0.0.1:5173'
-  ],
-  credentials: process.env.CORS_CREDENTIALS === 'true' || true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  origin: (origin, callback) => {
+    // Permitir requests sin origin (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    logger.warn(`CORS bloqueado para origen: ${origin}`);
+    callback(new Error(`Origen no permitido por CORS: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 };
 
 // ===== MIDDLEWARE GLOBAL =====
 app.use(helmet()); // Seguridad headers HTTP
 app.use(compression()); // Compresión gzip
 app.use(cors(corsOptions)); // CORS
+app.options('*', cors(corsOptions)); // Responder preflight OPTIONS explícitamente
 app.use(limiter); // Rate limiting
 app.use(morgan('combined', { 
   stream: { write: message => logger.info(message.trim()) } 
