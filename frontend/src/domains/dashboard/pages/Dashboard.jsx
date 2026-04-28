@@ -168,7 +168,7 @@ const Dashboard = () => {
                   <Typography variant="body2" color="text.secondary">
                     Código: {periodoActivo.codigo} | 
                     Desde: {dayjs(periodoActivo.fecha_inicio).format('DD/MM/YYYY')} | 
-                    Hasta: {dayjs(periodoActivo.fecha_fin_visitas).format('DD/MM/YYYY')}
+                    Hasta: {periodoActivo.fecha_fin_visitas ? dayjs(periodoActivo.fecha_fin_visitas).format('DD/MM/YYYY') : 'Sin fecha límite'}
                   </Typography>
                 </Box>
                 <Chip

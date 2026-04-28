@@ -3,7 +3,7 @@ import axios from 'axios';
 /**
  * Configuración base de Axios para SAT-Digital
  */
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
 
 // Instancia principal de Axios
 const apiClient = axios.create({
