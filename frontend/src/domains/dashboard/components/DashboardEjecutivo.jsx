@@ -103,7 +103,7 @@ const COLORS = {
 };
 
 const DashboardEjecutivo = () => {
-  const { user } = useAuthStore();
+  const { usuario } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [filtros, setFiltros] = useState({
     periodo: '6_meses',
@@ -432,7 +432,7 @@ const DashboardEjecutivo = () => {
             color="text.secondary"
             sx={{ fontWeight: 400 }}
           >
-            Bienvenido de vuelta, {user?.nombre || 'Pawel'}
+            Bienvenido de vuelta, {usuario?.nombre || usuario?.email || 'Usuario'}
           </Typography>
           <Typography 
             variant="body2" 
@@ -798,72 +798,20 @@ const DashboardEjecutivo = () => {
         </Grid>
       </Grid>
 
-      {/* Tarjetas de acciones rápidas */}
+      {/* Métricas Operacionales SAT-Digital */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={6} md={3}>
-          <Card sx={{
-            height: 100,
-            borderRadius: 3,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-2px)' }
-          }}>
+          <Card sx={{ height: 100, borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.12)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)' } }}>
             <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <Box sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 2,
-                  backgroundColor: `${COLORS.primary}15`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <Assignment sx={{ color: COLORS.primary, fontSize: 20 }} />
-                </Box>
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
-                    132 Ventas
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    12 pagos pendientes
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={6} md={3}>
-          <Card sx={{
-            height: 100,
-            borderRadius: 3,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-2px)' }
-          }}>
-            <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <Box sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 2,
-                  backgroundColor: `${COLORS.success}15`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: `${COLORS.success}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <CheckCircle sx={{ color: COLORS.success, fontSize: 20 }} />
                 </Box>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
-                    78 Órdenes
+                    {datosAnalytics.metricas_operacionales?.sla_cumplimiento || '94.5'}%
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    32 enviadas
-                  </Typography>
+                  <Typography variant="caption" color="text.secondary">SLA Cumplimiento</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -871,34 +819,17 @@ const DashboardEjecutivo = () => {
         </Grid>
 
         <Grid item xs={6} md={3}>
-          <Card sx={{
-            height: 100,
-            borderRadius: 3,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-2px)' }
-          }}>
+          <Card sx={{ height: 100, borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.12)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)' } }}>
             <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <Box sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 2,
-                  backgroundColor: `${COLORS.dark}15`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <Description sx={{ color: COLORS.dark, fontSize: 20 }} />
+                <Box sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: `${COLORS.info}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Timeline sx={{ color: COLORS.info, fontSize: 20 }} />
                 </Box>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
-                    623 Compartidos
+                    {datosAnalytics.metricas_operacionales?.automatizacion_lograda || '67.3'}%
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    16 hoy
-                  </Typography>
+                  <Typography variant="caption" color="text.secondary">Automatización IA</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -906,34 +837,35 @@ const DashboardEjecutivo = () => {
         </Grid>
 
         <Grid item xs={6} md={3}>
-          <Card sx={{
-            height: 100,
-            borderRadius: 3,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-            transition: 'all 0.3s ease',
-            '&:hover': { transform: 'translateY(-2px)' }
-          }}>
+          <Card sx={{ height: 100, borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.12)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)' } }}>
             <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                <Box sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 2,
-                  backgroundColor: `${COLORS.info}15`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}>
-                  <TrendingUp sx={{ color: COLORS.info, fontSize: 20 }} />
+                <Box sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: `${COLORS.warning}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Warning sx={{ color: COLORS.warning, fontSize: 20 }} />
                 </Box>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
-                    132 Me Gusta
+                    {datosAnalytics.metricas_operacionales?.documentos_rechazados || '3.2'}%
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    21 hoy
+                  <Typography variant="caption" color="text.secondary">Docs. Rechazados</Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={6} md={3}>
+          <Card sx={{ height: 100, borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.12)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)' } }}>
+            <CardContent sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: 2, backgroundColor: `${COLORS.primary}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Group sx={{ color: COLORS.primary, fontSize: 20 }} />
+                </Box>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem' }}>
+                    {datosAnalytics.metricas_operacionales?.tiempo_respuesta_chat || '2.1'}h
                   </Typography>
+                  <Typography variant="caption" color="text.secondary">Tiempo Resp. Chat</Typography>
                 </Box>
               </Box>
             </CardContent>
@@ -1133,78 +1065,51 @@ const DashboardEjecutivo = () => {
           </Card>
         </Grid>
 
-        {/* Actividad de Desarrollo */}
+        {/* Alertas Ejecutivas */}
         <Grid item xs={12} lg={6}>
-          <Card sx={{ 
-            borderRadius: 3,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
-          }}>
+          <Card sx={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.12)' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1e293b' }}>
-                Actividad de desarrollo
+                Alertas Ejecutivas
               </Typography>
-              <Box sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={datosAnalytics.tendencias_recharts}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e9ecef" />
-                    <XAxis 
-                      dataKey="mes" 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 11, fill: '#6c757d' }}
-                    />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fontSize: 11, fill: '#6c757d' }}
-                    />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: '#fff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="documentos"
-                      stroke={COLORS.info}
-                      strokeWidth={3}
-                      dot={{ fill: COLORS.info, strokeWidth: 2, r: 4 }}
-                      name="Documentos"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </Box>
-              
-              {/* Lista de actividades */}
-              <Box sx={{ mt: 3 }}>
-                {[
-                  { user: 'Fix Sass compatibility', time: '28 Nov 2019', status: 'success' },
-                  { user: 'Change deprecated', time: '27 Nov 2019', status: 'warning' },
-                  { user: 'Justify content', time: '26 Nov 2019', status: 'info' }
-                ].map((activity, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1.5 }}>
-                    <Avatar 
-                      sx={{ 
-                        width: 32, 
-                        height: 32,
-                        backgroundColor: activity.status === 'success' ? COLORS.success : 
-                                       activity.status === 'warning' ? COLORS.warning : COLORS.info,
-                        fontSize: '0.75rem'
-                      }}
-                    >
-                      {activity.user.charAt(0)}
-                    </Avatar>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {activity.user}
+              <Box sx={{ mt: 1 }}>
+                {datosAnalytics.alertas_ejecutivas?.map((alerta, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 2,
+                      mb: 2,
+                      p: 1.5,
+                      borderRadius: 2,
+                      backgroundColor: alerta.tipo === 'warning' ? `${COLORS.warning}10`
+                        : alerta.tipo === 'success' ? `${COLORS.success}10`
+                        : `${COLORS.info}10`,
+                      borderLeft: `3px solid ${alerta.tipo === 'warning' ? COLORS.warning
+                        : alerta.tipo === 'success' ? COLORS.success
+                        : COLORS.info}`
+                    }}
+                  >
+                    <Box sx={{ flexShrink: 0, mt: 0.3 }}>
+                      {alerta.tipo === 'warning' && <Warning sx={{ color: COLORS.warning, fontSize: 18 }} />}
+                      {alerta.tipo === 'success' && <CheckCircle sx={{ color: COLORS.success, fontSize: 18 }} />}
+                      {alerta.tipo === 'info' && <Assessment sx={{ color: COLORS.info, fontSize: 18 }} />}
+                    </Box>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: '#1e293b' }}>
+                        {alerta.titulo}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {activity.time}
+                        {alerta.descripcion || alerta.descripción}
                       </Typography>
                     </Box>
+                    <Chip
+                      label={alerta.impacto}
+                      size="small"
+                      color={alerta.impacto === 'alto' ? 'error' : alerta.impacto === 'medio' ? 'warning' : 'default'}
+                      sx={{ fontSize: '0.65rem', height: 20, flexShrink: 0 }}
+                    />
                   </Box>
                 ))}
               </Box>
