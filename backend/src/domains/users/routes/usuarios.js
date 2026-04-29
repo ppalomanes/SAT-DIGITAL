@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Aplicar middleware de autenticación a todas las rutas
 router.use(verificarToken);
-router.use(verificarRol('administrador'));
+router.use(verificarRol('admin'));
 
 // GET /api/usuarios - Obtener todos los usuarios
 router.get('/', UsuariosController.obtenerUsuarios);

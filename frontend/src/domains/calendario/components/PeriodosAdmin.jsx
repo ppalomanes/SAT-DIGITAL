@@ -261,6 +261,15 @@ const PeriodosAdmin = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
+                {periodos.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
+                      <Typography color="text.secondary">
+                        No hay períodos creados. Crea el primero con el botón "Nuevo Período".
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
                 {periodos.map((periodo) => {
                   const estadoStyle = getEstadoColor(periodo.estado);
 

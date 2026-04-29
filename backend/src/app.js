@@ -35,7 +35,7 @@ const { addTenantHooks } = require('./shared/middleware/tenantScope');
 
 // Importar rutas por dominio
 const authRoutes = require('./domains/auth/routes');
-// const userRoutes = require('./domains/users/routes'); // TEMP: Comentado para debug
+const userRoutes = require('./domains/users/routes');
 const providerRoutes = require('./domains/providers/routes');
 const proveedoresRoutes = require('./domains/proveedores/routes/proveedoresRoutes');
 const sitiosRoutes = require('./domains/proveedores/routes/sitiosRoutes');
@@ -167,7 +167,7 @@ app.use(`${API_PREFIX}/auth`, authRoutes);
 // Middleware chain: verificarToken → tenantResolver → tenantScopeMiddleware → validateUserTenant
 const protectedMiddleware = [verificarToken, tenantResolver, tenantScopeMiddleware, validateUserTenant];
 
-// app.use(`${API_PREFIX}/usuarios`, ...protectedMiddleware, userRoutes); // TEMP: Comentado
+app.use(`${API_PREFIX}/usuarios`, ...protectedMiddleware, userRoutes);
 app.use(`${API_PREFIX}/proveedores`, ...protectedMiddleware, proveedoresRoutes);
 app.use(`${API_PREFIX}/sitios`, ...protectedMiddleware, sitiosRoutes);
 app.use(`${API_PREFIX}/providers`, ...protectedMiddleware, providerRoutes);

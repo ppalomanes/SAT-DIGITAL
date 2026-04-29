@@ -9,12 +9,14 @@ const createUserSchema = z.object({
   nombre: z.string().min(2, 'Nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Password debe tener al menos 6 caracteres'),
-  rol: z.enum(['administrador', 'auditor_general', 'auditor_interno', 'jefe_proveedor', 'tecnico_proveedor', 'responsable_decisiones']),
+  rol: z.enum(['admin', 'auditor_general', 'auditor_interno', 'jefe_proveedor', 'tecnico_proveedor', 'visualizador']),
   proveedor_id: z.number().optional(),
   estado: z.enum(['activo', 'inactivo']).default('activo'),
 });
 
-const updateUserSchema = createUserSchema.partial().omit({ password: true });
+const updateUserSchema = createUserSchema.partial().extend({
+  password: z.string().min(6, 'Password debe tener al menos 6 caracteres').optional(),
+});
 
 /**
  * Controller para gestión de usuarios
@@ -238,7 +240,13 @@ class UsuariosController {
         }
       }
 
-      await usuario.update(validatedData);
+      const updateData = { ...validatedData };
+      if (updateData.password) {
+        updateData.password_hash = await bcrypt.hash(updateData.password, 12);
+      }
+      delete updateData.password;
+
+      await usuario.update(updateData);
 
       const usuarioActualizado = await Usuario.findByPk(id, {
         include: [{
