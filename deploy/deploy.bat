@@ -52,7 +52,7 @@ echo       Listo
 REM --- 3. Instalar dependencias backend ---
 echo [3/5] Instalando dependencias backend...
 cd /d %BACKEND_DIR%
-call npm install --production --silent
+call npm install --omit=dev --silent
 if %ERRORLEVEL% neq 0 (
     echo ERROR: npm install del backend fallo.
     pause
@@ -76,11 +76,15 @@ echo [5/5] Iniciando servicio %SERVICE_NAME%...
 sc start "%SERVICE_NAME%" >nul 2>&1
 timeout /t 4 /nobreak >nul
 
+timeout /t 4 /nobreak >nul
 sc query "%SERVICE_NAME%" | find "RUNNING" >nul 2>&1
 if %ERRORLEVEL% equ 0 (
     echo       Servicio corriendo OK
+    curl -s http://localhost:3001/health | findstr "OK" >nul 2>&1
+    if %ERRORLEVEL% equ 0 (echo       Health check OK) else (echo       ADVERTENCIA: Health check no responde)
 ) else (
     echo       ADVERTENCIA: Verificar con "sc query %SERVICE_NAME%"
+    echo       Ver logs: type %BACKEND_DIR%\daemon\satbackend.err.log
 )
 
 echo.
