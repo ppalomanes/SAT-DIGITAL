@@ -131,12 +131,10 @@ router.get('/mis-auditorias-periodo-activo',
           p.nombre_comercial as proveedor_nombre,
           p.razon_social as proveedor_razon_social,
 
-          -- Generar código de auditoría
+          -- Generar código de auditoría (solo año + correlativo)
           CONCAT('AUD-',
             SUBSTRING(a.periodo, 1, 4), '-',
-            RIGHT('000' + CAST(a.id AS NVARCHAR), 3), '-',
-            p.nombre_comercial, '-',
-            s.nombre
+            RIGHT('000' + CAST(a.id AS NVARCHAR), 3)
           ) as codigo_auditoria,
 
           -- Contar documentos cargados

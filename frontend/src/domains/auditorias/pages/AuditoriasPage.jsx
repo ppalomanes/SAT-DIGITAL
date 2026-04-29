@@ -227,7 +227,9 @@ const AuditoriasPage = () => {
               </Grid>
               <Grid item xs={12} md={4}>
                 <Typography variant="body2" color="text.secondary">Fecha Fin</Typography>
-                <Typography variant="body1">{formatDate(periodoActivo.fecha_fin)}</Typography>
+                <Typography variant="body1">
+                  {periodoActivo.fecha_fin_visitas ? formatDate(periodoActivo.fecha_fin_visitas) : periodoActivo.fecha_fin ? formatDate(periodoActivo.fecha_fin) : 'Sin fecha definida'}
+                </Typography>
               </Grid>
             </Grid>
           </CardContent>
@@ -238,7 +240,7 @@ const AuditoriasPage = () => {
         <Card>
           <CardHeader
             title="Auditorías Asignadas"
-            subheader={`${auditorias.length} auditorías del período activo`}
+            subheader={`${auditorias.length} ${auditorias.length === 1 ? 'auditoría' : 'auditorías'} del período activo`}
           />
           <CardContent>
             <TableContainer>

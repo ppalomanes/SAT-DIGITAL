@@ -618,7 +618,7 @@ const DashboardEjecutivo = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                 <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
-                    AUDITORÍAS ASIGNADAS
+                    AUDITORÍAS
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
                     {datosAnalytics.metricas_globales?.auditorias_asignadas || '156'}
@@ -674,7 +674,7 @@ const DashboardEjecutivo = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                 <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
-                    PENDIENTES REVISIÓN
+                    PENDIENTES
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
                     {datosAnalytics.metricas_globales?.pendientes_revision || '87'}
@@ -730,7 +730,7 @@ const DashboardEjecutivo = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                 <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5, fontSize: '0.7rem', fontWeight: 500 }}>
-                    PRÓXIMAS VISITAS
+                    PRÓX. VISITAS
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1 }}>
                     {datosAnalytics.metricas_globales?.proximas_visitas || '12'}
@@ -1016,51 +1016,6 @@ const DashboardEjecutivo = () => {
                   ))}
                 </Grid>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Almacenamiento - Gráfico de Barras */}
-        <Grid item xs={12} lg={6}>
-          <Card sx={{ 
-            borderRadius: 3,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
-          }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Usando almacenamiento 4804.45 MB de 6 GB
-              </Typography>
-              <Box sx={{ mt: 2, mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.primary }} />
-                  <Typography variant="body2">Regular</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.info }} />
-                  <Typography variant="body2">Sistema</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.warning }} />
-                  <Typography variant="body2">Compartido</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.muted }} />
-                  <Typography variant="body2">Libre</Typography>
-                </Box>
-              </Box>
-              <ResponsiveContainer width="100%" height={200}>
-                <RechartsBarChart data={[
-                  { name: 'Regular', value: 2500, fill: COLORS.primary },
-                  { name: 'Sistema', value: 1800, fill: COLORS.info },
-                  { name: 'Compartido', value: 504.45, fill: COLORS.warning },
-                  { name: 'Libre', value: 1195.55, fill: COLORS.muted }
-                ]}>
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]} />
-                </RechartsBarChart>
-              </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>

@@ -284,7 +284,7 @@ const ConfiguracionPage = () => {
                         Desde: {formatearFecha(pliego.vigencia_desde)}
                       </Typography>
                       <Typography variant="caption" display="block" color="text.secondary">
-                        Hasta: {formatearFecha(pliego.vigencia_hasta) || 'Indefinido'}
+                        Hasta: {pliego.vigencia_hasta ? formatearFecha(pliego.vigencia_hasta) : 'Sin vencimiento'}
                       </Typography>
                     </TableCell>
                     <TableCell align="center">

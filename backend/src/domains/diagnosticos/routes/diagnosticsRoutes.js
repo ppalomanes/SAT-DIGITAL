@@ -9,8 +9,14 @@ const logger = require('../../../shared/utils/logger');
 
 const router = express.Router();
 
-// Middleware de autenticación para todas las rutas
+// Middleware de autenticación + autorización solo admin
 router.use(verificarToken);
+router.use((req, res, next) => {
+  if (req.usuario?.rol !== 'admin') {
+    return res.status(403).json({ success: false, message: 'Acceso restringido a administradores' });
+  }
+  next();
+});
 
 /**
  * GET /api/diagnosticos/system - Diagnóstico completo del sistema

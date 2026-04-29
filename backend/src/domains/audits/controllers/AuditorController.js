@@ -235,13 +235,13 @@ class AuditorController {
         const seccionesCargadas = new Set(auditoria.documentos.map(d => d.seccion_id)).size;
         const progresoPorcentaje = Math.round((seccionesCargadas / totalSecciones) * 100);
 
-        // Generar código de auditoría con nomenclatura correcta
+        // Generar código de auditoría (solo año + correlativo)
         const codigoPeriodo = auditoria.periodo ? auditoria.periodo.substring(0, 4) : '2025';
         const numeroAuditoria = String(auditoria.id).padStart(3, '0');
         const nombreProveedor = auditoria.sitio.proveedor.nombre_comercial || auditoria.sitio.proveedor.razon_social;
         const nombreSitio = auditoria.sitio.nombre;
 
-        const codigoAuditoria = `AUD-${codigoPeriodo}-${numeroAuditoria}-${nombreProveedor}-${nombreSitio}`;
+        const codigoAuditoria = `AUD-${codigoPeriodo}-${numeroAuditoria}`;
 
         return {
           id: auditoria.id,

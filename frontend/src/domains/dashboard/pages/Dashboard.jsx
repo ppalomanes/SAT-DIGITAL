@@ -131,7 +131,7 @@ const Dashboard = () => {
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Box>
             <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-              Bienvenido, {usuario?.nombre?.split(' ')[0] || 'Usuario'}
+              Bienvenido, {usuario?.nombre?.split(' ')[0] || usuario?.email?.split('@')[0] || 'Sin nombre'}
             </Typography>
             <Typography variant="subtitle1" color="text.secondary">
               Aquí tienes un resumen del estado actual de las auditorías técnicas.

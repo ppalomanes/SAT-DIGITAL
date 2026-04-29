@@ -193,7 +193,7 @@ const PliegoDetalle = () => {
         <InfoRow label="Estado" value={pliego.estado.toUpperCase()} />
         <InfoRow label="Es Vigente" value={pliego.es_vigente} type="boolean" />
         <InfoRow label="Vigencia Desde" value={formatearFecha(pliego.vigencia_desde)} />
-        <InfoRow label="Vigencia Hasta" value={formatearFecha(pliego.vigencia_hasta)} />
+        <InfoRow label="Vigencia Hasta" value={pliego.vigencia_hasta ? formatearFecha(pliego.vigencia_hasta) : 'Sin vencimiento'} />
         <InfoRow label="Versión" value={pliego.version} />
       </Paper>
 

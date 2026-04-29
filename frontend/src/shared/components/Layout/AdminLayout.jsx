@@ -51,6 +51,17 @@ import GlobalSearch from '../Search/GlobalSearch';
 
 const DRAWER_WIDTH = 280;
 
+const ROL_LABELS = {
+  admin: 'Administrador',
+  auditor_general: 'Auditor General',
+  auditor_interno: 'Auditor Interno',
+  jefe_proveedor: 'Jefe de Proveedor',
+  tecnico_proveedor: 'Técnico Proveedor',
+  visualizador: 'Visualizador',
+  auditor: 'Auditor',
+  proveedor: 'Proveedor',
+};
+
 const menuItems = {
   admin: [
     {
@@ -242,20 +253,51 @@ const menuItems = {
       badge: null
     },
     {
-      id: 'reportes',
-      title: 'Reportes',
-      icon: <ReportsIcon />,
-      path: '/reportes',
-      badge: null
-    },
-    {
-      id: 'analytics',
-      title: 'Analytics',
+      id: 'dashboard-ejecutivo',
+      title: 'Dashboard Ejecutivo',
       icon: <AnalyticsIcon />,
-      path: '/analytics',
+      path: '/dashboard-ejecutivo',
       badge: null
     }
-  ]
+  ],
+
+  auditor_general: [
+    { id: 'dashboard', title: 'Mi Panel', icon: <DashboardIcon />, path: '/dashboard', badge: null },
+    { id: 'dashboard-ejecutivo', title: 'Dashboard Ejecutivo', icon: <AnalyticsIcon />, path: '/dashboard-ejecutivo', badge: null },
+    { id: 'panel-auditor', title: 'Panel Control', icon: <SecurityIcon />, path: '/panel-auditor', badge: null },
+    { id: 'auditorias', title: 'Auditorías', icon: <AssignmentIcon />, path: '/auditorias', badge: null },
+    { id: 'calendario', title: 'Períodos', icon: <ScheduleIcon />, path: '/calendario', badge: null },
+    { id: 'proveedores', title: 'Proveedores', icon: <BusinessIcon />, path: '/proveedores', badge: null },
+    { id: 'documentos', title: 'Documentos', icon: <ReportsIcon />, path: '/documentos', badge: null },
+    { id: 'comunicacion', title: 'Comunicación', icon: <ChatIcon />, path: '/comunicacion', badge: null },
+    { id: 'notificaciones', title: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones', badge: null },
+    { id: 'reportes', title: 'Reportes', icon: <BarChartIcon />, path: '/reportes', badge: null },
+    { id: 'diagnosticos', title: 'Diagnósticos', icon: <DiagnosticsIcon />, path: '/diagnosticos', badge: null },
+  ],
+
+  auditor_interno: [
+    { id: 'dashboard', title: 'Mi Panel', icon: <DashboardIcon />, path: '/dashboard', badge: null },
+    { id: 'panel-auditor', title: 'Panel Control', icon: <SecurityIcon />, path: '/panel-auditor', badge: null },
+    { id: 'auditorias', title: 'Auditorías', icon: <AssignmentIcon />, path: '/auditorias', badge: null },
+    { id: 'calendario', title: 'Períodos', icon: <ScheduleIcon />, path: '/calendario', badge: null },
+    { id: 'documentos', title: 'Documentos', icon: <ReportsIcon />, path: '/documentos', badge: null },
+    { id: 'comunicacion', title: 'Comunicación', icon: <ChatIcon />, path: '/comunicacion', badge: null },
+    { id: 'notificaciones', title: 'Notificaciones', icon: <NotificationsIcon />, path: '/notificaciones', badge: null },
+  ],
+
+  jefe_proveedor: [
+    { id: 'dashboard', title: 'Mi Panel', icon: <DashboardIcon />, path: '/dashboard', badge: null },
+    { id: 'auditorias', title: 'Mis Auditorías', icon: <AssignmentIcon />, path: '/auditorias', badge: null },
+    { id: 'documentos', title: 'Documentos', icon: <ReportsIcon />, path: '/documentos', badge: null },
+    { id: 'comunicacion', title: 'Comunicación', icon: <ChatIcon />, path: '/comunicacion', badge: null },
+  ],
+
+  tecnico_proveedor: [
+    { id: 'dashboard', title: 'Mi Panel', icon: <DashboardIcon />, path: '/dashboard', badge: null },
+    { id: 'auditorias', title: 'Mis Auditorías', icon: <AssignmentIcon />, path: '/auditorias', badge: null },
+    { id: 'documentos', title: 'Documentos', icon: <ReportsIcon />, path: '/documentos', badge: null },
+    { id: 'comunicacion', title: 'Comunicación', icon: <ChatIcon />, path: '/comunicacion', badge: null },
+  ],
 };
 
 const AdminLayout = ({ children }) => {
@@ -493,8 +535,8 @@ const AdminLayout = ({ children }) => {
               </Typography>
             </Box>
             <Box display="flex" alignItems="center" gap={0.5}>
-              <Chip 
-                label={usuario?.rol?.charAt(0).toUpperCase() + usuario?.rol?.slice(1)}
+              <Chip
+                label={ROL_LABELS[usuario?.rol] || usuario?.rol}
                 size="small"
                 sx={{
                   backgroundColor: getRolColor(usuario?.rol),
@@ -647,7 +689,7 @@ const AdminLayout = ({ children }) => {
           width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
           minHeight: '100vh',
           backgroundColor: alpha(theme.palette.primary.main, 0.02),
-          overflow: 'hidden'
+          overflow: 'visible'
         }}
       >
         <Toolbar />

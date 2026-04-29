@@ -506,7 +506,7 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
                   color: '#1e293b'
                 }}
               >
-                Auditoría Técnica - {auditData?.sitio?.nombre}
+                Auditoría Técnica{auditData?.sitio?.nombre ? ` - ${auditData.sitio.nombre}` : ''}
               </Typography>
               <Typography 
                 variant="subtitle1" 
@@ -516,7 +516,7 @@ const AuditoriaFormulario = ({ auditData, onClose, onSave }) => {
                   fontWeight: 300
                 }}
               >
-                {auditData?.proveedor?.nombre_comercial} | {auditData?.sitio?.localidad}
+                {[auditData?.proveedor?.nombre_comercial, auditData?.sitio?.localidad].filter(Boolean).join(' | ')}
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>

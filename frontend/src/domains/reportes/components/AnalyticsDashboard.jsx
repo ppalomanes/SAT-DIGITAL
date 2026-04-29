@@ -274,7 +274,7 @@ const AnalyticsDashboard = () => {
                 label="Fecha Desde"
                 value={filtrosLocales.fecha_desde}
                 onChange={(newValue) => setFiltrosLocales(prev => ({ ...prev, fecha_desde: newValue }))}
-                slotProps={{ textField: { size: 'small', fullWidth: true } }}
+                slotProps={{ textField: { size: 'small', fullWidth: true, autoFocus: false, inputProps: { tabIndex: -1 } } }}
               />
             </Grid>
             

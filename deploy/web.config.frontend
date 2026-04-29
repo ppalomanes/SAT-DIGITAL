@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ===============================================
+  SAT-Digital Frontend - IIS Configuration
+  ===============================================
+  Servidor: DWIN0540
+  Ubicación: D:\webs\SAT-DIGITAL\frontend\dist
+
+  IMPORTANTE:
+  - Este archivo debe ir en la carpeta dist/ después del build
+  - Copiar como web.config en D:\webs\SAT-DIGITAL\frontend\dist
+  - Configurar sitio IIS para apuntar a la carpeta dist
+  ===============================================
+-->
+<configuration>
+  <system.webServer>
+
+    <!-- Reescritura de URLs para React Router -->
+    <rewrite>
+      <rules>
+        <!-- Regla para archivos estáticos -->
+        <rule name="StaticFiles" stopProcessing="true">
+          <match url="^(.*)\.(js|css|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot|json|xml|txt|pdf)$" />
+          <action type="Rewrite" url="{R:0}" />
+        </rule>
+
+        <!-- Regla para carpetas de assets -->
+        <rule name="Assets" stopProcessing="true">
+          <match url="^(assets|images|fonts|static)/.*" />
+          <action type="Rewrite" url="{R:0}" />
+        </rule>
+
+        <!-- Regla para Socket.IO (proxy al backend) -->
+        <rule name="SocketIO" stopProcessing="true">
+          <match url="^socket.io/.*" />
+          <action type="None" />
+        </rule>
+
+        <!-- Redirigir todo lo demás a index.html (React Router) -->
+        <rule name="ReactRouter" stopProcessing="true">
+          <match url=".*" />
+          <conditions logicalGrouping="MatchAll">
+            <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
+            <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+          </conditions>
+          <action type="Rewrite" url="/index.html" />
+        </rule>
+      </rules>
+    </rewrite>
+
+    <!-- Tipos MIME para assets -->
+    <staticContent>
+      <remove fileExtension=".woff" />
+      <remove fileExtension=".woff2" />
+      <mimeMap fileExtension=".woff" mimeType="application/font-woff" />
+      <mimeMap fileExtension=".woff2" mimeType="application/font-woff2" />
+      <mimeMap fileExtension=".json" mimeType="application/json" />
+      <mimeMap fileExtension=".svg" mimeType="image/svg+xml" />
+
+      <!-- Cache control para assets -->
+      <clientCache cacheControlMode="UseMaxAge" cacheControlMaxAge="7.00:00:00" />
+    </staticContent>
+
+    <!-- Compresión de archivos -->
+    <urlCompression doStaticCompression="true" doDynamicCompression="true" />
+
+    <httpCompression>
+      <dynamicTypes>
+        <clear />
+        <add enabled="true" mimeType="text/*"/>
+        <add enabled="true" mimeType="message/*"/>
+        <add enabled="true" mimeType="application/x-javascript"/>
+        <add enabled="true" mimeType="application/javascript"/>
+        <add enabled="true" mimeType="application/json"/>
+        <add enabled="false" mimeType="*/*"/>
+      </dynamicTypes>
+      <staticTypes>
+        <clear />
+        <add enabled="true" mimeType="text/*"/>
+        <add enabled="true" mimeType="message/*"/>
+        <add enabled="true" mimeType="application/javascript"/>
+        <add enabled="true" mimeType="application/atom+xml"/>
+        <add enabled="true" mimeType="application/xaml+xml"/>
+        <add enabled="true" mimeType="application/json"/>
+        <add enabled="false" mimeType="*/*"/>
+      </staticTypes>
+    </httpCompression>
+
+    <!-- Headers de seguridad -->
+    <httpProtocol>
+      <customHeaders>
+        <!-- Security Headers -->
+        <add name="X-Content-Type-Options" value="nosniff" />
+        <add name="X-Frame-Options" value="SAMEORIGIN" />
+        <add name="X-XSS-Protection" value="1; mode=block" />
+        <add name="Referrer-Policy" value="strict-origin-when-cross-origin" />
+
+        <!-- CORS Headers -->
+        <add name="Access-Control-Allow-Origin" value="http://10.75.247.181:3001" />
+        <add name="Access-Control-Allow-Methods" value="GET, POST, PUT, DELETE, OPTIONS" />
+        <add name="Access-Control-Allow-Headers" value="Content-Type, Authorization" />
+
+        <!-- Cache Control -->
+        <add name="Cache-Control" value="public, max-age=31536000" />
+
+        <!-- Remove X-Powered-By -->
+        <remove name="X-Powered-By" />
+      </customHeaders>
+    </httpProtocol>
+
+    <!-- Manejo de errores -->
+    <httpErrors errorMode="Custom" existingResponse="Replace">
+      <remove statusCode="404" />
+      <error statusCode="404" path="/index.html" responseMode="ExecuteURL" />
+    </httpErrors>
+
+    <!-- Default document -->
+    <defaultDocument>
+      <files>
+        <clear />
+        <add value="index.html" />
+      </files>
+    </defaultDocument>
+
+  </system.webServer>
+
+  <!-- Configuración de .NET Framework -->
+  <system.web>
+    <compilation debug="false" targetFramework="4.0" />
+  </system.web>
+
+</configuration>

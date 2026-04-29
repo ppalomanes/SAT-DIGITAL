@@ -1,0 +1,57 @@
+# ===============================================
+# SAT-Digital Backend - iisnode Configuration
+# ===============================================
+# Este archivo complementa web.config para iisnode
+# Copiar a: D:\webs\SAT-DIGITAL\backend\iisnode.yml
+# ===============================================
+
+# Node.js environment
+node_env: production
+
+# Logging
+loggingEnabled: true
+logDirectory: iisnode
+devErrorsEnabled: false
+debuggingEnabled: false
+
+# Performance
+nodeProcessCountPerApplication: 1
+maxConcurrentRequestsPerProcess: 1024
+maxNamedPipeConnectionRetry: 100
+namedPipeConnectionRetryDelay: 250
+
+# Connection pooling
+maxNamedPipeConnectionPoolSize: 512
+maxNamedPipePooledConnectionAge: 30000
+
+# Request handling
+initialRequestBufferSize: 4096
+maxRequestBufferSize: 65536
+asyncCompletionThreadCount: 0
+
+# File monitoring (para auto-restart)
+watchedFiles: *.js;web.config;.env;package.json
+uncFileChangesPollingInterval: 5000
+
+# Graceful shutdown
+gracefulShutdownTimeout: 60000
+
+# Debugging (solo desarrollo)
+debugHeaderEnabled: false
+debuggerPortRange: 5058-6058
+debuggerPathSegment: debug
+
+# Logging limits
+maxLogFileSizeInKB: 128
+maxTotalLogFileSizeInKB: 1024
+maxLogFiles: 20
+
+# Response handling
+flushResponse: false
+
+# Headers
+enableXFF: true
+promoteServerVars: LOGON_USER,REMOTE_ADDR,HTTP_X_FORWARDED_FOR
+
+# Node.js arguments (ajustar según necesidad)
+nodeProcessCommandLine: "C:\Program Files\nodejs\node.exe"

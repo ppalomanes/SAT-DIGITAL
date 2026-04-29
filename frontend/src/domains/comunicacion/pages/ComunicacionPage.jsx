@@ -17,6 +17,15 @@ import { useAuthStore } from '../../auth/store/authStore';
 import apiClient from '../../../shared/services/apiClient';
 import { formatDate } from '../../../shared/utils/dateHelpers';
 
+const ROL_LABELS = {
+  admin: 'Administrador',
+  auditor_general: 'Auditor General',
+  auditor_interno: 'Auditor Interno',
+  jefe_proveedor: 'Jefe de Proveedor',
+  tecnico_proveedor: 'Técnico Proveedor',
+  visualizador: 'Visualizador',
+};
+
 const ComunicacionPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,8 +42,9 @@ const ComunicacionPage = () => {
         if (response.data.success && response.data.data && response.data.data.auditorias) {
           const auditoriasList = response.data.data.auditorias.map(auditoria => ({
             id: auditoria.id,
-            codigo: auditoria.codigo, // Usar el código generado por el backend
-            sitio: `${auditoria.sitio?.nombre || 'Sitio'} - ${auditoria.proveedor?.nombre || 'Proveedor'}`,
+            codigo: auditoria.codigo,
+            sitio_nombre: auditoria.sitio?.nombre || 'Sitio',
+            localidad: auditoria.sitio?.localidad || auditoria.proveedor?.nombre || '',
             estado: auditoria.estado,
             fecha_limite: auditoria.fecha_limite_carga
           }));
@@ -116,7 +126,7 @@ const ComunicacionPage = () => {
           </Typography>
           <Typography variant="body2" color="text.secondary">
             <strong>Usuario:</strong> {usuario?.nombre} {usuario?.apellido} |
-            <strong> Rol:</strong> {usuario?.rol}
+            <strong> Rol:</strong> {ROL_LABELS[usuario?.rol] || usuario?.rol}
             {usuario?.proveedor_id && (
               <>
                 {' | '}
@@ -141,7 +151,7 @@ const ComunicacionPage = () => {
             >
               {auditorias.map((auditoria) => (
                 <MenuItem key={auditoria.id} value={auditoria.id}>
-                  {auditoria.codigo} - {auditoria.sitio}
+                  {auditoria.codigo} — {auditoria.sitio_nombre}{auditoria.localidad ? ` - ${auditoria.localidad}` : ''}
                 </MenuItem>
               ))}
             </Select>
